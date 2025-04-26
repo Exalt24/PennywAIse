@@ -11,8 +11,8 @@ A simple Django-based budgeting application with Tailwind CSS styling.
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd <project-directory>
+   git clone https://github.com/Exalt24/WebEngLongExam2.git
+   cd WebEngLongExam2 
    ```
 
 2. Install Node.js dependencies:
