@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.4",
+    "tailwindcss": "^4.1.4"
+  },
+  "scripts": {
+    "watch:css": "npx @tailwindcss/cli -i ./budget/static/css/main/input.css -o ./budget/static/css/main/output.css --watch",
+    "dev": "concurrently \"python manage.py runserver\" \"npm run watch:css\""
+  }
+}
