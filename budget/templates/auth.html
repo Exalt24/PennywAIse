@@ -1,17 +1,105 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login/Register</title>
+  <meta name="description" content="Login or Register to your account" />
+  <link href="{% static 'css/main/output.css' %}" rel="stylesheet" />
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="flex">
+      <button id="login-tab"
+              class="w-1/2 py-3 text-center font-semibold text-gray-700 hover:bg-gray-50 transition"
+              aria-controls="login-form"
+              aria-selected="true">
+        Login
+      </button>
+      <button id="register-tab"
+              class="w-1/2 py-3 text-center font-semibold text-gray-700 hover:bg-gray-50 transition"
+              aria-controls="register-form"
+              aria-selected="false">
+        Register
+      </button>
+    </div>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Budget app" />
-    <meta name="author" content="Daniel Alexis Cruz" />
-    <meta name="keywords" content="budget, django, web development" />
-    <title>Budget</title>
-    <link rel="stylesheet" href="{% static 'css/main/output.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/budget/auth.css' %}" type="text/css">
-  </head>
-  <body>
-    <h1 class="text-3xl font-bold">Login/Register</h1>
-  </body>
+    <div id="login-form" class="p-6">
+      <form method="post" action="{% url 'budget:auth' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
+          <input type="text" name="username" id="id_username"
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+        <div>
+          <label for="id_password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" name="password" id="id_password"
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+        <button type="submit"
+                name="login-submit"
+                class="w-full py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition">
+          Log In
+        </button>
+      </form>
+    </div>
+
+    <div id="register-form" class="p-6 hidden">
+      <form method="post" action="{% url 'budget:auth' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label for="id_reg_username" class="block text-sm font-medium text-gray-700">Username</label>
+          <input type="text" name="username" id="id_reg_username"
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+        <div>
+          <label for="id_email" class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" name="email" id="id_email"
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+        <div>
+          <label for="id_reg_password1" class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" name="password1" id="id_reg_password1"
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+        <div>
+          <label for="id_reg_password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+          <input type="password" name="password2" id="id_reg_password2"
+                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+        <button type="submit"
+                name="register-submit"
+                class="w-full py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition">
+          Register
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    function showLogin() {
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+      loginTab.setAttribute('aria-selected','true');
+      registerTab.setAttribute('aria-selected','false');
+    }
+
+    function showRegister() {
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      registerTab.setAttribute('aria-selected','true');
+      loginTab.setAttribute('aria-selected','false');
+    }
+
+    loginTab.addEventListener('click', showLogin);
+    registerTab.addEventListener('click', showRegister);
+  </script>
+</body>
 </html>
