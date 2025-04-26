@@ -1,4 +1,4 @@
 node_modules/
 __pycache__/
 output.css
-db.sqlite3
+/db.sqlite3
