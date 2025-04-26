@@ -1,1 +1,97 @@
 @import "tailwindcss";
+
+/* Sidebar */
+.sidebar {
+  @apply w-60 bg-[#1e1e1e] text-white p-5 flex flex-col;
+}
+.logo {
+  @apply text-2xl font-bold mb-8;
+}
+.create {
+  @apply bg-[#ff6f00] text-white border-0 px-4 py-3 rounded-lg cursor-pointer mb-8;
+}
+
+/* Navigation links */
+nav a {
+  @apply text-current no-underline block px-4 py-3 rounded-lg mb-2;
+}
+nav a.active,
+nav a:hover {
+  @apply bg-[#333];
+}
+
+/* Main area */
+.main {
+  @apply flex-1 p-5 overflow-y-auto;
+}
+header {
+  @apply flex justify-between items-center mb-5;
+}
+.search input {
+  @apply w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg;
+}
+.user {
+  @apply cursor-pointer;
+}
+
+/* Overview cards */
+.overview {
+  /* auto-fit cards at min-200px */
+  @apply grid gap-4 mb-5 grid-cols-[repeat(auto-fit,minmax(200px,1fr))];
+}
+.card {
+  @apply bg-white rounded-lg p-4 shadow-md;
+}
+.card .title {
+  @apply text-sm text-[#666] mb-2;
+}
+.card .value {
+  @apply text-xl font-bold mb-2;
+}
+.card .meta {
+  @apply text-xs text-[#666];
+}
+
+/* Content section */
+.content {
+  @apply flex flex-wrap gap-8 mb-5;
+}
+.project-summary {
+  @apply flex-[2] bg-white rounded-lg p-4 shadow-md mb-5 overflow-hidden;
+}
+.progress {
+  @apply flex-[1] bg-white rounded-lg p-4 shadow-md flex flex-col items-center;
+}
+
+/* Table styles */
+table {
+  @apply w-full border-collapse;
+}
+th,
+td {
+  @apply text-left px-3 py-2 border-b border-gray-200;
+}
+th {
+  @apply bg-gray-100;
+}
+
+/* Bottom section */
+.bottom {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-8;
+}
+.tasks,
+.workload {
+  @apply bg-white rounded-lg p-4 shadow-md;
+}
+.tasks ul {
+  @apply list-none;
+}
+.tasks li {
+  @apply flex items-center mb-2;
+}
+.tasks input {
+  @apply mr-2;
+}
+.tasks span {
+  @apply ml-auto text-xs text-[#666];
+}
