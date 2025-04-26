@@ -1,138 +1,170 @@
 {% load static %}
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Budget app" />
-    <meta name="author" content="Daniel Alexis Cruz" />
-    <meta name="keywords" content="budget, django, web development" />
+    <meta name="description" content="Personal Finance Dashboard" />
+    <meta name="author" content="Your Name" />
     <title>Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/main/output.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/budget/dashboard.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'css/main/output.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/budget/dashboard.css' %}" />
   </head>
-  <body>
+  <body class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-      <div class="logo">Promage</div>
-      <button class="create">+ Create new project</button>
+      <h1 class="logo">PennyWise</h1>
+      <button class="create">
+        <a href="#">+ Add Entry</a>
+      </button>
       <nav>
-        <a href="#" class="active">Dashboard</a>
-        <a href="#">Projects</a>
-        <a href="#">Tasks</a>
-        <a href="#">Dashboard</a>
-        <a href="#">Time log</a>
-        <a href="#">Resource mgmt</a>
-        <a href="#">Users</a>
-        <a href="#">Project template</a>
-        <a href="#">Menu settings</a>
+        <a href="#dashboard" class="active">Dashboard</a>
+        <a href="#">Income</a>
+        <a href="#">Expenses</a>
+        <a href="#">Categories</a>
+        <a href="#">Reports</a>
+        <a href="#">Settings</a>
       </nav>
     </aside>
-    <div class="main">
+
+    <!-- MAIN DASHBOARD -->
+    <main id="dashboard" class="main">
       <header>
-        <div class="search"><input type="text" placeholder="Search for anything…"></div>
-        <div class="user">Alex Meian &#9662;</div>
+        <div class="search">
+          <input type="text" placeholder="Search transactions…" />
+        </div>
+        <div class="user">Hello, Jane Doe ▼</div>
       </header>
-      <section class="overview">
-        <div class="card">
-          <div class="title">Total revenue</div>
-          <div class="value">$53,00989</div>
-          <div class="meta">+12% increase from last month</div>
+
+      <!-- OVERVIEW CARDS -->
+      <section id="overview" class="overview">
+        <article class="card">
+          <h3 class="title">Total Income</h3>
+          <p class="value">$5,200.00</p>
+          <p class="meta">This month</p>
+        </article>
+        <article class="card">
+          <h3 class="title">Total Expenses</h3>
+          <p class="value">$3,450.00</p>
+          <p class="meta">This month</p>
+        </article>
+        <article class="card">
+          <h3 class="title">Net Balance</h3>
+          <p class="value">$1,750.00</p>
+          <p class="meta">Income − Expenses</p>
+        </article>
+        <article class="card">
+          <h3 class="title">Transactions</h3>
+          <p class="value">18</p>
+          <p class="meta">Entries this month</p>
+        </article>
+      </section>
+
+      <!-- CHARTS -->
+      <section id="charts" class="content flex flex-wrap gap-8 mb-5">
+        <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
+          <h2>Monthly Trend</h2>
+          <canvas id="trendChart" width="300" height="200"></canvas>
         </div>
-        <div class="card">
-          <div class="title">Projects</div>
-          <div class="value">95 /100</div>
-          <div class="meta">-10% decrease from last month</div>
-        </div>
-        <div class="card">
-          <div class="title">Time spent</div>
-          <div class="value">1022 / 1300 Hrs</div>
-          <div class="meta">+8% increase from last month</div>
-        </div>
-        <div class="card">
-          <div class="title">Resources</div>
-          <div class="value">101 /120</div>
-          <div class="meta">+2% increase from last month</div>
+        <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
+          <h2>Expenses by Category</h2>
+          <canvas id="categoryChart" width="300" height="200"></canvas>
         </div>
       </section>
-  
-      <section class="content">
-        <div class="project-summary">
-          <h3>Project summary</h3>
-          <table>
+
+      <!-- RECENT TRANSACTIONS -->
+      <section id="recent" class="project-summary overflow-hidden">
+        <h2>Recent Transactions</h2>
+
+        <!-- horizontal scroll wrapper -->
+        <div class="overflow-x-auto">
+          <table class="table-auto w-full">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Project manager</th>
-                <th>Due date</th>
-                <th>Status</th>
-                <th>Progress</th>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td>Nelsa web development</td><td>Om prakash sao</td><td>May 25, 2023</td><td>Completed</td><td>100%</td></tr>
-              <tr><td>Datascale AI app</td><td>Neilson mando</td><td>Jun 20, 2023</td><td>Delayed</td><td>28%</td></tr>
-              <tr><td>Media channel branding</td><td>Tiruvelly priya</td><td>July 13, 2023</td><td>At risk</td><td>68%</td></tr>
-              <tr><td>Corlax iOS app development</td><td>Matte hannery</td><td>Dec 20, 2023</td><td>Completed</td><td>100%</td></tr>
-              <tr><td>Website builder development</td><td>Sukumar rao</td><td>Mar 15, 2024</td><td>On going</td><td>50%</td></tr>
+              <tr>
+                <td>Apr 25, 2025</td>
+                <td>Salary</td>
+                <td>Income</td>
+                <td>$3,000.00</td>
+                <td>Income</td>
+                <td class="whitespace-nowrap">
+                  <div class="inline-flex items-center space-x-1">
+                    <a href="#">Edit</a>
+                    <span>|</span>
+                    <a href="#">Delete</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <!-- static -->
+                <td>Apr 25, 2025</td>
+                <td>Salary</td>
+                <td>Income</td>
+                <td>$3,000.00</td>
+                <td>Income</td>
+                <td class="whitespace-nowrap">
+                  <div class="inline-flex items-center space-x-1">
+                    <a href="#">Edit</a>
+                    <span>|</span>
+                    <a href="#">Delete</a>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Apr 25, 2025</td>
+                <td>Salary</td>
+                <td>Income</td>
+                <td>$3,000.00</td>
+                <td>Income</td>
+                <td class="whitespace-nowrap">
+                  <div class="inline-flex items-center space-x-1">
+                    <a href="#">Edit</a>
+                    <span>|</span>
+                    <a href="#">Delete</a>
+                  </div>
+                </td>
+              </tr>
+              <!-- repeat rows… -->
             </tbody>
           </table>
         </div>
-        <div class="progress">
-          <h3>Overall Progress</h3>
-          <canvas id="gaugeChart" width="200" height="200"></canvas>
-          <p>95 Total projects | 26 Completed | 35 Delayed | 35 On going</p>
-        </div>
       </section>
-  
-      <section class="bottom">
+
+      <!-- QUICK ACTIONS -->
+      <section
+        id="actions"
+        class="bottom grid grid-cols-1 md:grid-cols-2 gap-8"
+      >
         <div class="tasks">
-          <h3>Today task</h3>
+          <h2>Quick Actions</h2>
           <ul>
-            <li><input type="checkbox" checked> Create a user flow of social application design <span>(Approved)</span></li>
-            <li><input type="checkbox" checked> Create a user flow of social application design <span>(In review)</span></li>
-            <li><input type="checkbox"> Landing page design for Fintech project of Singapore <span>(In review)</span></li>
-            <li><input type="checkbox"> Interactive prototype for app screens of deltamine project <span>(On going)</span></li>
-            <li><input type="checkbox" checked> Interactive prototype for app screens of deltamine project <span>(Approved)</span></li>
+            <li><a href="#">Add Income</a></li>
+            <li><a href="#">Add Expense</a></li>
+            <li><a href="#">View Full Reports</a></li>
           </ul>
         </div>
         <div class="workload">
-          <h3>Projects Workload</h3>
-          <canvas id="workloadChart" width="300" height="200"></canvas>
+          <h2>Category Summary</h2>
+          <ul class="list-none">
+            <li>Food: $600.00</li>
+            <li>Bills: $400.00</li>
+            <li>Transport: $200.00</li>
+            <li>Entertainment: $150.00</li>
+            <li>Others: $100.00</li>
+          </ul>
         </div>
       </section>
-  
-    </div>
-  
-    <script>
-      // Gauge Chart
-      const gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
-      new Chart(gaugeCtx, {
-        type: 'doughnut',
-        data: {
-          datasets: [{ data: [72, 28], backgroundColor: ['#ff6f00', '#e0e0e0'], borderWidth: 0 }]
-        },
-        options: {
-          rotation: -90 * Math.PI / 180,
-          circumference: 180 * Math.PI / 180,
-          cutout: '70%',
-          plugins: { tooltip: { enabled: false }, legend: { display: false } }
-        }
-      });
-  
-      // Workload Bubble Chart
-      const workloadCtx = document.getElementById('workloadChart').getContext('2d');
-      new Chart(workloadCtx, {
-        type: 'bubble',
-        data: {
-          datasets: [
-            { label: 'Jan', data: [{ x: 1, y: 7, r: 10 }], backgroundColor: '#666' },
-            { label: 'Feb', data: [{ x: 2, y: 8, r: 8 }], backgroundColor: '#666' },
-            { label: 'Mar', data: [{ x: 3, y: 4, r: 6 }], backgroundColor: '#666' },
-            // ... add more months
-          ]
-        },
-        options: { scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
-      });
-    </script>
+    </main>
+
+    <!-- Chart.js scripts go in your static JS file -->
   </body>
 </html>
