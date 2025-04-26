@@ -12,6 +12,127 @@
     <link rel="stylesheet" href="{% static 'css/budget/dashboard.css' %}" type="text/css">
   </head>
   <body>
-      <h1 class="text-3xl font-bold">Dashboard</h1>
+    <aside class="sidebar">
+      <div class="logo">Promage</div>
+      <button class="create">+ Create new project</button>
+      <nav>
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">Projects</a>
+        <a href="#">Tasks</a>
+        <a href="#">Dashboard</a>
+        <a href="#">Time log</a>
+        <a href="#">Resource mgmt</a>
+        <a href="#">Users</a>
+        <a href="#">Project template</a>
+        <a href="#">Menu settings</a>
+      </nav>
+    </aside>
+    <div class="main">
+      <header>
+        <div class="search"><input type="text" placeholder="Search for anything…"></div>
+        <div class="user">Alex Meian &#9662;</div>
+      </header>
+      <section class="overview">
+        <div class="card">
+          <div class="title">Total revenue</div>
+          <div class="value">$53,00989</div>
+          <div class="meta">+12% increase from last month</div>
+        </div>
+        <div class="card">
+          <div class="title">Projects</div>
+          <div class="value">95 /100</div>
+          <div class="meta">-10% decrease from last month</div>
+        </div>
+        <div class="card">
+          <div class="title">Time spent</div>
+          <div class="value">1022 / 1300 Hrs</div>
+          <div class="meta">+8% increase from last month</div>
+        </div>
+        <div class="card">
+          <div class="title">Resources</div>
+          <div class="value">101 /120</div>
+          <div class="meta">+2% increase from last month</div>
+        </div>
+      </section>
+  
+      <section class="content">
+        <div class="project-summary">
+          <h3>Project summary</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Project manager</th>
+                <th>Due date</th>
+                <th>Status</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Nelsa web development</td><td>Om prakash sao</td><td>May 25, 2023</td><td>Completed</td><td>100%</td></tr>
+              <tr><td>Datascale AI app</td><td>Neilson mando</td><td>Jun 20, 2023</td><td>Delayed</td><td>28%</td></tr>
+              <tr><td>Media channel branding</td><td>Tiruvelly priya</td><td>July 13, 2023</td><td>At risk</td><td>68%</td></tr>
+              <tr><td>Corlax iOS app development</td><td>Matte hannery</td><td>Dec 20, 2023</td><td>Completed</td><td>100%</td></tr>
+              <tr><td>Website builder development</td><td>Sukumar rao</td><td>Mar 15, 2024</td><td>On going</td><td>50%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="progress">
+          <h3>Overall Progress</h3>
+          <canvas id="gaugeChart" width="200" height="200"></canvas>
+          <p>95 Total projects | 26 Completed | 35 Delayed | 35 On going</p>
+        </div>
+      </section>
+  
+      <section class="bottom">
+        <div class="tasks">
+          <h3>Today task</h3>
+          <ul>
+            <li><input type="checkbox" checked> Create a user flow of social application design <span>(Approved)</span></li>
+            <li><input type="checkbox" checked> Create a user flow of social application design <span>(In review)</span></li>
+            <li><input type="checkbox"> Landing page design for Fintech project of Singapore <span>(In review)</span></li>
+            <li><input type="checkbox"> Interactive prototype for app screens of deltamine project <span>(On going)</span></li>
+            <li><input type="checkbox" checked> Interactive prototype for app screens of deltamine project <span>(Approved)</span></li>
+          </ul>
+        </div>
+        <div class="workload">
+          <h3>Projects Workload</h3>
+          <canvas id="workloadChart" width="300" height="200"></canvas>
+        </div>
+      </section>
+  
+    </div>
+  
+    <script>
+      // Gauge Chart
+      const gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+      new Chart(gaugeCtx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{ data: [72, 28], backgroundColor: ['#ff6f00', '#e0e0e0'], borderWidth: 0 }]
+        },
+        options: {
+          rotation: -90 * Math.PI / 180,
+          circumference: 180 * Math.PI / 180,
+          cutout: '70%',
+          plugins: { tooltip: { enabled: false }, legend: { display: false } }
+        }
+      });
+  
+      // Workload Bubble Chart
+      const workloadCtx = document.getElementById('workloadChart').getContext('2d');
+      new Chart(workloadCtx, {
+        type: 'bubble',
+        data: {
+          datasets: [
+            { label: 'Jan', data: [{ x: 1, y: 7, r: 10 }], backgroundColor: '#666' },
+            { label: 'Feb', data: [{ x: 2, y: 8, r: 8 }], backgroundColor: '#666' },
+            { label: 'Mar', data: [{ x: 3, y: 4, r: 6 }], backgroundColor: '#666' },
+            // ... add more months
+          ]
+        },
+        options: { scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
+      });
+    </script>
   </body>
 </html>
