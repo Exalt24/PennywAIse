@@ -5,8 +5,11 @@ from django.urls import reverse
 from django.views import generic
 from django.views.generic import TemplateView
 from django.utils import timezone
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
 from . import forms
+
+User = get_user_model()
+
 
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -33,15 +36,18 @@ class AuthView(TemplateView):
             context['login_form'] = login_form
 
             if login_form.is_valid():
-                user = authenticate(
-                    username=login_form.cleaned_data['username'],
-                    password=login_form.cleaned_data['password']
-                )
+                email = login_form.cleaned_data['email']
+                password = login_form.cleaned_data['password']
+                try:
+                    user_obj = User.objects.get(email__iexact=email)
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    user = None
+
                 if user:
                     login(request, user)
                     return redirect('budget:dashboard')
-                # authentication failed
-                context['login_error'] = "Invalid username or password."
+                context['login_error'] = "Invalid email or password."
 
         # --- REGISTER FLOW ---
         elif 'register-submit' in request.POST:
