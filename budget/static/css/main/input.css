@@ -31,9 +31,24 @@ header {
   @apply w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg;
 }
 .user {
-  @apply cursor-pointer;
+    @apply cursor-pointer flex justify-end items-center;
+  }  
+
+.button {
+    @apply flex items-center space-x-1 focus:outline-none
 }
 
+.usermenu {
+    @apply absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50
+}
+
+.menu {
+    @apply block px-4 py-2 hover:bg-gray-100
+}
+
+.pagetitle {
+    @apply text-2xl font-bold
+}
 /* Overview cards */
 .overview {
   /* auto-fit cards at min-200px */

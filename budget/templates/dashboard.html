@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/budget/dashboard.css' %}" />
   </head>
   <body class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
+    
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <h1 class="logo">PennywAIse</h1>
@@ -18,151 +19,412 @@
       </button>
       <nav>
         <a href="#dashboard" class="active">Dashboard</a>
-        <a href="#">Income</a>
-        <a href="#">Expenses</a>
-        <a href="#">Categories</a>
-        <a href="#">Reports</a>
-        <a href="#">Settings</a>
+        <a href="#income">Income</a>
+        <a href="#expenses">Expenses</a>
+        <a href="#categories">Categories</a>
+        <a href="#reports">Reports</a>
+        <a href="#settings">Settings</a>
       </nav>
     </aside>
-
-    <!-- MAIN DASHBOARD -->
-    <main id="dashboard" class="main">
-      <header>
-        <div class="search">
-          <input type="text" placeholder="Search transactions…" />
+    
+    <!-- MAIN -->
+    <main class="main">
+      <header class="user">
+        <div class="relative">
+          <button id="userBtn" class="button">
+            <span>Hello, Jane Doe</span>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z" />
+            </svg>
+          </button>
+          <div id="userMenu" class="hidden usermenu">
+            <a href="#" class="menu">Profile</a>
+            <a href="#" class="menu">Settings</a>
+            <div class="border-t my-1"></div>
+            <a href="#" class="menu">Logout</a>
+          </div>
         </div>
-        <div class="user">Hello, Jane Doe ▼</div>
       </header>
+      <!-- Dashboard page -->
+      <section id="dashboard" class="page-content">
+        <header>
+          <h2 class="pagetitle">Dashboard</h2>
+          <div class="search">
+            <input
+              type="text"
+              placeholder="Search expenses…"
+            />
+          </div>
+        </header>
+        <!-- OVERVIEW CARDS -->
+        <section id="overview" class="overview">
+          <article class="card">
+            <h3 class="title">Total Income</h3>
+            <p class="value">$5,200.00</p>
+            <p class="meta">This month</p>
+          </article>
+          <article class="card">
+            <h3 class="title">Total Expenses</h3>
+            <p class="value">$3,450.00</p>
+            <p class="meta">This month</p>
+          </article>
+          <article class="card">
+            <h3 class="title">Net Balance</h3>
+            <p class="value">$1,750.00</p>
+            <p class="meta">Income − Expenses</p>
+          </article>
+          <article class="card">
+            <h3 class="title">Transactions</h3>
+            <p class="value">18</p>
+            <p class="meta">Entries this month</p>
+          </article>
+        </section>
 
-      <!-- OVERVIEW CARDS -->
-      <section id="overview" class="overview">
-        <article class="card">
-          <h3 class="title">Total Income</h3>
-          <p class="value">$5,200.00</p>
-          <p class="meta">This month</p>
-        </article>
-        <article class="card">
-          <h3 class="title">Total Expenses</h3>
-          <p class="value">$3,450.00</p>
-          <p class="meta">This month</p>
-        </article>
-        <article class="card">
-          <h3 class="title">Net Balance</h3>
-          <p class="value">$1,750.00</p>
-          <p class="meta">Income − Expenses</p>
-        </article>
-        <article class="card">
-          <h3 class="title">Transactions</h3>
-          <p class="value">18</p>
-          <p class="meta">Entries this month</p>
-        </article>
+        <!-- CHARTS -->
+        <section id="charts" class="content">
+          <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
+            <h2>Monthly Trend</h2>
+            <canvas id="trendChart" width="300" height="200"></canvas>
+          </div>
+          <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
+            <h2>Expenses by Category</h2>
+            <canvas id="categoryChart" width="300" height="200"></canvas>
+          </div>
+        </section>
+
+        <!-- RECENT TRANSACTIONS -->
+        <section id="recent" class="project-summary overflow-hidden">
+          <h2>Recent Transactions</h2>
+
+          <!-- horizontal scroll wrapper -->
+          <div class="overflow-x-auto">
+            <table class="table-auto w-full">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Type</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Apr 25, 2025</td>
+                  <td>Salary</td>
+                  <td>Income</td>
+                  <td>$3,000.00</td>
+                  <td>Income</td>
+                  <td class="whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a>
+                      <span>|</span>
+                      <a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <!-- static -->
+                  <td>Apr 25, 2025</td>
+                  <td>Salary</td>
+                  <td>Income</td>
+                  <td>$3,000.00</td>
+                  <td>Income</td>
+                  <td class="whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a>
+                      <span>|</span>
+                      <a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Apr 25, 2025</td>
+                  <td>Salary</td>
+                  <td>Income</td>
+                  <td>$3,000.00</td>
+                  <td>Income</td>
+                  <td class="whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a>
+                      <span>|</span>
+                      <a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+                <!-- repeat rows… -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- QUICK ACTIONS -->
+        <section
+          id="actions"
+          class="bottom grid grid-cols-1 md:grid-cols-2 gap-8"
+        >
+          <div class="tasks">
+            <h2>Quick Actions</h2>
+            <ul>
+              <li><a href="#">Add Income</a></li>
+              <li><a href="#">Add Expense</a></li>
+              <li><a href="#">View Full Reports</a></li>
+            </ul>
+          </div>
+          <div class="workload">
+            <h2>Category Summary</h2>
+            <ul class="list-none">
+              <li>Food: $600.00</li>
+              <li>Bills: $400.00</li>
+              <li>Transport: $200.00</li>
+              <li>Entertainment: $150.00</li>
+              <li>Others: $100.00</li>
+            </ul>
+          </div>
+        </section>
       </section>
 
-      <!-- CHARTS -->
-      <section id="charts" class="content flex flex-wrap gap-8 mb-5">
-        <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
-          <h2>Monthly Trend</h2>
-          <canvas id="trendChart" width="300" height="200"></canvas>
-        </div>
-        <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
-          <h2>Expenses by Category</h2>
-          <canvas id="categoryChart" width="300" height="200"></canvas>
+      <!-- income page -->
+      <section id="income" class="page-content hidden">
+        <header class="flex justify-between items-center mb-5">
+          <h2 class="text-2xl font-bold">Income</h2>
+          <div class="search">
+            <input
+              type="text"
+              placeholder="Search income…"
+              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </header>
+
+        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
+          <!-- income table... -->
         </div>
       </section>
 
-      <!-- RECENT TRANSACTIONS -->
-      <section id="recent" class="project-summary overflow-hidden">
-        <h2>Recent Transactions</h2>
+      <!-- Expenses page -->
+      <section id="expenses" class="page-content hidden">
+        <header class="flex justify-between items-center mb-5">
+          <h2 class="text-2xl font-bold">Expenses</h2>
+          <div class="search">
+            <input
+              type="text"
+              placeholder="Search expenses…"
+              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </header>
+        <!-- EXPENSES OVERVIEW CARDS -->
+        <section class="overview">
+          <article class="card">
+            <h3 class="title">This Month's Expenses</h3>
+            <p class="value">$3,450.00</p>
+            <p class="meta">Apr 1 - Apr 30, 2025</p>
+          </article>
+          <article class="card">
+            <h3 class="title">Average Daily</h3>
+            <p class="value">$115.00</p>
+            <p class="meta">Based on 30 days</p>
+          </article>
+          <article class="card">
+            <h3 class="title">Highest Category</h3>
+            <p class="value">Food</p>
+            <p class="meta">$900.00 spent</p>
+          </article>
+          <article class="card">
+            <h3 class="title">Transactions</h3>
+            <p class="value">12</p>
+            <p class="meta">Entries this month</p>
+          </article>
+        </section>
+      
+        <!-- EXPENSES CHARTS -->
+        <section class="content grid grid-cols-1 md:grid-cols-2 gap-8 mb-5">
+          <div class="progress bg-white rounded-lg p-4 shadow-md">
+            <h2 class="text-lg mb-2">Expenses by Category</h2>
+            <canvas id="expenseCategoryChart" width="300" height="200"></canvas>
+          </div>
+          <div class="progress bg-white rounded-lg p-4 shadow-md">
+            <h2 class="text-lg mb-2">Daily Spending</h2>
+            <canvas id="expenseTrendChart" width="300" height="200"></canvas>
+          </div>
+        </section>
+      
+        <!-- EXPENSES TABLE -->
+        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
+          <h3 class="text-xl font-semibold mb-3">Recent Expenses</h3>
+          <div class="overflow-x-auto">
+            <table class="table-auto w-full">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="px-3 py-2 text-left">Date</th>
+                  <th class="px-3 py-2 text-left">Title</th>
+                  <th class="px-3 py-2 text-left">Category</th>
+                  <th class="px-3 py-2 text-left">Amount</th>
+                  <th class="px-3 py-2 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="px-3 py-2">Apr 24, 2025</td>
+                  <td class="px-3 py-2">Groceries</td>
+                  <td class="px-3 py-2">Food</td>
+                  <td class="px-3 py-2">$150.00</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">Apr 22, 2025</td>
+                  <td class="px-3 py-2">Electric Bill</td>
+                  <td class="px-3 py-2">Bills</td>
+                  <td class="px-3 py-2">$75.00</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">Apr 20, 2025</td>
+                  <td class="px-3 py-2">Restaurant</td>
+                  <td class="px-3 py-2">Food</td>
+                  <td class="px-3 py-2">$60.00</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">Apr 18, 2025</td>
+                  <td class="px-3 py-2">Uber Ride</td>
+                  <td class="px-3 py-2">Transport</td>
+                  <td class="px-3 py-2">$25.00</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <div class="inline-flex items-center space-x-1">
+                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-4 font-bold text-right">Total Expenses: $310.00</p>
+        </div>
+      
+        <!-- QUICK ACTIONS -->
+        <section class="bottom grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="tasks">
+            <h3 class="text-lg font-semibold mb-2">Quick Actions</h3>
+            <ul class="list-none">
+              <li><a href="#">Add Expense</a></li>
+              <li><a href="#">View Full Report</a></li>
+            </ul>
+          </div>
+          <div class="workload">
+            <h3 class="text-lg font-semibold mb-2">Top Categories</h3>
+            <ul class="list-none">
+              <li>Food: $900.00</li>
+              <li>Bills: $500.00</li>
+              <li>Transport: $200.00</li>
+            </ul>
+          </div>
+        </section>
+      </section>
 
-        <!-- horizontal scroll wrapper -->
-        <div class="overflow-x-auto">
-          <table class="table-auto w-full">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Type</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Apr 25, 2025</td>
-                <td>Salary</td>
-                <td>Income</td>
-                <td>$3,000.00</td>
-                <td>Income</td>
-                <td class="whitespace-nowrap">
-                  <div class="inline-flex items-center space-x-1">
-                    <a href="#">Edit</a>
-                    <span>|</span>
-                    <a href="#">Delete</a>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <!-- static -->
-                <td>Apr 25, 2025</td>
-                <td>Salary</td>
-                <td>Income</td>
-                <td>$3,000.00</td>
-                <td>Income</td>
-                <td class="whitespace-nowrap">
-                  <div class="inline-flex items-center space-x-1">
-                    <a href="#">Edit</a>
-                    <span>|</span>
-                    <a href="#">Delete</a>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Apr 25, 2025</td>
-                <td>Salary</td>
-                <td>Income</td>
-                <td>$3,000.00</td>
-                <td>Income</td>
-                <td class="whitespace-nowrap">
-                  <div class="inline-flex items-center space-x-1">
-                    <a href="#">Edit</a>
-                    <span>|</span>
-                    <a href="#">Delete</a>
-                  </div>
-                </td>
-              </tr>
-              <!-- repeat rows… -->
-            </tbody>
-          </table>
+      <!-- category page -->
+      <section id="categories" class="page-content hidden">
+        <header class="flex justify-between items-center mb-5">
+          <h2 class="text-2xl font-bold">Categories</h2>
+          <div class="search">
+            <input
+              type="text"
+              placeholder="Search income…"
+              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </header>
+
+        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
+          <!-- income table... -->
+        </div>
+      </section>
+      <!-- report page -->
+      <section id="reports" class="page-content hidden">
+        <header class="flex justify-between items-center mb-5">
+          <h2 class="text-2xl font-bold">Reports</h2>
+          <div class="search">
+            <input
+              type="text"
+              placeholder="Search expenses…"
+              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </header>
+
+        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
+          <!-- expenses table... -->
         </div>
       </section>
 
-      <!-- QUICK ACTIONS -->
-      <section
-        id="actions"
-        class="bottom grid grid-cols-1 md:grid-cols-2 gap-8"
-      >
-        <div class="tasks">
-          <h2>Quick Actions</h2>
-          <ul>
-            <li><a href="#">Add Income</a></li>
-            <li><a href="#">Add Expense</a></li>
-            <li><a href="#">View Full Reports</a></li>
-          </ul>
-        </div>
-        <div class="workload">
-          <h2>Category Summary</h2>
-          <ul class="list-none">
-            <li>Food: $600.00</li>
-            <li>Bills: $400.00</li>
-            <li>Transport: $200.00</li>
-            <li>Entertainment: $150.00</li>
-            <li>Others: $100.00</li>
-          </ul>
+      <!-- Expenses page -->
+      <section id="settings" class="page-content hidden">
+        <header class="flex justify-between items-center mb-5">
+          <h2 class="text-2xl font-bold">Settings</h2>
+          <div class="search">
+            <input
+              type="text"
+              placeholder="Search expenses…"
+              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+        </header>
+
+        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
+          <!-- expenses table... -->
         </div>
       </section>
+
+      <!-- Additional pages (categories, reports, settings) should follow the same pattern -->
     </main>
+
+    <!-- Tab switching script -->
+    <script>
+      const links = document.querySelectorAll('aside.sidebar nav a');
+      const pages = document.querySelectorAll('.page-content');
+
+      links.forEach(link => {
+        link.addEventListener('click', e => {
+          const targetId = link.getAttribute('href').slice(1);
+          if (!targetId) return;
+          e.preventDefault();
+
+          // Activate link styling
+          links.forEach(a => a.classList.remove('active'));
+          link.classList.add('active');
+
+          // Show the target page, hide others
+          pages.forEach(sec => {
+            sec.classList.toggle('hidden', sec.id !== targetId);
+          });
+        });
+      });
+
+      // User dropdown toggle
+      const userBtn = document.getElementById('userBtn');
+      const userMenu = document.getElementById('userMenu');
+      userBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        userMenu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', () => {
+        userMenu.classList.add('hidden');
+      });
+    </script>
 
     <!-- Chart.js scripts go in your static JS file -->
   </body>
