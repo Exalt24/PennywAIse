@@ -10,17 +10,67 @@ User = get_user_model()
 
 EMAIL_REGEX = r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}(?:\.[A-Za-z]{2,})?$'
 
+# finance/forms.py
+
+from django import forms
+from .models import Entry, Category
+
+
 class EntryForm(forms.ModelForm):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # limit categories to this user
+        if user is not None:
+            self.fields['category'].queryset = Category.objects.filter(user=user)
+
+        # shared base classes
+        base_cls = (
+            "mt-1 block w-full border-gray-300 rounded-md shadow-sm "
+            "focus:ring-indigo-500 focus:border-indigo-500"
+        )
+
+        # placeholders for each field
+        placeholders = {
+            'title':    'e.g., Groceries',
+            'amount':   'e.g., 50.00',
+            'date':     '',                # date widgets show their own placeholder
+            'type':     '',                # select shows its own
+            'category': 'Select a category',
+            'notes':    'Optional notes about this entry',
+        }
+
+        for name, field in self.fields.items():
+            # apply classes
+            field.widget.attrs.setdefault('class', base_cls)
+            # set placeholder if defined
+            ph = placeholders.get(name)
+            if ph is not None:
+                field.widget.attrs['placeholder'] = ph
+
+            # give textareas a fixed height
+            if isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.setdefault('class',
+                    base_cls + " h-24 resize-none"
+                )
+
     class Meta:
         model = Entry
-        fields = ['title','amount','date','type','category','notes']
-        widgets = {'date': forms.DateInput(attrs={'type':'date'})}
+        fields = ['title', 'amount', 'date', 'type', 'category', 'notes']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name']
-
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500',
+                'placeholder': 'New category'
+            })
+        }
 
 class LoginForm(forms.Form):
     email = forms.EmailField(
@@ -106,12 +156,6 @@ class RegisterForm(UserCreationForm):
                 'placeholder': 'Pick a username'
             }),
         }
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email', '').strip().lower()
-        if not User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("No account is registered with this email.")
-        return email
 
     def clean(self):
         cleaned = super().clean()

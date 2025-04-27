@@ -4,37 +4,35 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="PennywAIse Dashboard"/>
+    <meta name="description" content="PennywAIse Dashboard" />
     <title>Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/main/output.css' %}" />
     <link rel="stylesheet" href="{% static 'css/budget/dashboard.css' %}" />
   </head>
   <body class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
     
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <h1 class="logo">PennywAIse</h1>
-      <button class="create">
-        <a href="#">+ Add Entry</a>
-      </button>
+      <button id="addEntryBtn" class="create">+ Add Entry</button>
       <nav>
         <a href="#dashboard" class="active">Dashboard</a>
         <a href="#income">Income</a>
         <a href="#expenses">Expenses</a>
         <a href="#categories">Categories</a>
         <a href="#reports">Reports</a>
-        <a href="#settings">Settings</a>
       </nav>
     </aside>
+
     
-    <!-- MAIN -->
     <main class="main">
       <header class="user">
         <div class="relative">
           <button id="userBtn" class="button">
             <span>Hello, Jane Doe</span>
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z" />
+              <path
+                d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z"
+              />
             </svg>
           </button>
           <div id="userMenu" class="hidden usermenu">
@@ -45,18 +43,15 @@
           </div>
         </div>
       </header>
-      <!-- Dashboard page -->
+      
       <section id="dashboard" class="page-content">
         <header>
           <h2 class="pagetitle">Dashboard</h2>
           <div class="search">
-            <input
-              type="text"
-              placeholder="Search expenses…"
-            />
+            <input type="text" placeholder="Search expenses…" />
           </div>
         </header>
-        <!-- OVERVIEW CARDS -->
+        
         <section id="overview" class="overview">
           <article class="card">
             <h3 class="title">Total Income</h3>
@@ -80,7 +75,7 @@
           </article>
         </section>
 
-        <!-- CHARTS -->
+        
         <section id="charts" class="content">
           <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
             <h2>Monthly Trend</h2>
@@ -92,11 +87,11 @@
           </div>
         </section>
 
-        <!-- RECENT TRANSACTIONS -->
+        
         <section id="recent" class="project-summary overflow-hidden">
           <h2>Recent Transactions</h2>
 
-          <!-- horizontal scroll wrapper -->
+          
           <div class="overflow-x-auto">
             <table class="table-auto w-full">
               <thead>
@@ -125,7 +120,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <!-- static -->
+                  
                   <td>Apr 25, 2025</td>
                   <td>Salary</td>
                   <td>Income</td>
@@ -153,13 +148,13 @@
                     </div>
                   </td>
                 </tr>
-                <!-- repeat rows… -->
+                
               </tbody>
             </table>
           </div>
         </section>
 
-        <!-- QUICK ACTIONS -->
+        
         <section
           id="actions"
           class="bottom grid grid-cols-1 md:grid-cols-2 gap-8"
@@ -185,7 +180,7 @@
         </section>
       </section>
 
-      <!-- income page -->
+      
       <section id="income" class="page-content hidden">
         <header class="flex justify-between items-center mb-5">
           <h2 class="text-2xl font-bold">Income</h2>
@@ -198,12 +193,14 @@
           </div>
         </header>
 
-        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
-          <!-- income table... -->
+        <div
+          class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5"
+        >
+          
         </div>
       </section>
 
-      <!-- Expenses page -->
+      
       <section id="expenses" class="page-content hidden">
         <header class="flex justify-between items-center mb-5">
           <h2 class="text-2xl font-bold">Expenses</h2>
@@ -215,7 +212,7 @@
             />
           </div>
         </header>
-        <!-- EXPENSES OVERVIEW CARDS -->
+        
         <section class="overview">
           <article class="card">
             <h3 class="title">This Month's Expenses</h3>
@@ -238,8 +235,8 @@
             <p class="meta">Entries this month</p>
           </article>
         </section>
-      
-        <!-- EXPENSES CHARTS -->
+
+        
         <section class="content grid grid-cols-1 md:grid-cols-2 gap-8 mb-5">
           <div class="progress bg-white rounded-lg p-4 shadow-md">
             <h2 class="text-lg mb-2">Expenses by Category</h2>
@@ -250,9 +247,11 @@
             <canvas id="expenseTrendChart" width="300" height="200"></canvas>
           </div>
         </section>
-      
-        <!-- EXPENSES TABLE -->
-        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
+
+        
+        <div
+          class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5"
+        >
           <h3 class="text-xl font-semibold mb-3">Recent Expenses</h3>
           <div class="overflow-x-auto">
             <table class="table-auto w-full">
@@ -315,8 +314,8 @@
           </div>
           <p class="mt-4 font-bold text-right">Total Expenses: $310.00</p>
         </div>
-      
-        <!-- QUICK ACTIONS -->
+
+        
         <section class="bottom grid grid-cols-1 md:grid-cols-2 gap-8">
           <div class="tasks">
             <h3 class="text-lg font-semibold mb-2">Quick Actions</h3>
@@ -336,24 +335,37 @@
         </section>
       </section>
 
-      <!-- category page -->
-      <section id="categories" class="page-content hidden">
+      <section id="categories" class="page-content {% if not register_form.errors %}hidden{% endif %}">
         <header class="flex justify-between items-center mb-5">
           <h2 class="text-2xl font-bold">Categories</h2>
-          <div class="search">
+          <form method="post" class="flex space-x-2">
+            {% csrf_token %}
             <input
               type="text"
-              placeholder="Search income…"
+              name="name"
+              placeholder="New category"
               class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
             />
-          </div>
+            <button
+              type="submit"
+              name="add-category"
+              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Add
+            </button>
+          </form>
         </header>
-
-        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
-          <!-- income table... -->
-        </div>
+      
+        <ul class="list-disc pl-5 bg-white rounded-lg p-4 shadow-md mb-5">
+          {% for cat in user_categories %}
+            <li class="py-1">{{ cat.name }}</li>
+          {% empty %}
+            <li class="text-gray-500">No categories yet.</li>
+          {% endfor %}
+        </ul>
       </section>
-      <!-- report page -->
+      
+      
       <section id="reports" class="page-content hidden">
         <header class="flex justify-between items-center mb-5">
           <h2 class="text-2xl font-bold">Reports</h2>
@@ -366,66 +378,242 @@
           </div>
         </header>
 
-        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
-          <!-- expenses table... -->
+        <div
+          class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5"
+        >
+          
         </div>
       </section>
 
-      <!-- Expenses page -->
-      <section id="settings" class="page-content hidden">
-        <header class="flex justify-between items-center mb-5">
-          <h2 class="text-2xl font-bold">Settings</h2>
-          <div class="search">
-            <input
-              type="text"
-              placeholder="Search expenses…"
-              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
-            />
+      
+
+      
+      <div
+        id="addEntryModal"
+        class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50"
+      >
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative flex flex-col">
+          
+          <button
+            id="closeModalBtn"
+            class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          >
+            
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <form
+          method="post"
+          action="{% url 'budget:dashboard' %}"
+          class="space-y-6 grid grid-cols-1 gap-4 w-full"
+        >
+          {% csrf_token %}
+        
+          {# Non-field errors #}
+          {% if entry_form.non_field_errors %}
+            <div class="text-sm text-red-600">
+              {% for err in entry_form.non_field_errors %}
+                <p>{{ err }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        
+          <!-- Title -->
+          <div>
+            <label for="{{ entry_form.title.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700">
+              {{ entry_form.title.label }}
+            </label>
+            {{ entry_form.title }}
+            {% if entry_form.title.errors %}
+              <p class="text-sm text-red-600 mt-1">
+                {{ entry_form.title.errors.0 }}
+              </p>
+            {% endif %}
           </div>
-        </header>
+        
+          <!-- Amount -->
+          <div>
+            <label for="{{ entry_form.amount.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700">
+              {{ entry_form.amount.label }}
+            </label>
+            {{ entry_form.amount }}
+            {% if entry_form.amount.errors %}
+              <p class="text-sm text-red-600 mt-1">
+                {{ entry_form.amount.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+        
+          <!-- Date -->
+          <div>
+            <label for="{{ entry_form.date.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700">
+              {{ entry_form.date.label }}
+            </label>
+            {{ entry_form.date }}
+            {% if entry_form.date.errors %}
+              <p class="text-sm text-red-600 mt-1">
+                {{ entry_form.date.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+        
+          <!-- Type -->
+          <div>
+            <label for="{{ entry_form.type.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700">
+              {{ entry_form.type.label }}
+            </label>
+            {{ entry_form.type }}
+            {% if entry_form.type.errors %}
+              <p class="text-sm text-red-600 mt-1">
+                {{ entry_form.type.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+        
+          <!-- Category -->
+          <div>
+            <label for="{{ entry_form.category.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700">
+              {{ entry_form.category.label }}
+            </label>
+            {{ entry_form.category }}
+            {% if entry_form.category.errors %}
+              <p class="text-sm text-red-600 mt-1">
+                {{ entry_form.category.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+        
+          <!-- Notes -->
+          <div>
+            <label for="{{ entry_form.notes.id_for_label }}"
+                   class="block text-sm font-medium text-gray-700">
+              {{ entry_form.notes.label }}
+            </label>
+            {{ entry_form.notes }}
+            {% if entry_form.notes.errors %}
+              <p class="text-sm text-red-600 mt-1">
+                {{ entry_form.notes.errors.0 }}
+              </p>
+            {% endif %}
+          </div>
+        
+          <!-- Actions -->
+          <div class="flex justify-end space-x-2 pt-4 mt-4">
+            <button
+              type="button"
+              id="cancelEntryBtn"
+              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              name="add-entry"
+              class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            >
+              Save
+            </button>
+          </div>
+        </form>
 
-        <div class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5">
-          <!-- expenses table... -->
+          
         </div>
-      </section>
-
-      <!-- Additional pages (categories, reports, settings) should follow the same pattern -->
+      </div>
+      
     </main>
 
-    <!-- Tab switching script -->
+    
     <script>
-      const links = document.querySelectorAll('aside.sidebar nav a');
-      const pages = document.querySelectorAll('.page-content');
+      const links = document.querySelectorAll("aside.sidebar nav a");
+      const pages = document.querySelectorAll(".page-content");
 
-      links.forEach(link => {
-        link.addEventListener('click', e => {
-          const targetId = link.getAttribute('href').slice(1);
+      links.forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const targetId = link.getAttribute("href").slice(1);
           if (!targetId) return;
           e.preventDefault();
 
           // Activate link styling
-          links.forEach(a => a.classList.remove('active'));
-          link.classList.add('active');
+          links.forEach((a) => a.classList.remove("active"));
+          link.classList.add("active");
 
           // Show the target page, hide others
-          pages.forEach(sec => {
-            sec.classList.toggle('hidden', sec.id !== targetId);
+          pages.forEach((sec) => {
+            sec.classList.toggle("hidden", sec.id !== targetId);
           });
         });
       });
 
       // User dropdown toggle
-      const userBtn = document.getElementById('userBtn');
-      const userMenu = document.getElementById('userMenu');
-      userBtn.addEventListener('click', e => {
+      const userBtn = document.getElementById("userBtn");
+      const userMenu = document.getElementById("userMenu");
+      userBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        userMenu.classList.toggle('hidden');
+        userMenu.classList.toggle("hidden");
       });
-      document.addEventListener('click', () => {
-        userMenu.classList.add('hidden');
+      document.addEventListener("click", () => {
+        userMenu.classList.add("hidden");
       });
     </script>
 
-    <!-- Chart.js scripts go in your static JS file -->
+    <script>
+      const addEntryBtn = document.getElementById("addEntryBtn");
+      const addEntryModal = document.getElementById("addEntryModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const cancelEntryBtn = document.getElementById("cancelEntryBtn");
+
+      function openModal(e) {
+        e.preventDefault();
+        addEntryModal.classList.remove("hidden");
+        addEntryModal.classList.add("flex");
+      }
+      function closeModal() {
+        addEntryModal.classList.add("hidden");
+        addEntryModal.classList.remove("flex");
+      }
+
+      addEntryBtn.addEventListener("click", openModal);
+      closeModalBtn.addEventListener("click", closeModal);
+      cancelEntryBtn.addEventListener("click", closeModal);
+      // click outside modal to close
+      addEntryModal.addEventListener("click", (e) => {
+        if (e.target === addEntryModal) closeModal();
+      });
+    </script>
+
+    <script>
+  function setupFilter(inputId, tableId) {
+    const inp = document.getElementById(inputId);
+    const tbl = document.getElementById(tableId);
+    inp.addEventListener('input', () => {
+      const q = inp.value.toLowerCase();
+      tbl.querySelectorAll('tr').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+  }
+  setupFilter('incomeSearch','incomeTable');
+  setupFilter('expenseSearch','expenseTable');
+</script>
+    
   </body>
 </html>
