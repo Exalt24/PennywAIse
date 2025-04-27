@@ -5,6 +5,8 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from .models import Entry, Category
+from django.utils import timezone
+
 
 User = get_user_model()
 
@@ -34,25 +36,53 @@ class EntryForm(forms.ModelForm):
         placeholders = {
             'title':    'e.g., Groceries',
             'amount':   'e.g., 50.00',
-            'date':     '',                # date widgets show their own placeholder
+            'date':     '',
             'type':     '',                # select shows its own
-            'category': 'Select a category',
+            'category': '',                # we’ll rely on validation
             'notes':    'Optional notes about this entry',
         }
 
         for name, field in self.fields.items():
-            # apply classes
             field.widget.attrs.setdefault('class', base_cls)
-            # set placeholder if defined
-            ph = placeholders.get(name)
-            if ph is not None:
+            if (ph := placeholders.get(name)) is not None:
                 field.widget.attrs['placeholder'] = ph
 
-            # give textareas a fixed height
             if isinstance(field.widget, forms.Textarea):
-                field.widget.attrs.setdefault('class',
-                    base_cls + " h-24 resize-none"
-                )
+                field.widget.attrs['class'] += " h-24 resize-none"
+
+    # ----- field-specific validation -----
+
+    def clean_title(self):
+        title = self.cleaned_data.get('title', '').strip()
+        if not title:
+            raise forms.ValidationError("Title cannot be empty.")
+        return title
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is None or amount <= 0:
+            raise forms.ValidationError("Please enter an amount greater than zero.")
+        return amount
+
+    def clean_date(self):
+        date = self.cleaned_data.get('date')
+        if date and date > timezone.localdate():
+            raise forms.ValidationError("Date cannot be in the future.")
+        return date
+
+    def clean_type(self):
+        t = self.cleaned_data.get('type')
+        # Entry.TYPE_CHOICES is something like [('IN','Income'),('EX','Expense')]
+        valid = {c[0] for c in Entry.TYPE_CHOICES}
+        if t not in valid:
+            raise forms.ValidationError("Please select Income or Expense.")
+        return t
+
+    def clean_category(self):
+        cat = self.cleaned_data.get('category')
+        if cat is None:
+            raise forms.ValidationError("Please pick a category.")
+        return cat
 
     class Meta:
         model = Entry

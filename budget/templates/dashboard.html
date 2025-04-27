@@ -213,10 +213,25 @@
                   <td class="px-3 py-2">{{ entry.category.name }}</td>
                   <td class="px-3 py-2 text-green-600">+ ₱{{ entry.amount }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
-                    <a href="#" class="text-blue-600 hover:underline">Edit</a>
+                    <!-- Edit: reload page with ?edit=<id>, preserving hash so modal opens -->
+                    <a
+                      href="?edit={{ entry.pk }}#dashboard"
+                      class="text-blue-600 hover:underline"
+                    >Edit</a>
                     <span class="px-1">|</span>
-                    <a href="#" class="text-red-600 hover:underline">Delete</a>
+                    <!-- Delete: POST form to same view -->
+                    <form method="post" class="inline">
+                      {% csrf_token %}
+                      <button
+                        type="submit"
+                        name="delete-entry"
+                        value="{{ entry.pk }}"
+                        class="text-red-600 hover:underline"
+                        onclick="return confirm('Delete this entry?');"
+                      >Delete</button>
+                    </form>
                   </td>
+                  
                 </tr>
               {% empty %}
                 <tr>
@@ -264,10 +279,25 @@
                   <td class="px-3 py-2">{{ entry.category.name }}</td>
                   <td class="px-3 py-2 text-red-600">- ₱{{ entry.amount }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
-                    <a href="#" class="text-blue-600 hover:underline">Edit</a>
+                    <!-- Edit: reload page with ?edit=<id>, preserving hash so modal opens -->
+                    <a
+                      href="?edit={{ entry.pk }}#dashboard"
+                      class="text-blue-600 hover:underline"
+                    >Edit</a>
                     <span class="px-1">|</span>
-                    <a href="#" class="text-red-600 hover:underline">Delete</a>
+                    <!-- Delete: POST form to same view -->
+                    <form method="post" class="inline">
+                      {% csrf_token %}
+                      <button
+                        type="submit"
+                        name="delete-entry"
+                        value="{{ entry.pk }}"
+                        class="text-red-600 hover:underline"
+                        onclick="return confirm('Delete this entry?');"
+                      >Delete</button>
+                    </form>
                   </td>
+                  
                 </tr>
               {% empty %}
                 <tr>
@@ -303,7 +333,7 @@
           </form>
         </header>
       
-        <ul class="list-disc pl-5 bg-white rounded-lg p-4 shadow-md mb-5">
+        <ul class="list-disc pl-10 bg-white rounded-lg p-4 shadow-md mb-5">
           {% for cat in user_categories %}
             <li class="py-1">{{ cat.name }}</li>
           {% empty %}
@@ -361,6 +391,10 @@
               />
             </svg>
           </button>
+          
+          <h2 id="modalTitle" class="text-2xl font-bold mb-4">
+            {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
+          </h2>
 
           <form
           method="post"
@@ -369,6 +403,11 @@
         >
           {% csrf_token %}
         
+          {% if is_edit %}
+            <input id="modalEntryId" type="hidden" name="entry-id" value="{{ edit_id }}">
+          {% endif %}
+
+
           {# Non-field errors #}
           {% if entry_form.non_field_errors %}
             <div class="text-sm text-red-600">
@@ -421,7 +460,7 @@
           </div>
         
           <!-- Type -->
-          <div>
+          <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
             <label for="{{ entry_form.type.id_for_label }}"
                    class="block text-sm font-medium text-gray-700">
               {{ entry_form.type.label }}
@@ -472,12 +511,14 @@
               Cancel
             </button>
             <button
+              id="modalSubmitBtn"
               type="submit"
               name="add-entry"
               class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
-              Save
+              {% if is_edit %}Save Changes{% else %}Save{% endif %}
             </button>
+
           </div>
         </form>
 
@@ -489,78 +530,119 @@
 
     
     <script>
-      const links = document.querySelectorAll("aside.sidebar nav a");
-      const pages = document.querySelectorAll(".page-content");
-
-      links.forEach((link) => {
-        link.addEventListener("click", (e) => {
-          const targetId = link.getAttribute("href").slice(1);
-          if (!targetId) return;
-          e.preventDefault();
-
-          // Activate link styling
-          links.forEach((a) => a.classList.remove("active"));
-          link.classList.add("active");
-
-          // Show the target page, hide others
-          pages.forEach((sec) => {
-            sec.classList.toggle("hidden", sec.id !== targetId);
+      document.addEventListener('DOMContentLoaded', () => {
+        // ---- Sidebar tab switching ----
+        const links = document.querySelectorAll('aside.sidebar nav a');
+        const pages = document.querySelectorAll('.page-content');
+        links.forEach(link => {
+          link.addEventListener('click', e => {
+            const targetId = link.getAttribute('href').slice(1);
+            if (!targetId) return;
+            e.preventDefault();
+      
+            links.forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+      
+            pages.forEach(sec => sec.classList.toggle('hidden', sec.id !== targetId));
           });
         });
+      
+        // ---- User menu toggle ----
+        const userBtn  = document.getElementById('userBtn');
+        const userMenu = document.getElementById('userMenu');
+        userBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          userMenu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', () => userMenu.classList.add('hidden'));
+      
+        // ---- Modal controls ----
+        const addEntryBtn    = document.getElementById('addEntryBtn');
+        const addEntryModal  = document.getElementById('addEntryModal');
+        const closeModalBtn  = document.getElementById('closeModalBtn');
+        const cancelEntryBtn = document.getElementById('cancelEntryBtn');
+        const modalTitle     = document.getElementById('modalTitle');
+        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+        const modalTypeDiv   = document.getElementById('modalTypeDiv');
+        const form           = document.querySelector('#addEntryModal form');
+      
+        function showModal() {
+          addEntryModal.classList.remove('hidden');
+          addEntryModal.classList.add('flex');
+        }
+        function hideModal() {
+          addEntryModal.classList.add('hidden');
+          addEntryModal.classList.remove('flex');
+        }
+      
+        function cleanUrl() {
+          history.replaceState(null, '', window.location.pathname + '');
+        }
+      
+        function resetModalToAdd() {
+          modalTitle.textContent     = 'Add New Entry';
+          modalSubmitBtn.textContent = 'Save';
+          modalTypeDiv.classList.remove('hidden');
+          const eid = document.getElementById('modalEntryId');
+          if (eid) eid.remove();
+      
+          form.querySelectorAll('input:not([type=hidden]), select, textarea')
+            .forEach(el => {
+              el.value = '';
+              if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0;
+            });
+          form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+        }
+      
+        // Open Add mode
+        addEntryBtn.addEventListener('click', e => {
+          e.preventDefault();
+          resetModalToAdd();
+          showModal();
+        });
+      
+        // Close modal and reset
+        [closeModalBtn, cancelEntryBtn].forEach(btn =>
+          btn.addEventListener('click', e => {
+            e.preventDefault();
+            hideModal();
+            cleanUrl();
+            resetModalToAdd();
+          })
+        );
+        addEntryModal.addEventListener('click', e => {
+          if (e.target === addEntryModal) {
+            hideModal();
+            cleanUrl();
+            resetModalToAdd();
+          }
+        });
+      
+        // Auto-open for edit
+        {% if is_edit or entry_form.errors %}
+          showModal();
+          cleanUrl();
+        {% endif %}
+      
+        // ---- Table filtering ----
+        function setupFilter(inputId, tableId) {
+          const inp = document.getElementById(inputId);
+          const tbl = document.getElementById(tableId);
+          inp.addEventListener('input', () => {
+            const q = inp.value.toLowerCase();
+            tbl.querySelectorAll('tr').forEach(row => {
+              row.style.display = row.textContent.toLowerCase().includes(q)
+                                ? ''
+                                : 'none';
+            });
+          });
+        }
+        setupFilter('incomeSearch','incomeTable');
+        setupFilter('expenseSearch','expenseTable');
       });
+      </script>
+      
 
-      // User dropdown toggle
-      const userBtn = document.getElementById("userBtn");
-      const userMenu = document.getElementById("userMenu");
-      userBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.toggle("hidden");
-      });
-      document.addEventListener("click", () => {
-        userMenu.classList.add("hidden");
-      });
-    </script>
 
-    <script>
-      const addEntryBtn = document.getElementById("addEntryBtn");
-      const addEntryModal = document.getElementById("addEntryModal");
-      const closeModalBtn = document.getElementById("closeModalBtn");
-      const cancelEntryBtn = document.getElementById("cancelEntryBtn");
-
-      function openModal(e) {
-        e.preventDefault();
-        addEntryModal.classList.remove("hidden");
-        addEntryModal.classList.add("flex");
-      }
-      function closeModal() {
-        addEntryModal.classList.add("hidden");
-        addEntryModal.classList.remove("flex");
-      }
-
-      addEntryBtn.addEventListener("click", openModal);
-      closeModalBtn.addEventListener("click", closeModal);
-      cancelEntryBtn.addEventListener("click", closeModal);
-      // click outside modal to close
-      addEntryModal.addEventListener("click", (e) => {
-        if (e.target === addEntryModal) closeModal();
-      });
-    </script>
-
-    <script>
-  function setupFilter(inputId, tableId) {
-    const inp = document.getElementById(inputId);
-    const tbl = document.getElementById(tableId);
-    inp.addEventListener('input', () => {
-      const q = inp.value.toLowerCase();
-      tbl.querySelectorAll('tr').forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(q) ? '' : 'none';
-      });
-    });
-  }
-  setupFilter('incomeSearch','incomeTable');
-  setupFilter('expenseSearch','expenseTable');
-</script>
-    
   </body>
 </html>
