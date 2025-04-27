@@ -74,30 +74,59 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                  .order_by('-date')
         )
 
+        edit_id = self.request.GET.get('edit')
+        if edit_id:
+            entry = get_object_or_404(Entry, pk=edit_id, user=user)
+            ctx['entry_form'] = forms.EntryForm(instance=entry, user=user)
+            ctx['is_edit'] = True
+            ctx['edit_id'] = entry.pk
+        else:
+            ctx['entry_form'] = forms.EntryForm(user=user)
+            ctx['is_edit'] = False
+
         return ctx
 
     def post(self, request, *args, **kwargs):
+        user = request.user
+
         # 1) New category?
         if 'add-category' in request.POST:
             cat_form = forms.CategoryForm(request.POST)
             if cat_form.is_valid():
                 cat = cat_form.save(commit=False)
-                cat.user = request.user
+                cat.user = user
                 cat.save()
             return redirect(reverse('budget:dashboard'))
 
-        # 2) New entry?
+        # 2) Create or Update an entry?
         if 'add-entry' in request.POST:
-            entry_form = forms.EntryForm(request.POST, user=request.user)
-            if entry_form.is_valid():
-                entry = entry_form.save(commit=False)
-                entry.user = request.user
-                entry.save()
+            entry_id = request.POST.get('entry-id')
+            if entry_id:
+                # editing
+                instance = get_object_or_404(Entry, pk=entry_id, user=user)
+                form = forms.EntryForm(request.POST, instance=instance, user=user)
+            else:
+                # new
+                form = forms.EntryForm(request.POST, user=user)
+
+            if form.is_valid():
+                e = form.save(commit=False)
+                e.user = user
+                e.save()
                 return redirect(reverse('budget:dashboard'))
-            # re‐render with errors bound to entry_form
-            ctx = self.get_context_data(**kwargs)
-            ctx['entry_form'] = entry_form
-            return self.render_to_response(ctx)
+            else:
+                # invalid → re-render with errors, tell template we need the modal open
+                ctx = self.get_context_data(**kwargs)
+                ctx['entry_form'] = form
+                ctx['is_edit']    = bool(entry_id)
+                ctx['edit_id']    = entry_id
+                return self.render_to_response(ctx)
+            
+        # 3) Delete entry
+        if 'delete-entry' in request.POST:
+            entry = get_object_or_404(Entry, pk=request.POST['delete-entry'], user=user)
+            entry.delete()
+            return redirect(reverse('budget:dashboard'))
 
         # fallback
         return self.get(request, *args, **kwargs)
