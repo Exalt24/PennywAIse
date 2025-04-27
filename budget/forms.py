@@ -160,6 +160,12 @@ class RegisterForm(UserCreationForm):
     def clean(self):
         cleaned = super().clean()
         return cleaned
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError(_("This email address is already in use. Please use a different email."))
+        return email
 
     def save(self, commit=True):
         user = super().save(commit=False)

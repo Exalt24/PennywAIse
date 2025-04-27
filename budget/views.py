@@ -63,6 +63,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                  .order_by('-date')[:10]
         )
 
+        ctx['income_entries'] = (
+            Entry.objects
+                 .filter(user=user, type=Entry.INCOME)
+                 .order_by('-date')
+        )
+        ctx['expense_entries'] = (
+            Entry.objects
+                 .filter(user=user, type=Entry.EXPENSE)
+                 .order_by('-date')
+        )
+
         return ctx
 
     def post(self, request, *args, **kwargs):
