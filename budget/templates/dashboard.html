@@ -188,17 +188,48 @@
             <input
               type="text"
               placeholder="Search income…"
+              id="incomeSearch"
               class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
             />
           </div>
         </header>
-
-        <div
-          class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5"
-        >
-          
+      
+        <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+          <table class="table-auto w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left">Date</th>
+                <th class="px-3 py-2 text-left">Title</th>
+                <th class="px-3 py-2 text-left">Category</th>
+                <th class="px-3 py-2 text-left">Amount</th>
+                <th class="px-3 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="incomeTable">
+              {% for entry in income_entries %}
+                <tr>
+                  <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
+                  <td class="px-3 py-2">{{ entry.title }}</td>
+                  <td class="px-3 py-2">{{ entry.category.name }}</td>
+                  <td class="px-3 py-2 text-green-600">+ ₱{{ entry.amount }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <a href="#" class="text-blue-600 hover:underline">Edit</a>
+                    <span class="px-1">|</span>
+                    <a href="#" class="text-red-600 hover:underline">Delete</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="px-3 py-4 text-center text-gray-500">
+                    No income entries found.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </section>
+      
 
       
       <section id="expenses" class="page-content hidden">
@@ -208,132 +239,48 @@
             <input
               type="text"
               placeholder="Search expenses…"
+              id="expenseSearch"
               class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
             />
           </div>
         </header>
-        
-        <section class="overview">
-          <article class="card">
-            <h3 class="title">This Month's Expenses</h3>
-            <p class="value">$3,450.00</p>
-            <p class="meta">Apr 1 - Apr 30, 2025</p>
-          </article>
-          <article class="card">
-            <h3 class="title">Average Daily</h3>
-            <p class="value">$115.00</p>
-            <p class="meta">Based on 30 days</p>
-          </article>
-          <article class="card">
-            <h3 class="title">Highest Category</h3>
-            <p class="value">Food</p>
-            <p class="meta">$900.00 spent</p>
-          </article>
-          <article class="card">
-            <h3 class="title">Transactions</h3>
-            <p class="value">12</p>
-            <p class="meta">Entries this month</p>
-          </article>
-        </section>
-
-        
-        <section class="content grid grid-cols-1 md:grid-cols-2 gap-8 mb-5">
-          <div class="progress bg-white rounded-lg p-4 shadow-md">
-            <h2 class="text-lg mb-2">Expenses by Category</h2>
-            <canvas id="expenseCategoryChart" width="300" height="200"></canvas>
-          </div>
-          <div class="progress bg-white rounded-lg p-4 shadow-md">
-            <h2 class="text-lg mb-2">Daily Spending</h2>
-            <canvas id="expenseTrendChart" width="300" height="200"></canvas>
-          </div>
-        </section>
-
-        
-        <div
-          class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5"
-        >
-          <h3 class="text-xl font-semibold mb-3">Recent Expenses</h3>
-          <div class="overflow-x-auto">
-            <table class="table-auto w-full">
-              <thead class="bg-gray-100">
+      
+        <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+          <table class="table-auto w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left">Date</th>
+                <th class="px-3 py-2 text-left">Title</th>
+                <th class="px-3 py-2 text-left">Category</th>
+                <th class="px-3 py-2 text-left">Amount</th>
+                <th class="px-3 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="expenseTable">
+              {% for entry in expense_entries %}
                 <tr>
-                  <th class="px-3 py-2 text-left">Date</th>
-                  <th class="px-3 py-2 text-left">Title</th>
-                  <th class="px-3 py-2 text-left">Category</th>
-                  <th class="px-3 py-2 text-left">Amount</th>
-                  <th class="px-3 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="px-3 py-2">Apr 24, 2025</td>
-                  <td class="px-3 py-2">Groceries</td>
-                  <td class="px-3 py-2">Food</td>
-                  <td class="px-3 py-2">$150.00</td>
+                  <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
+                  <td class="px-3 py-2">{{ entry.title }}</td>
+                  <td class="px-3 py-2">{{ entry.category.name }}</td>
+                  <td class="px-3 py-2 text-red-600">- ₱{{ entry.amount }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
-                    </div>
+                    <a href="#" class="text-blue-600 hover:underline">Edit</a>
+                    <span class="px-1">|</span>
+                    <a href="#" class="text-red-600 hover:underline">Delete</a>
                   </td>
                 </tr>
+              {% empty %}
                 <tr>
-                  <td class="px-3 py-2">Apr 22, 2025</td>
-                  <td class="px-3 py-2">Electric Bill</td>
-                  <td class="px-3 py-2">Bills</td>
-                  <td class="px-3 py-2">$75.00</td>
-                  <td class="px-3 py-2 whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
-                    </div>
+                  <td colspan="5" class="px-3 py-4 text-center text-gray-500">
+                    No expense entries found.
                   </td>
                 </tr>
-                <tr>
-                  <td class="px-3 py-2">Apr 20, 2025</td>
-                  <td class="px-3 py-2">Restaurant</td>
-                  <td class="px-3 py-2">Food</td>
-                  <td class="px-3 py-2">$60.00</td>
-                  <td class="px-3 py-2 whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="px-3 py-2">Apr 18, 2025</td>
-                  <td class="px-3 py-2">Uber Ride</td>
-                  <td class="px-3 py-2">Transport</td>
-                  <td class="px-3 py-2">$25.00</td>
-                  <td class="px-3 py-2 whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a><span>|</span><a href="#">Delete</a>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="mt-4 font-bold text-right">Total Expenses: $310.00</p>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-
-        
-        <section class="bottom grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="tasks">
-            <h3 class="text-lg font-semibold mb-2">Quick Actions</h3>
-            <ul class="list-none">
-              <li><a href="#">Add Expense</a></li>
-              <li><a href="#">View Full Report</a></li>
-            </ul>
-          </div>
-          <div class="workload">
-            <h3 class="text-lg font-semibold mb-2">Top Categories</h3>
-            <ul class="list-none">
-              <li>Food: $900.00</li>
-              <li>Bills: $500.00</li>
-              <li>Transport: $200.00</li>
-            </ul>
-          </div>
-        </section>
       </section>
+      
 
       <section id="categories" class="page-content {% if not register_form.errors %}hidden{% endif %}">
         <header class="flex justify-between items-center mb-5">
@@ -418,7 +365,7 @@
           <form
           method="post"
           action="{% url 'budget:dashboard' %}"
-          class="space-y-6 grid grid-cols-1 gap-4 w-full"
+          class="space-y-2 grid grid-cols-1 gap-4 w-full"
         >
           {% csrf_token %}
         
@@ -516,7 +463,7 @@
           </div>
         
           <!-- Actions -->
-          <div class="flex justify-end space-x-2 pt-4 mt-4">
+          <div class="flex justify-end space-x-2 pt-4">
             <button
               type="button"
               id="cancelEntryBtn"
