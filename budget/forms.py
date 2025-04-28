@@ -35,7 +35,7 @@ class EntryForm(forms.ModelForm):
             'amount':   'e.g., 50.00',
             'date':     '',
             'type':     '',                # select shows its own
-            'category': '',                # we’ll rely on validation
+            'category': '',                # we'll rely on validation
             'notes':    'Optional notes about this entry',
         }
 
@@ -62,12 +62,12 @@ class EntryForm(forms.ModelForm):
                 date=date,
                 category=category
             )
-            # if we’re editing, exclude ourselves
+            # if we're editing, exclude ourselves
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
                 raise forms.ValidationError(
-                    "You already have an entry in “%(cat)s” on %(date)s titled “%(title)s.”",
+                    "You already have an entry in %(cat)s on %(date)s titled %(title)s.",
                     code='duplicate_entry',
                     params={
                         'cat':      category.name,
@@ -121,7 +121,7 @@ class EntryForm(forms.ModelForm):
 class CategoryForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = user  # remember who we’re validating for
+        self.user = user  # remember who we're validating for
 
         # apply your existing styling/placeholder
         self.fields['name'].widget.attrs.update({
@@ -134,7 +134,7 @@ class CategoryForm(forms.ModelForm):
         name = self.cleaned_data['name'].strip()
         # build a queryset for this user, same name (case-insensitive)
         qs = Category.objects.filter(user=self.user, name__iexact=name)
-        # if we’re editing, exclude our own instance
+        # if we're editing, exclude our own instance
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
@@ -179,6 +179,61 @@ class LoginForm(forms.Form):
         if not User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("No account is registered with this email.")
         return email
+
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2',
+            'placeholder': 'you@example.com'
+        }),
+        validators=[
+            RegexValidator(
+                regex=EMAIL_REGEX,
+                message="Enter a valid email address."
+            )
+        ]
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').strip().lower()
+        if not User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("No account is registered with this email.")
+        return email
+
+class ResetPasswordForm(forms.Form):
+    password1 = forms.CharField(
+        label="New Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2',
+            'placeholder': 'At least 8 chars, 1 digit, 1 special'
+        }),
+        validators=[
+            RegexValidator(
+                regex=r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$',
+                message="Password must be ≥8 characters, include a letter, a number & a special character."
+            )
+        ]
+    )
+    password2 = forms.CharField(
+        label="Confirm New Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2',
+            'placeholder': 'Repeat your password'
+        }),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords don't match.")
+        
+        return cleaned_data
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(
@@ -268,22 +323,22 @@ class BudgetForm(forms.ModelForm):
         qs = Budget.objects.filter(user=self.user, month=month, category__isnull=False)
         total_cat = qs.aggregate(total=Sum('amount'))['total'] or 0
 
-        # if there’s already a budget on this same category, drop it from the sum
+        # if there's already a budget on this same category, drop it from the sum
         if category is not None:
             old = qs.filter(category=category).first()
             if old:
                 total_cat -= old.amount
 
-        # Now total_cat is “all other categories,” so adding the new amount is safe
+        # Now total_cat is "all other categories," so adding the new amount is safe
         if category is None:
-            # total‐budget branch: must be ≥ sum of category budgets
+            # total-budget branch: must be ≥ sum of category budgets
             if amount is not None and amount < total_cat:
                 raise forms.ValidationError(
                     f"Your total budget (₱{amount:.2f}) cannot be less than "
                     f"the sum of your per-category budgets (₱{total_cat:.2f})."
                 )
         else:
-            # per-category branch: ensure new sum ≤ total‐budget
+            # per-category branch: ensure new sum ≤ total-budget
             total_obj = Budget.objects.filter(
                 user=self.user, month=month, category__isnull=True
             ).first()

@@ -13,6 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from dateutil.relativedelta import relativedelta
 from django.http import HttpResponse
 import csv
+import secrets
 
 
 User = get_user_model()
@@ -36,8 +37,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         # ─── forms & categories ────────────────────────────────────────────────────
         ctx['category_form'] = forms.CategoryForm()
-        ctx.setdefault('category_form', forms.CategoryForm(user=user))     # the inline “new” form
-        ctx.setdefault('edit_category_form', forms.CategoryForm(user=user))# modal’s form (blank)
+        ctx.setdefault('category_form', forms.CategoryForm(user=user))     # the inline "new" form
+        ctx.setdefault('edit_category_form', forms.CategoryForm(user=user))# modal's form (blank)
         ctx.setdefault('is_edit_category', False)
         ctx.setdefault('edit_category_id', '')
         ctx.setdefault('active_tab', 'dashboard')
@@ -56,7 +57,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         else:
             ctx['is_edit'] = False
 
-        # ─── “this month” window ──────────────────────────────────────────────────
+        # ─── "this month" window ──────────────────────────────────────────────────
         today       = timezone.localdate()
         month_start = today.replace(day=1)
 
@@ -395,5 +396,98 @@ class AuthView(TemplateView):
             # else: form errors will be shown via {{ register_form.errors }}
 
         # re-render with bound forms + any errors
+        return self.render_to_response(context)
+
+
+class ForgotPasswordView(TemplateView):
+    template_name = "forgot_password.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.setdefault('forgot_password_form', forms.ForgotPasswordForm())
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        forgot_password_form = forms.ForgotPasswordForm(request.POST)
+        context['forgot_password_form'] = forgot_password_form
+        
+        if forgot_password_form.is_valid():
+            email = forgot_password_form.cleaned_data['email']
+            user = User.objects.get(email__iexact=email)
+            
+            # Generate a unique token
+            token = secrets.token_urlsafe(32)
+            
+            # Save the token in the database
+            from .models import PasswordResetToken
+            PasswordResetToken.objects.create(
+                user=user,
+                token=token
+            )
+            
+            # Build the reset URL
+            reset_url = request.build_absolute_uri(
+                reverse('budget:reset_password', kwargs={'token': token})
+            )
+            
+            # In a real application, send an email here
+            # For now, we'll just display the link on the response page
+            context['reset_url'] = reset_url
+            context['success'] = True
+            
+        return self.render_to_response(context)
+
+
+class ResetPasswordView(TemplateView):
+    template_name = "reset_password.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        token = self.kwargs.get('token')
+        context['token'] = token
+        context.setdefault('reset_password_form', forms.ResetPasswordForm())
+        
+        # Validate token
+        from .models import PasswordResetToken
+        token_obj = PasswordResetToken.objects.filter(
+            token=token, 
+            expired=False,
+            created_at__gte=timezone.now() - timezone.timedelta(hours=24)
+        ).first()
+        
+        context['valid_token'] = token_obj is not None
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        reset_password_form = forms.ResetPasswordForm(request.POST)
+        context['reset_password_form'] = reset_password_form
+        
+        if not context['valid_token']:
+            return self.render_to_response(context)
+        
+        if reset_password_form.is_valid():
+            token = self.kwargs.get('token')
+            from .models import PasswordResetToken
+            token_obj = PasswordResetToken.objects.get(token=token)
+            user = token_obj.user
+            
+            # Set new password
+            user.set_password(reset_password_form.cleaned_data['password1'])
+            user.save()
+            
+            # Mark token as expired
+            token_obj.expired = True
+            token_obj.save()
+            
+            # Auto login user
+            user = authenticate(request, username=user.username, password=reset_password_form.cleaned_data['password1'])
+            if user:
+                login(request, user)
+            
+            context['password_reset_complete'] = True
+            
         return self.render_to_response(context)
     
