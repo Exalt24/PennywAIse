@@ -28,7 +28,7 @@ class Entry(models.Model):
 
 class Budget(models.Model):
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # if category is null, it’s the global/total budget
+    # if category is null, it's the global/total budget
     category = models.ForeignKey(
         'Category',
         null=True, blank=True,
@@ -38,12 +38,22 @@ class Budget(models.Model):
     # e.g. 2025-04-01 → budget applies to that month
     month    = models.DateField(help_text="First day of the month this budget applies to")
     amount   = models.DecimalField(max_digits=10, decimal_places=2)
-
+    
     class Meta:
         unique_together = ('user', 'category', 'month')
         ordering = ('-month',)
-
+    
     def __str__(self):
         if self.category:
             return f"{self.user} – {self.month:%b %Y} – {self.category.name}: ₱{self.amount}"
         return f"{self.user} – {self.month:%b %Y} – Total: ₱{self.amount}"
+
+class PasswordResetToken(models.Model):
+    """Model for storing password reset tokens."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expired = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Password reset token for {self.user.email}"
