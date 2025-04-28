@@ -3,3 +3,5 @@ gunicorn>=20.1           # WSGI server
 psycopg2-binary>=2.9     # PostgreSQL driver
 python-dateutil>=2.8     # for relativedelta
 whitenoise>=6.5          # static‐files middleware
+django-browser-reload>=0.9.0  # for auto-reload in dev mode
+django-cors-headers>=3.14.0  # for CORS support
