@@ -778,7 +778,7 @@
   id="editCategoryModal"
   class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50"
 >
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+  <div class="bg-[#fdfdfb] rounded-lg shadow-lg w-full max-w-md p-6">
     <h3 class="text-lg font-semibold mb-4">Edit Category</h3>
     <form method="post" action="{% url 'budget:dashboard' %}">
       {% csrf_token %}
@@ -817,167 +817,139 @@
 
 
 
-      <div
-        id="addEntryModal"
-        class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50"
+      <!-- Modal -->
+  <div
+  id="addEntryModal"
+  class="fixed inset-0 hidden z-50 flex items-center justify-center"
+  >
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black/50"></div>
+
+  <!-- Modal box -->
+  <div class="relative bg-[#fdfdfb] rounded-xl shadow-lg w-full max-w-lg p-6">
+    <!-- Close icon -->
+    <button
+      id="closeModalBtn"
+      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+      type="button"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Title -->
+    <h2 id="modalTitle" class="text-2xl font-bold mb-4">
+      {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
+    </h2>
+
+    <!-- Your form -->
+    <form
+    method="post"
+    action="{% url 'budget:dashboard' %}"
+    class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+  >
+    {% csrf_token %}
+    {% if is_edit %}
+      <input id="modalEntryId" type="hidden" name="entry-id" value="{{ edit_id }}">
+    {% endif %}
+
+    {# 1) Title (col1) #}
+    <div>
+      <label for="{{ entry_form.title.id_for_label }}"
+            class="block text-sm font-medium text-gray-700">
+        {{ entry_form.title.label }}
+      </label>
+      {{ entry_form.title }}
+      {% if entry_form.title.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.title.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    {# 1) Amount (col2) #}
+    <div>
+      <label for="{{ entry_form.amount.id_for_label }}"
+            class="block text-sm font-medium text-gray-700">
+        {{ entry_form.amount.label }}
+      </label>
+      {{ entry_form.amount }}
+      {% if entry_form.amount.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.amount.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    {# 2) Date (col1) #}
+    <div>
+      <label for="{{ entry_form.date.id_for_label }}"
+            class="block text-sm font-medium text-gray-700">
+        {{ entry_form.date.label }}
+      </label>
+      {{ entry_form.date }}
+      {% if entry_form.date.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.date.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    {# 2) Type (col2) #}
+    <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
+      <label for="{{ entry_form.type.id_for_label }}"
+            class="block text-sm font-medium text-gray-700">
+        {{ entry_form.type.label }}
+      </label>
+      {{ entry_form.type }}
+      {% if entry_form.type.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.type.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    {# 3a) Category (full width) #}
+    <div class="md:col-span-2">
+      <label for="{{ entry_form.category.id_for_label }}"
+            class="block text-sm font-medium text-gray-700">
+        {{ entry_form.category.label }}
+      </label>
+      {{ entry_form.category }}
+      {% if entry_form.category.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.category.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    {# 3b) Notes (full width) #}
+    <div class="md:col-span-2">
+      <label for="{{ entry_form.notes.id_for_label }}"
+            class="block text-sm font-medium text-gray-700">
+        {{ entry_form.notes.label }}
+      </label>
+      {{ entry_form.notes }}
+      {% if entry_form.notes.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.notes.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    {# 4) Actions (full width, right-aligned) #}
+    <div class="md:col-span-2 flex justify-end space-x-2 pt-4">
+      <button
+        type="button"
+        id="cancelEntryBtn"
+        class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
       >
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative flex flex-col">
+        Cancel
+      </button>
+      <button
+        id="modalSubmitBtn"
+        type="submit"
+        name="add-entry"
+        class="px-4 py-2 text-white rounded bg-[#1B1F1E] hover:bg-[#3f3a36]"
+      >
+        {% if is_edit %}Save Changes{% else %}Save{% endif %}
+      </button>
+    </div>
+    </form>
 
-          <button
-            id="closeModalBtn"
-            class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-          >
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-
-          <h2 id="modalTitle" class="text-2xl font-bold mb-4">
-            {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
-          </h2>
-
-          <form
-          method="post"
-          action="{% url 'budget:dashboard' %}"
-          class="space-y-2 grid grid-cols-1 gap-4 w-full"
-        >
-          {% csrf_token %}
-
-          {% if is_edit %}
-            <input id="modalEntryId" type="hidden" name="entry-id" value="{{ edit_id }}">
-          {% endif %}
-
-
-          {# Non-field errors #}
-          {% if entry_form.non_field_errors %}
-            <div class="text-sm text-red-600">
-              {% for err in entry_form.non_field_errors %}
-                <p>{{ err }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <!-- Title -->
-          <div>
-            <label for="{{ entry_form.title.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.title.label }}
-            </label>
-            {{ entry_form.title }}
-            {% if entry_form.title.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.title.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Amount -->
-          <div>
-            <label for="{{ entry_form.amount.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.amount.label }}
-            </label>
-            {{ entry_form.amount }}
-            {% if entry_form.amount.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.amount.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Date -->
-          <div>
-            <label for="{{ entry_form.date.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.date.label }}
-            </label>
-            {{ entry_form.date }}
-            {% if entry_form.date.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.date.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Type -->
-          <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
-            <label for="{{ entry_form.type.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.type.label }}
-            </label>
-            {{ entry_form.type }}
-            {% if entry_form.type.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.type.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Category -->
-          <div>
-            <label for="{{ entry_form.category.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.category.label }}
-            </label>
-            {{ entry_form.category }}
-            {% if entry_form.category.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.category.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Notes -->
-          <div>
-            <label for="{{ entry_form.notes.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.notes.label }}
-            </label>
-            {{ entry_form.notes }}
-            {% if entry_form.notes.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.notes.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Actions -->
-          <div class="flex justify-end space-x-2 pt-4">
-            <button
-              type="button"
-              id="cancelEntryBtn"
-              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              id="modalSubmitBtn"
-              type="submit"
-              name="add-entry"
-              class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-            >
-              {% if is_edit %}Save Changes{% else %}Save{% endif %}
-            </button>
-
-          </div>
-        </form>
-
-
-        </div>
-      </div>
-
+    </div>
+  </div>
     </main>
 
     <script>
