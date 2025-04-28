@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import sys
 import mimetypes
+import os
 
 mimetypes.add_type("application/javascript", ".js", True)
 
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -123,6 +125,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Where `manage.py collectstatic` will copy everything
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# (only if you have a top-level `static/` folder for dev builds)
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
