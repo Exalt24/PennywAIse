@@ -27,10 +27,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-5e5)4e+(5dz9b*j!lkdcnlnf5od^zcauul-wr*m_2s-x=v5$1j'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True") != "False"
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+else:
+    # your actual Render app URL here:
+    ALLOWED_HOSTS = ["pennywaise.onrender.com"]
 
 
 # Application definition
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,7 +60,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_browser_reload.middleware.BrowserReloadMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -161,11 +164,3 @@ NPM_BIN_PATH = "C:/Users/Daniel Cruz/AppData/Roaming/npm/npm.cmd"
 LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/auth/'
-
-DEBUG = os.getenv("DJANGO_DEBUG", "") != "False"
-
-if DEBUG:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-else:
-    # name your Render service’s URL here
-    ALLOWED_HOSTS = ["pennywaise.onrender.com"]
