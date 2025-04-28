@@ -292,7 +292,7 @@
                     </td>
                     <td class="px-3 py-2">{{ entry.get_type_display }}</td>
                     <td class="px-3 py-2 whitespace-nowrap">
-                      <a href="?edit={{ entry.pk }}#dashboard" class="text-blue-600 hover:underline">Edit</a>
+                      <a href="?edit={{ entry.pk }}" class="text-blue-600 hover:underline">Edit</a>
                       <span class="px-1">|</span>
                       <form method="post" class="inline">
                         {% csrf_token %}
@@ -511,10 +511,8 @@
                   <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
                     <!-- Edit: reload page with ?edit=<id>, preserving hash so modal opens -->
-                    <a
-                      href="?edit={{ entry.pk }}#dashboard"
-                      class="text-blue-600 hover:underline"
-                    >Edit</a>
+                      <a href="?edit={{ entry.pk }}#income" class="text-blue-600 hover:underline">Edit</a>
+
                     <span class="px-1">|</span>
                     <!-- Delete: POST form to same view -->
                     <form method="post" class="inline">
@@ -624,10 +622,8 @@
                   <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
                     <!-- Edit: reload page with ?edit=<id>, preserving hash so modal opens -->
-                    <a
-                      href="?edit={{ entry.pk }}#dashboard"
-                      class="text-blue-600 hover:underline"
-                    >Edit</a>
+                      <a href="?edit={{ entry.pk }}#expenses" class="text-blue-600 hover:underline">Edit</a>
+
                     <span class="px-1">|</span>
                     <!-- Delete: POST form to same view -->
                     <form method="post" class="inline">
@@ -838,9 +834,22 @@
 
       <div
   id="editCategoryModal"
-  class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50"
+  class="fixed inset-0 hidden z-50 flex items-center justify-center bg-black/50"
 >
-<div class="bg-[#fdfdfb] rounded-lg shadow-lg w-full max-w-md p-6">
+    <div class="relative bg-[#fdfdfb] rounded-lg shadow-lg w-full max-w-md p-6">
+      <!-- Close icon -->
+      <button
+        id="closeEditCatModal"
+        class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+        type="button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    
     <h3 class="text-lg font-semibold mb-4">Edit Category</h3>
     <form method="post" action="{% url 'budget:dashboard' %}">
       {% csrf_token %}
@@ -861,7 +870,7 @@
         {% endif %}
       </div>
 
-      <div class="flex justify-end space-x-2">
+      <div class="md:col-span-2 flex justify-end space-x-2 pt-4">
         <button
           type="button"
           id="cancelEditCategory"
@@ -870,7 +879,7 @@
         <button
           type="submit"
           name="add-category"
-          class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          class="px-4 py-2 text-white rounded bg-[#1B1F1E] hover:bg-[#3f3a36]"
         >Save</button>
       </div>
     </form>
@@ -906,106 +915,101 @@
         </h2>
     
         <!-- Your form -->
-        <form
-        method="post"
+        <!-- Form -->
+        <form method="post"
         action="{% url 'budget:dashboard' %}"
-        class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
-      >
-        {% csrf_token %}
-        {% if is_edit %}
-          <input id="modalEntryId" type="hidden" name="entry-id" value="{{ edit_id }}">
-        {% endif %}
-    
-        {# 1) Title (col1) #}
-        <div>
-          <label for="{{ entry_form.title.id_for_label }}"
-                class="block text-sm font-medium text-gray-700">
-            {{ entry_form.title.label }}
-          </label>
-          {{ entry_form.title }}
-          {% if entry_form.title.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ entry_form.title.errors.0 }}</p>
-          {% endif %}
-        </div>
-    
-        {# 1) Amount (col2) #}
-        <div>
-          <label for="{{ entry_form.amount.id_for_label }}"
-                class="block text-sm font-medium text-gray-700">
-            {{ entry_form.amount.label }}
-          </label>
-          {{ entry_form.amount }}
-          {% if entry_form.amount.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ entry_form.amount.errors.0 }}</p>
-          {% endif %}
-        </div>
-    
-        {# 2) Date (col1) #}
-        <div>
-          <label for="{{ entry_form.date.id_for_label }}"
-                class="block text-sm font-medium text-gray-700">
-            {{ entry_form.date.label }}
-          </label>
-          {{ entry_form.date }}
-          {% if entry_form.date.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ entry_form.date.errors.0 }}</p>
-          {% endif %}
-        </div>
-    
-        {# 2) Type (col2) #}
-        <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
-          <label for="{{ entry_form.type.id_for_label }}"
-                class="block text-sm font-medium text-gray-700">
-            {{ entry_form.type.label }}
-          </label>
-          {{ entry_form.type }}
-          {% if entry_form.type.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ entry_form.type.errors.0 }}</p>
-          {% endif %}
-        </div>
-    
-        {# 3a) Category (full width) #}
-        <div class="md:col-span-2">
-          <label for="{{ entry_form.category.id_for_label }}"
-                class="block text-sm font-medium text-gray-700">
-            {{ entry_form.category.label }}
-          </label>
-          {{ entry_form.category }}
-          {% if entry_form.category.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ entry_form.category.errors.0 }}</p>
-          {% endif %}
-        </div>
-    
-        {# 3b) Notes (full width) #}
-        <div class="md:col-span-2">
-          <label for="{{ entry_form.notes.id_for_label }}"
-                class="block text-sm font-medium text-gray-700">
-            {{ entry_form.notes.label }}
-          </label>
-          {{ entry_form.notes }}
-          {% if entry_form.notes.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ entry_form.notes.errors.0 }}</p>
-          {% endif %}
-        </div>
-    
-        {# 4) Actions (full width, right-aligned) #}
-        <div class="md:col-span-2 flex justify-end space-x-2 pt-4">
-          <button
-            type="button"
-            id="cancelEntryBtn"
-            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >Cancel
-        </button>
-        <button
-          id="modalSubmitBtn"
-          type="submit"
-          name="add-entry"
-          class="px-4 py-2 text-white rounded bg-[#1B1F1E] hover:bg-[#3f3a36]"
-        >
-          {% if is_edit %}Save Changes{% else %}Save{% endif %}
-        </button>
-      </div>
-      </form>
+        id="entryModalForm"
+        class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+    {% csrf_token %}
+  
+    {# ALWAYS render this, blank if we’re “Add” mode #}
+    <input id="modalEntryId"
+           type="hidden"
+           name="entry-id"
+           value="{{ edit_id|default:'' }}">
+  
+    {# — Title — #}
+    <div>
+      <label for="id_title" class="block text-sm font-medium text-gray-700">
+        {{ entry_form.title.label }}
+      </label>
+      {{ entry_form.title }}
+      {% if entry_form.title.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.title.errors.0 }}</p>
+      {% endif %}
+    </div>
+  
+    {# — Amount — #}
+    <div>
+      <label for="id_amount" class="block text-sm font-medium text-gray-700">
+        {{ entry_form.amount.label }}
+      </label>
+      {{ entry_form.amount }}
+      {% if entry_form.amount.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.amount.errors.0 }}</p>
+      {% endif %}
+    </div>
+  
+    {# — Date — #}
+    <div>
+      <label for="id_date" class="block text-sm font-medium text-gray-700">
+        {{ entry_form.date.label }}
+      </label>
+      {{ entry_form.date }}
+      {% if entry_form.date.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.date.errors.0 }}</p>
+      {% endif %}
+    </div>
+  
+    {# — Type (hide in edit with CSS) — #}
+    <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
+      <label for="id_type" class="block text-sm font-medium text-gray-700">
+        {{ entry_form.type.label }}
+      </label>
+      {{ entry_form.type }}
+      {% if entry_form.type.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.type.errors.0 }}</p>
+      {% endif %}
+    </div>
+  
+    {# — Category (full width) — #}
+    <div class="md:col-span-2">
+      <label for="id_category" class="block text-sm font-medium text-gray-700">
+        {{ entry_form.category.label }}
+      </label>
+      {{ entry_form.category }}
+      {% if entry_form.category.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.category.errors.0 }}</p>
+      {% endif %}
+    </div>
+  
+    {# — Notes (full width) — #}
+    <div class="md:col-span-2">
+      <label for="id_notes" class="block text-sm font-medium text-gray-700">
+        {{ entry_form.notes.label }}
+      </label>
+      {{ entry_form.notes }}
+      {% if entry_form.notes.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ entry_form.notes.errors.0 }}</p>
+      {% endif %}
+    </div>
+  
+    {# — Actions — #}
+    <div class="md:col-span-2 flex justify-end space-x-2 pt-4">
+      <button type="button"
+              id="cancelEntryBtn"
+              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+        Cancel
+      </button>
+      <button id="modalSubmitBtn"
+              type="submit"
+              name="add-entry"
+              class="px-4 py-2 text-white bg-[#1B1F1E] rounded hover:bg-[#3f3a36]">
+        {% if is_edit %}Save Changes{% else %}Save{% endif %}
+      </button>
+    </div>
+  </form>
+  
   
       </div>
     </div>
@@ -1070,73 +1074,78 @@
         });
         document.addEventListener('click', () => userMenu.classList.add('hidden'));
 
-        // ---- Modal controls ----
-        const addEntryBtn    = document.getElementById('addEntryBtn');
-        const addEntryModal  = document.getElementById('addEntryModal');
-        const closeModalBtn  = document.getElementById('closeModalBtn');
-        const cancelEntryBtn = document.getElementById('cancelEntryBtn');
-        const modalTitle     = document.getElementById('modalTitle');
-        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
-        const modalTypeDiv   = document.getElementById('modalTypeDiv');
-        const form           = document.querySelector('#addEntryModal form');
+         // ---- Modal controls ----
+  const addEntryBtn    = document.getElementById('addEntryBtn');
+  const addEntryModal  = document.getElementById('addEntryModal');
+  const closeModalBtn  = document.getElementById('closeModalBtn');
 
-        function showModal() {
-          addEntryModal.classList.remove('hidden');
-          addEntryModal.classList.add('flex');
-        }
-        function hideModal() {
-          addEntryModal.classList.add('hidden');
-          addEntryModal.classList.remove('flex');
-        }
+  const cancelEntryBtn = document.getElementById('cancelEntryBtn');
+  const modalTitle     = document.getElementById('modalTitle');
+  const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+  const modalTypeDiv   = document.getElementById('modalTypeDiv');
+  const form           = document.querySelector('#addEntryModal form');
 
-        function cleanUrl() {
-          history.replaceState(null, '', window.location.pathname + '');
-        }
+  function showModal() {
+    addEntryModal.classList.remove('hidden');
+    addEntryModal.classList.add('flex');
+  }
 
-        function resetModalToAdd() {
-          modalTitle.textContent     = 'Add New Entry';
-          modalSubmitBtn.textContent = 'Save';
-          modalTypeDiv.classList.remove('hidden');
-          const eid = document.getElementById('modalEntryId');
-          if (eid) eid.remove();
+  function hideModal() {
+    addEntryModal.classList.add('hidden');
+    addEntryModal.classList.remove('flex');
+    
+  }
 
-          form.querySelectorAll('input:not([type=hidden]), select, textarea')
-            .forEach(el => {
-              el.value = '';
-              if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0;
-            });
-          form.querySelectorAll('.text-red-600').forEach(e => e.remove());
-        }
+  function cleanUrl() {
+    history.replaceState(null, '', window.location.pathname + '');
+  }
 
-        // Open Add mode
-        addEntryBtn.addEventListener('click', e => {
-          e.preventDefault();
-          resetModalToAdd();
-          showModal();
-        });
+  function resetModalToAdd() {
+    modalTitle.textContent     = 'Add New Entry';
+    modalSubmitBtn.textContent = 'Save';
+    modalTypeDiv.classList.remove('hidden');
+    // clear (but do not remove) the hidden PK field so it's always there on next edit
+    const eid = document.getElementById('modalEntryId');
+    if (eid) eid.value = '';
 
-        // Close modal and reset
-        [closeModalBtn, cancelEntryBtn].forEach(btn =>
-          btn.addEventListener('click', e => {
-            e.preventDefault();
-            hideModal();
-            cleanUrl();
-            resetModalToAdd();
-          })
-        );
-        addEntryModal.addEventListener('click', e => {
-          if (e.target === addEntryModal) {
-            hideModal();
-            cleanUrl();
-            resetModalToAdd();
-          }
-        });
 
-        // Auto-open for edit
-        {% if is_edit or entry_form.errors %}
-          showModal();
-          cleanUrl();
-        {% endif %}
+    form.querySelectorAll('input:not([type=hidden]), select, textarea')
+      .forEach(el => {
+        el.value = '';
+        if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0;
+      });
+    form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+  }
+
+  // Open “Add” modal
+  addEntryBtn.addEventListener('click', e => {
+    e.preventDefault();
+    resetModalToAdd();
+    showModal();
+  });
+
+  // Close & reset
+  [closeModalBtn, cancelEntryBtn].forEach(btn =>
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      hideModal();
+      cleanUrl();
+      resetModalToAdd();
+    })
+  );
+  addEntryModal.addEventListener('click', e => {
+    if (e.target === addEntryModal) {
+      hideModal();
+      cleanUrl();
+      resetModalToAdd();
+    }
+  });
+
+  // Auto-open if server says “is_edit” or there are form errors
+  {% if is_edit or entry_form.errors %}
+    showModal();
+    cleanUrl();
+  {% endif %}
 
 
         // ---- Table filtering ----
@@ -1156,7 +1165,7 @@
 
       const editCatModal     = document.getElementById('editCategoryModal');
             const editCatIdInput   = document.getElementById('editCategoryId');
-            // we rely on Django giving us <input name="name" …> inside the modal:
+            const closeEditCatModal = document.getElementById('closeEditCatModal');
             const editCatNameInput = editCatModal.querySelector('input[name="name"]');
             const cancelBtn        = document.getElementById('cancelEditCategory');
 
@@ -1177,11 +1186,18 @@
   editCatIdInput.value = '';
   editCatNameInput.value = '';
 
-  // 3) Remove any error <p> tags in the modal
   editCatModal.querySelectorAll('.text-red-600.mt-1')
     .forEach(el => el.remove());
             });
 
+            function hideEditCatModal() {
+              editCatModal.classList.add('hidden');
+            }
+
+            closeEditCatModal.addEventListener('click', e => {
+              e.preventDefault();
+              hideEditCatModal();
+            });
             // 3) Clicking outside the dialog closes
             editCatModal.addEventListener('click', e => {
               if (e.target === editCatModal) {
@@ -1302,6 +1318,7 @@
               tableBody: '#expenseTable'
             });
 
+            
       </script>
 
       <script>
@@ -1520,6 +1537,8 @@
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         });
+
+       
 
         });
         </script>
