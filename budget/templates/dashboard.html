@@ -13,7 +13,13 @@
   <body class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
 
     <aside class="sidebar">
-      <h1 class="logo">PennywAIse</h1>
+      <a href="{% url 'budget:dashboard' %}" class="logo block mb-6">
+        <img
+          src="{% static 'images/logo3.png' %}"
+          alt="PennywAIse logo"
+          class="h-12 w-auto"
+        />
+      </a>
       <button id="addEntryBtn" class="create">+ Add Entry</button>
       <nav>
         <!-- Dashboard -->
@@ -198,7 +204,7 @@
               No budget data to display.
             </div>
             <canvas id="budgetChart" class="hidden"></canvas>
-            
+
             <!-- By-Category -->
             <div id="catNoData" class="p-4 text-center text-gray-500 hidden">
               No category data to display.
@@ -436,23 +442,23 @@
             <!-- Income Date “From” -->
             <label for="incDateFrom" class="text-sm">From:</label>
   <div class="flex flex-col">
-   
-    
+
+
     <input type="date" id="incDateFrom"
            class="px-2 py-1 border rounded" />
-           
+
   </div>
 
   <label for="incDateTo" class="text-sm">To:</label>
   <div class="flex flex-col">
-    
+
     <p id="incDateError"
            class="text-xs text-red-600 mb-1 hidden">
           “To” must be on or after “From”
   </p>
     <input type="date" id="incDateTo"
            class="px-2 py-1 border rounded" />
-    
+
   </div>
 
 
@@ -477,7 +483,7 @@
   </div>
 
   <div class="flex flex-col">
-    
+
     <p id="incAmountError"
        class="text-xs text-red-600 mb-1 hidden">
       “Max” must be ≥ “Min”
@@ -549,7 +555,7 @@
 
             <label for="expDateFrom" class="text-sm">From:</label>
   <div class="flex flex-col">
-    
+
 
     <input type="date" id="expDateFrom"
            class="px-2 py-1 border rounded" />
@@ -557,7 +563,7 @@
 
   <label for="expDateTo" class="text-sm">To:</label>
   <div class="flex flex-col">
-   
+
     <p id="expDateError"
     class="text-xs text-red-600 mb-1 hidden">
    “To” must be on or after “From”
@@ -581,15 +587,15 @@
             {% endfor %}
           </select>
           <div class="flex flex-col">
-           
-            
+
+
             <input type="number" step="0.01" id="expMinAmount"
                    placeholder="Min ₱"
                    class="px-2 py-1 border rounded w-20" />
           </div>
-        
+
           <div class="flex flex-col">
-           
+
             <p id="expAmountError"
                class="text-xs text-red-600 mb-1 hidden">
               “Max” must be ≥ “Min”
@@ -677,7 +683,7 @@
 
             <div class="flex items-center space-x-2">
               <span class="text-sm">{{ budget_form.amount.label_tag }}</span>
-              
+
               {{ budget_form.amount }}
               {% for err in budget_form.amount.errors %}
                 <p class="text-red-600 text-sm">{{ err }}</p>
@@ -849,7 +855,7 @@
                 d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
-    
+
     <h3 class="text-lg font-semibold mb-4">Edit Category</h3>
     <form method="post" action="{% url 'budget:dashboard' %}">
       {% csrf_token %}
@@ -893,7 +899,7 @@
       >
       <!-- Overlay -->
       <div class="absolute inset-0 bg-black/50"></div>
-    
+
       <!-- Modal box -->
       <div class="relative bg-[#fdfdfb] rounded-xl shadow-lg w-full max-w-lg p-6">
         <!-- Close icon -->
@@ -908,12 +914,12 @@
                   d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
-    
+
         <!-- Title -->
         <h2 id="modalTitle" class="text-2xl font-bold mb-4">
           {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
         </h2>
-    
+
         <!-- Your form -->
         <!-- Form -->
         <form method="post"
@@ -921,13 +927,13 @@
         id="entryModalForm"
         class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
     {% csrf_token %}
-  
+
     {# ALWAYS render this, blank if we’re “Add” mode #}
     <input id="modalEntryId"
            type="hidden"
            name="entry-id"
            value="{{ edit_id|default:'' }}">
-  
+
     {# — Title — #}
     <div>
       <label for="id_title" class="block text-sm font-medium text-gray-700">
@@ -938,7 +944,7 @@
         <p class="mt-1 text-sm text-red-600">{{ entry_form.title.errors.0 }}</p>
       {% endif %}
     </div>
-  
+
     {# — Amount — #}
     <div>
       <label for="id_amount" class="block text-sm font-medium text-gray-700">
@@ -949,7 +955,7 @@
         <p class="mt-1 text-sm text-red-600">{{ entry_form.amount.errors.0 }}</p>
       {% endif %}
     </div>
-  
+
     {# — Date — #}
     <div>
       <label for="id_date" class="block text-sm font-medium text-gray-700">
@@ -960,7 +966,7 @@
         <p class="mt-1 text-sm text-red-600">{{ entry_form.date.errors.0 }}</p>
       {% endif %}
     </div>
-  
+
     {# — Type (hide in edit with CSS) — #}
     <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
       <label for="id_type" class="block text-sm font-medium text-gray-700">
@@ -971,7 +977,7 @@
         <p class="mt-1 text-sm text-red-600">{{ entry_form.type.errors.0 }}</p>
       {% endif %}
     </div>
-  
+
     {# — Category (full width) — #}
     <div class="md:col-span-2">
       <label for="id_category" class="block text-sm font-medium text-gray-700">
@@ -982,7 +988,7 @@
         <p class="mt-1 text-sm text-red-600">{{ entry_form.category.errors.0 }}</p>
       {% endif %}
     </div>
-  
+
     {# — Notes (full width) — #}
     <div class="md:col-span-2">
       <label for="id_notes" class="block text-sm font-medium text-gray-700">
@@ -993,7 +999,7 @@
         <p class="mt-1 text-sm text-red-600">{{ entry_form.notes.errors.0 }}</p>
       {% endif %}
     </div>
-  
+
     {# — Actions — #}
     <div class="md:col-span-2 flex justify-end space-x-2 pt-4">
       <button type="button"
@@ -1009,8 +1015,8 @@
       </button>
     </div>
   </form>
-  
-  
+
+
       </div>
     </div>
 
@@ -1093,7 +1099,7 @@
   function hideModal() {
     addEntryModal.classList.add('hidden');
     addEntryModal.classList.remove('flex');
-    
+
   }
 
   function cleanUrl() {
@@ -1236,7 +1242,7 @@
                 const catQ     = ca.value.trim().toLowerCase();
                 const minA     = parseFloat(mn.value) || -Infinity;
                 const maxA     = parseFloat(mx.value) || Infinity;
-                
+
                 let valid = true;
                 // 1) Date range
 
@@ -1261,24 +1267,24 @@
                 rows.forEach(row => {
                   const cells = row.querySelectorAll('td');
                   let ok = true;
-                  
+
                   // 1) Date is in cells[3]
                   if ((fromDate || toDate) && cells[3]) {
                     const d = new Date(cells[3].textContent);
                     if (fromDate && d < fromDate) ok = false;
                     if (toDate   && d > toDate)   ok = false;
                   }
-            
+
                   // 2) Title is in cells[0]
                   if (titleQ && cells[0] && !cells[0].textContent.toLowerCase().includes(titleQ)) {
                     ok = false;
                   }
-            
+
                   // 3) Category is in cells[1]
                   if (catQ && cells[1] && !cells[1].textContent.toLowerCase().includes(catQ)) {
                     ok = false;
                   }
-            
+
                   // 4) Amount is in cells[2]
                   if (cells[2]) {
                     const raw = cells[2]
@@ -1287,7 +1293,7 @@
                     const amt = parseFloat(raw) || 0;
                     if (amt < minA || amt > maxA) ok = false;
                   }
-            
+
                   row.style.display = ok ? '' : 'none';
                 });
               }
@@ -1318,7 +1324,7 @@
               tableBody: '#expenseTable'
             });
 
-            
+
       </script>
 
       <script>
@@ -1351,7 +1357,7 @@
             }
           );
           {% endif %}
-            
+
           (() => {
             const data     = {{ chart_budget_data|default:"[]"|safe }};
             const canvas   = document.getElementById('budgetChart');
@@ -1359,10 +1365,10 @@
             const hasData  = Array.isArray(data)
                           && data.length > 0
                           && !data.every(v => v === 0);
-          
+
             canvas.classList.toggle('hidden', !hasData);
             noData.classList.toggle('hidden',  hasData);
-          
+
             if (hasData) {
               new Chart(canvas.getContext('2d'), {
                 type: 'doughnut',
@@ -1371,7 +1377,7 @@
               });
             }
           })();
-          
+
           // same for by‐category
           (() => {
             const labels  = {{ chart_cat_labels|default:"[]"|safe }};
@@ -1380,10 +1386,10 @@
             const canvas  = document.getElementById('catBudgetDonut');
             const noData  = document.getElementById('catNoData');
             const hasData = labels.length > 0 && !(budg.every(v=>v===0) && spent.every(v=>v===0));
-          
+
             canvas.classList.toggle('hidden', !hasData);
             noData.classList.toggle('hidden',  hasData);
-          
+
             if (hasData) {
               new Chart(canvas.getContext('2d'), {
                 type: 'doughnut',
@@ -1538,7 +1544,7 @@
           URL.revokeObjectURL(url);
         });
 
-       
+
 
         });
         </script>
