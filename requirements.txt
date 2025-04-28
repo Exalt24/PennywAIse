@@ -1,0 +1,5 @@
+Django>=4.2,<5.0
+gunicorn>=20.1           # WSGI server
+psycopg2-binary>=2.9     # PostgreSQL driver
+python-dateutil>=2.8     # for relativedelta
+whitenoise>=6.5          # static‐files middleware
