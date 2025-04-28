@@ -69,8 +69,8 @@
         PennywAise is your all-in-one personal finance assistant. From the moment you link your accounts,
         it automatically categorizes every transaction—so you can see exactly where your money is going
         without lifting a finger. Set custom budgets for groceries, bills, entertainment or anything else,
-        and get real-time alerts whenever you’re approaching your limits. Want to save for a vacation, a
-        new gadget, or an emergency fund? PennywAise’s goal-tracker breaks down your target into manageable
+        and get real-time alerts whenever you're approaching your limits. Want to save for a vacation, a
+        new gadget, or an emergency fund? PennywAise's goal-tracker breaks down your target into manageable
         milestones, sends friendly reminders, and even suggests small adjustments you can make this week to stay on pace.
         Thousands of happy users have already taken control of their finances—reducing overspend by up to
         30%, hitting savings targets months early, and finally feeling confident about their money. Ready
@@ -184,61 +184,56 @@
     <div class="container mx-auto px-6 max-w-4xl">
       <!-- Playful heading stays centered -->
       <h2 class="text-3xl font-bold uppercase tracking-wide mb-8 text-[#40020F] text-center">
-        aren’t you gonna say hello?
+        aren't you gonna say hello?
       </h2>
-      <form class="max-w-md mx-auto space-y-6">
+      
+      <form method="post" action="#contact" class="max-w-md mx-auto space-y-6">
+        {% csrf_token %}
         <!-- Name -->
         <div>
           <label for="name" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
             Name
           </label>
-          <input
-            id="name"
-            type="text"
-            placeholder="Your full name"
-            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2"
-          />
+          {{ contact_form.name }}
+          {% if contact_form.name.errors %}
+          <p class="text-red-600 text-xs mt-1">{{ contact_form.name.errors.0 }}</p>
+          {% endif %}
         </div>
         <!-- Email -->
         <div>
           <label for="email" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
             Email
           </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2"
-          />
+          {{ contact_form.email }}
+          {% if contact_form.email.errors %}
+          <p class="text-red-600 text-xs mt-1">{{ contact_form.email.errors.0 }}</p>
+          {% endif %}
         </div>
         <!-- Subject -->
         <div>
           <label for="subject" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
             Subject
           </label>
-          <input
-            id="subject"
-            type="text"
-            placeholder="What’s on your mind?"
-            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2"
-          />
+          {{ contact_form.subject }}
+          {% if contact_form.subject.errors %}
+          <p class="text-red-600 text-xs mt-1">{{ contact_form.subject.errors.0 }}</p>
+          {% endif %}
         </div>
         <!-- Message -->
         <div>
           <label for="message" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
             Message
           </label>
-          <textarea
-            id="message"
-            rows="5"
-            placeholder="Write your message here…"
-            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2 resize-none"
-          ></textarea>
+          {{ contact_form.message }}
+          {% if contact_form.message.errors %}
+          <p class="text-red-600 text-xs mt-1">{{ contact_form.message.errors.0 }}</p>
+          {% endif %}
         </div>
         <!-- Send button -->
         <div class="flex justify-end">
           <button
             type="submit"
+            name="send-message"
             class="inline-flex items-center border-2 border-[#c3002d] text-[#c3002d] uppercase text-sm tracking-wide px-6 py-2 rounded-full hover:bg-red-50 transition"
           >
             Send Message
@@ -329,6 +324,28 @@
         </div>
     </div>
   </footer>
+  
+  <!-- Notification Modal -->
+  <div id="notification-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg p-4 max-w-xs w-full mx-4 relative border-l-4 border-green-500">
+      <button id="close-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <div class="flex items-center">
+        <div class="flex-shrink-0 mr-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="text-sm font-medium text-gray-700" id="modal-message">
+          Your message has been sent! We'll get back to you soon.
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <script>
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
@@ -363,6 +380,35 @@
     }
     window.addEventListener('scroll', updateNav);
     window.addEventListener('load', updateNav);
+  </script>
+  
+  <!-- Notification Modal Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('notification-modal');
+      const closeButton = document.getElementById('close-modal');
+      
+      {% if messages %}
+        // Get the first message only
+        var messageDisplayed = false;
+        {% for message in messages %}
+          if (!messageDisplayed) {
+            document.getElementById('modal-message').textContent = "{{ message|escapejs }}";
+            modal.classList.remove('hidden');
+            
+            setTimeout(function() {
+              modal.classList.add('hidden');
+            }, 5000);
+            
+            messageDisplayed = true;
+          }
+        {% endfor %}
+      {% endif %}
+      
+      closeButton.addEventListener('click', function() {
+        modal.classList.add('hidden');
+      });
+    });
   </script>
 </body>
 </html>

@@ -2,11 +2,12 @@ from django.db import models
 from django.conf import settings
 
 class Category(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.name
+    class Meta:
+        unique_together = ("user", "name")
+        ordering = ("name",)
 
 class Entry(models.Model):
     INCOME = 'IN'
@@ -47,3 +48,25 @@ class Budget(models.Model):
         if self.category:
             return f"{self.user} – {self.month:%b %Y} – {self.category.name}: ₱{self.amount}"
         return f"{self.user} – {self.month:%b %Y} – Total: ₱{self.amount}"
+
+class PasswordResetToken(models.Model):
+    """Model for storing password reset tokens."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expired = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Password reset token for {self.user.email}"
+    
+class ContactMessage(models.Model):
+    """Model for storing contact form messages."""
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Message from {self.name} - {self.subject}"
