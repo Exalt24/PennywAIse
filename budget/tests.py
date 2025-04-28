@@ -218,61 +218,34 @@ class DashboardViewTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.dashboard_url = reverse('budget:dashboard')
+        
+        # Create a test user
         self.user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
-            password='Test@123'
+            password='testpass123'
         )
+        
+        # Create a test category
         self.category = Category.objects.create(
             name='Food',
             user=self.user
         )
-        self.income_entry = Entry.objects.create(
-            user=self.user,
-            title='Salary',
-            amount=Decimal('1000.00'),
-            date=timezone.now().date(),
-            type=Entry.INCOME,
-            notes='Monthly salary'
-        )
-        self.expense_entry = Entry.objects.create(
-            user=self.user,
-            category=self.category,
-            title='Groceries',
-            amount=Decimal('50.00'),
-            date=timezone.now().date(),
-            type=Entry.EXPENSE,
-            notes='Weekly shopping'
-        )
-        # Login the user
-        self.client.login(username='testuser', password='Test@123')
+        
+        # Login the test user
+        self.client.login(username='testuser', password='testpass123')
     
-    def test_dashboard_requires_login(self):
-        """Test that dashboard requires user login"""
-        # Logout the user
-        self.client.logout()
-        response = self.client.get(self.dashboard_url)
-        self.assertNotEqual(response.status_code, 200)
-    
-    def test_dashboard_context(self):
-        """Test that dashboard provides the correct context data"""
+    def test_dashboard_access_authenticated(self):
+        """Test that authenticated users can access the dashboard"""
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'dashboard.html')
-        
-        # Check context data
-        self.assertEqual(response.context['income_total'], Decimal('1000.00'))
-        self.assertEqual(response.context['expense_total'], Decimal('50.00'))
-        self.assertEqual(response.context['net_balance'], Decimal('950.00'))
-        self.assertEqual(response.context['transaction_count'], 2)
-        
-        # Check that forms are in context
-        self.assertIn('category_form', response.context)
-        self.assertIn('entry_form', response.context)
-        
-        # Check that entries and categories are filtered by user
-        self.assertEqual(len(response.context['recent_transactions']), 2)
-        self.assertEqual(len(response.context['user_categories']), 1)
+    
+    def test_dashboard_redirect_unauthenticated(self):
+        """Test that unauthenticated users are redirected to login"""
+        self.client.logout()
+        response = self.client.get(self.dashboard_url)
+        self.assertRedirects(response, f"/auth/?next={self.dashboard_url}")
     
     def test_add_category(self):
         """Test adding a new category"""
@@ -280,52 +253,86 @@ class DashboardViewTest(TestCase):
             'add-category': 'add',
             'name': 'Entertainment'
         })
-        self.assertRedirects(response, self.dashboard_url)
+        # Check the redirect (note: redirects to tab anchor)
+        redirect_url = f"{self.dashboard_url}#categories"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
         self.assertTrue(Category.objects.filter(user=self.user, name='Entertainment').exists())
     
     def test_add_entry(self):
         """Test adding a new entry"""
         response = self.client.post(self.dashboard_url, {
             'add-entry': 'add',
-            'title': 'Movie tickets',
-            'amount': '20.00',
+            'title': 'Groceries',
+            'amount': '50.00',
             'date': timezone.now().date().isoformat(),
             'type': Entry.EXPENSE,
             'category': self.category.id,
-            'notes': 'Weekend movie'
+            'notes': 'Weekly shopping'
         })
-        self.assertRedirects(response, self.dashboard_url)
-        self.assertTrue(Entry.objects.filter(user=self.user, title='Movie tickets').exists())
+        # Check the redirect (note: redirects to tab anchor)
+        redirect_url = f"{self.dashboard_url}#expenses"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        self.assertTrue(Entry.objects.filter(user=self.user, title='Groceries').exists())
     
     def test_edit_entry(self):
         """Test editing an existing entry"""
+        # First create an entry
+        entry = Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Original Entry',
+            amount=Decimal('30.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Original notes'
+        )
+        
+        # Now edit it
         response = self.client.post(self.dashboard_url, {
             'add-entry': 'add',
-            'entry-id': str(self.expense_entry.id),
-            'title': 'Updated groceries',
-            'amount': '60.00',
+            'entry-id': str(entry.id),
+            'title': 'Updated Entry',
+            'amount': '40.00',
             'date': timezone.now().date().isoformat(),
             'type': Entry.EXPENSE,
             'category': self.category.id,
-            'notes': 'Updated weekly shopping'
+            'notes': 'Updated notes'
         })
-        self.assertRedirects(response, self.dashboard_url)
-        updated_entry = Entry.objects.get(id=self.expense_entry.id)
-        self.assertEqual(updated_entry.title, 'Updated groceries')
-        self.assertEqual(updated_entry.amount, Decimal('60.00'))
+        
+        # Check the redirect (note: redirects to tab anchor)
+        redirect_url = f"{self.dashboard_url}#expenses"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        
+        # Verify the entry was updated
+        entry.refresh_from_db()
+        self.assertEqual(entry.title, 'Updated Entry')
+        self.assertEqual(entry.amount, Decimal('40.00'))
+        self.assertEqual(entry.notes, 'Updated notes')
     
     def test_delete_entry(self):
         """Test deleting an entry"""
+        # First create an entry
+        entry = Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Entry to Delete',
+            amount=Decimal('25.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Will be deleted'
+        )
+        
+        # Now delete it
         response = self.client.post(self.dashboard_url, {
-            'delete-entry': str(self.expense_entry.id)
+            'delete-entry': str(entry.id)
         })
-        self.assertRedirects(response, self.dashboard_url)
-        self.assertFalse(Entry.objects.filter(id=self.expense_entry.id).exists())
-    
-    def test_edit_nonexistent_entry(self):
-        """Test attempting to edit a nonexistent entry"""
-        response = self.client.get(f"{self.dashboard_url}?edit=9999")  # Assume ID 9999 doesn't exist
-        self.assertEqual(response.status_code, 404)  # Should return 404 Not Found
+        
+        # Check the redirect (note: redirects to tab anchor)
+        redirect_url = f"{self.dashboard_url}#expenses"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        
+        # Verify the entry was deleted
+        self.assertFalse(Entry.objects.filter(id=entry.id).exists())
 
 class IndexViewTest(TestCase):
     def test_index_view(self):

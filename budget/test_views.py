@@ -3,16 +3,78 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from .models import Category, Entry
+from .models import Category, Entry, ContactMessage
+from .forms import ContactForm
 
 User = get_user_model()
 
 class IndexViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.index_url = reverse('budget:index')
+        
     def test_index_view(self):
         """Test that the index page loads correctly"""
-        response = self.client.get(reverse('budget:index'))
+        response = self.client.get(self.index_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'index.html')
+        
+    def test_contact_form_display(self):
+        """Test that the contact form is displayed on the index page"""
+        response = self.client.get(self.index_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="send-message"')
+        self.assertIsInstance(response.context['contact_form'], ContactForm)
+        
+    def test_contact_form_submission_valid(self):
+        """Test successful contact form submission"""
+        contact_data = {
+            'name': 'Test User',
+            'email': 'test@example.com',
+            'subject': 'Test Subject',
+            'message': 'This is a test message',
+            'send-message': 'send'
+        }
+        
+        # Check message count before submission
+        initial_count = ContactMessage.objects.count()
+        
+        response = self.client.post(self.index_url, contact_data)
+        
+        # Check redirect
+        self.assertRedirects(response, self.index_url)
+        
+        # Check that a new message was created
+        self.assertEqual(ContactMessage.objects.count(), initial_count + 1)
+        
+        # Check message content
+        message = ContactMessage.objects.latest('created_at')
+        self.assertEqual(message.name, 'Test User')
+        self.assertEqual(message.email, 'test@example.com')
+        self.assertEqual(message.subject, 'Test Subject')
+        
+    def test_contact_form_submission_invalid(self):
+        """Test invalid contact form submission"""
+        contact_data = {
+            'name': '',  # Empty name (invalid)
+            'email': 'test@example.com',
+            'subject': 'Test Subject',
+            'message': 'This is a test message',
+            'send-message': 'send'
+        }
+        
+        # Check message count before submission
+        initial_count = ContactMessage.objects.count()
+        
+        response = self.client.post(self.index_url, contact_data)
+        
+        # Check that the form is rendered again with errors
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['contact_form'].is_valid())
+        self.assertIn('name', response.context['contact_form'].errors)
+        
+        # Check that no new message was created
+        self.assertEqual(ContactMessage.objects.count(), initial_count)
 
 class AuthViewTest(TestCase):
     def setUp(self):
@@ -147,51 +209,97 @@ class DashboardViewTest(TestCase):
     
     def test_add_category(self):
         """Test adding a new category"""
+        # Create a post request with category data
         response = self.client.post(self.dashboard_url, {
-            'add-category': 'add',
-            'name': 'Entertainment'
+            'add-category': 'true',
+            'name': 'Entertainment',
         })
-        self.assertRedirects(response, self.dashboard_url)
+        
+        # Check the redirect (note: redirects to tab anchor)
+        redirect_url = f"{self.dashboard_url}#categories"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        
+        # Check that the category was created
         self.assertTrue(Category.objects.filter(user=self.user, name='Entertainment').exists())
     
     def test_add_entry(self):
         """Test adding a new entry"""
+        # Create a post request with entry data
         response = self.client.post(self.dashboard_url, {
-            'add-entry': 'add',
+            'add-entry': 'true',
             'title': 'Movie tickets',
-            'amount': '20.00',
+            'amount': '25.00',
             'date': timezone.now().date().isoformat(),
             'type': Entry.EXPENSE,
             'category': self.category.id,
-            'notes': 'Weekend movie'
         })
-        self.assertRedirects(response, self.dashboard_url)
+        
+        # Check the redirect (note: redirects to tab anchor)
+        redirect_url = f"{self.dashboard_url}#expenses"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        
+        # Check that the entry was created
         self.assertTrue(Entry.objects.filter(user=self.user, title='Movie tickets').exists())
     
     def test_edit_entry(self):
         """Test editing an existing entry"""
+        # First create an entry
+        entry = Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Original Entry',
+            amount=Decimal('30.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Original notes'
+        )
+        
+        # Now edit it
         response = self.client.post(self.dashboard_url, {
             'add-entry': 'add',
-            'entry-id': str(self.expense_entry.id),
-            'title': 'Updated groceries',
-            'amount': '60.00',
+            'entry-id': str(entry.id),
+            'title': 'Updated Entry',
+            'amount': '40.00',
             'date': timezone.now().date().isoformat(),
             'type': Entry.EXPENSE,
             'category': self.category.id,
-            'notes': 'Updated weekly shopping'
+            'notes': 'Updated notes'
         })
-        self.assertRedirects(response, self.dashboard_url)
-        updated_entry = Entry.objects.get(id=self.expense_entry.id)
-        self.assertEqual(updated_entry.title, 'Updated groceries')
-        self.assertEqual(updated_entry.amount, Decimal('60.00'))
+        
+        # Check the redirect
+        redirect_url = f"{self.dashboard_url}#expenses"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        
+        # Verify the entry was updated
+        entry.refresh_from_db()
+        self.assertEqual(entry.title, 'Updated Entry')
+        self.assertEqual(entry.amount, Decimal('40.00'))
+        self.assertEqual(entry.notes, 'Updated notes')
     
     def test_delete_entry(self):
         """Test deleting an entry"""
+        # First create an entry
+        entry = Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Entry to Delete',
+            amount=Decimal('25.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Will be deleted'
+        )
+        
+        # Now delete it
         response = self.client.post(self.dashboard_url, {
-            'delete-entry': str(self.expense_entry.id)
+            'delete-entry': str(entry.id)
         })
-        self.assertRedirects(response, self.dashboard_url)
-        self.assertFalse(Entry.objects.filter(id=self.expense_entry.id).exists())
+        
+        # Check the redirect
+        redirect_url = f"{self.dashboard_url}#expenses"
+        self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
+        
+        # Verify the entry was deleted
+        self.assertFalse(Entry.objects.filter(id=entry.id).exists())
     
     def test_edit_nonexistent_entry(self):
         """Test attempting to edit a nonexistent entry"""
