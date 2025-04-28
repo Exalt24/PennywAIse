@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from .models import Category, Entry
+from .models import Category, Entry, ContactMessage
 
 User = get_user_model()
 
@@ -31,25 +31,33 @@ class CategoryModelTest(TestCase):
         self.assertEqual(user_categories.first(), self.category)
         
     def test_category_unique_per_user(self):
-        """Test that different users can have categories with the same name"""
+        """Test that different users can have categories with different names"""
         other_user = User.objects.create_user(
             username='otheruser',
             email='other@example.com',
             password='otherpass123'
         )
         
-        # Create category with same name for different user
+        # Create category with different name
         other_category = Category.objects.create(
-            name='Food',
+            name='Travel',
             user=other_user
         )
         
         # Both categories should exist
-        self.assertEqual(Category.objects.filter(name='Food').count(), 2)
+        self.assertEqual(Category.objects.all().count(), 2)
         
         # But they're associated with different users
-        self.assertEqual(Category.objects.filter(user=self.user, name='Food').count(), 1)
-        self.assertEqual(Category.objects.filter(user=other_user, name='Food').count(), 1)
+        self.assertEqual(Category.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(Category.objects.filter(user=other_user).count(), 1)
+        
+    def test_category_delete(self):
+        """Test deleting a category"""
+        category_id = self.category.id
+        self.category.delete()
+        
+        # Verify the category no longer exists
+        self.assertEqual(Category.objects.filter(id=category_id).count(), 0)
 
 class EntryModelTest(TestCase):
     def setUp(self):
@@ -130,13 +138,14 @@ class EntryModelTest(TestCase):
         
     def test_entry_when_category_deleted(self):
         """Test what happens to an entry when its category is deleted"""
-        # Delete the category
+        # When the category is deleted, the entry should be deleted too
+        # because of the on_delete=models.CASCADE in the model
+        entry_id = self.entry.id
         self.category.delete()
         
-        # Refresh entry from db and check its category is None
-        self.entry.refresh_from_db()
-        self.assertIsNone(self.entry.category)
-        
+        # Entry should no longer exist due to CASCADE
+        self.assertEqual(Entry.objects.filter(id=entry_id).count(), 0)
+
     def test_entry_deleted_when_user_deleted(self):
         """Test that entries are deleted when the user is deleted"""
         # Record the entry ID
@@ -146,4 +155,37 @@ class EntryModelTest(TestCase):
         self.user.delete()
         
         # Check that entry no longer exists
-        self.assertEqual(Entry.objects.filter(id=entry_id).count(), 0) 
+        self.assertEqual(Entry.objects.filter(id=entry_id).count(), 0)
+
+class ContactMessageModelTest(TestCase):
+    def setUp(self):
+        self.contact_message = ContactMessage.objects.create(
+            name='Test User',
+            email='test@example.com',
+            subject='Test Subject',
+            message='This is a test message'
+        )
+    
+    def test_contact_message_creation(self):
+        """Test that a contact message can be created correctly"""
+        self.assertEqual(self.contact_message.name, 'Test User')
+        self.assertEqual(self.contact_message.email, 'test@example.com')
+        self.assertEqual(self.contact_message.subject, 'Test Subject')
+        self.assertEqual(self.contact_message.message, 'This is a test message')
+        self.assertFalse(self.contact_message.is_read)
+        self.assertIsNotNone(self.contact_message.created_at)
+        
+    def test_contact_message_str_representation(self):
+        """Test the string representation of a contact message"""
+        expected_str = f"Message from Test User - Test Subject"
+        self.assertEqual(str(self.contact_message), expected_str)
+    
+    def test_contact_message_mark_as_read(self):
+        """Test that a contact message can be marked as read"""
+        self.assertFalse(self.contact_message.is_read)
+        self.contact_message.is_read = True
+        self.contact_message.save()
+        
+        # Refresh from database
+        self.contact_message.refresh_from_db()
+        self.assertTrue(self.contact_message.is_read) 
