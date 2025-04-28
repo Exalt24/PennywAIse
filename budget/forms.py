@@ -4,23 +4,20 @@ from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from .models import Entry, Category
+from .models import Entry, Category, Budget
 from django.utils import timezone
-
+from django.db.models import Sum
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 User = get_user_model()
 
 EMAIL_REGEX = r'^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}(?:\.[A-Za-z]{2,})?$'
 
-# finance/forms.py
-
-from django import forms
-from .models import Entry, Category
-
-
 class EntryForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
 
         # limit categories to this user
         if user is not None:
@@ -51,6 +48,34 @@ class EntryForm(forms.ModelForm):
                 field.widget.attrs['class'] += " h-24 resize-none"
 
     # ----- field-specific validation -----
+
+    def clean(self):
+        cleaned = super().clean()
+        title    = cleaned.get('title')
+        date     = cleaned.get('date')
+        category = cleaned.get('category')
+
+        if title and date and category and self.user:
+            qs = Entry.objects.filter(
+                user=self.user,
+                title__iexact=title.strip(),
+                date=date,
+                category=category
+            )
+            # if we’re editing, exclude ourselves
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(
+                    "You already have an entry in “%(cat)s” on %(date)s titled “%(title)s.”",
+                    code='duplicate_entry',
+                    params={
+                        'cat':      category.name,
+                        'date':     date.strftime("%b %-d, %Y"),
+                        'title':    title.strip(),
+                    }
+                )
+        return cleaned
 
     def clean_title(self):
         title = self.cleaned_data.get('title', '').strip()
@@ -83,6 +108,8 @@ class EntryForm(forms.ModelForm):
         if cat is None:
             raise forms.ValidationError("Please pick a category.")
         return cat
+    
+    
 
     class Meta:
         model = Entry
@@ -92,15 +119,31 @@ class EntryForm(forms.ModelForm):
         }
 
 class CategoryForm(forms.ModelForm):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user  # remember who we’re validating for
+
+        # apply your existing styling/placeholder
+        self.fields['name'].widget.attrs.update({
+            'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm '
+                     'focus:ring-indigo-500 focus:border-indigo-500',
+            'placeholder': 'New category',
+        })
+
+    def clean_name(self):
+        name = self.cleaned_data['name'].strip()
+        # build a queryset for this user, same name (case-insensitive)
+        qs = Category.objects.filter(user=self.user, name__iexact=name)
+        # if we’re editing, exclude our own instance
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("You already have a category with that name.")
+        return name
+
     class Meta:
         model = Category
         fields = ['name']
-        widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500',
-                'placeholder': 'New category'
-            })
-        }
 
 class LoginForm(forms.Form):
     email = forms.EmailField(
@@ -203,3 +246,70 @@ class RegisterForm(UserCreationForm):
         if commit:
             user.save()
         return user
+    
+class BudgetForm(forms.ModelForm):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        # limit categories to this user
+        if user is not None:
+            self.fields['category'].queryset = Category.objects.filter(user=user)
+        self.fields['category'].empty_label = "Total Budget"
+        # we no longer expose `month` to the form
+        self.fields.pop('month', None)
+
+    def clean(self):
+        cleaned = super().clean()
+        amount   = cleaned.get('amount')
+        category = cleaned.get('category')
+        month    = timezone.localdate().replace(day=1)
+
+        # all per-category budgets for this user/month
+        qs = Budget.objects.filter(user=self.user, month=month, category__isnull=False)
+        total_cat = qs.aggregate(total=Sum('amount'))['total'] or 0
+
+        # if there’s already a budget on this same category, drop it from the sum
+        if category is not None:
+            old = qs.filter(category=category).first()
+            if old:
+                total_cat -= old.amount
+
+        # Now total_cat is “all other categories,” so adding the new amount is safe
+        if category is None:
+            # total‐budget branch: must be ≥ sum of category budgets
+            if amount is not None and amount < total_cat:
+                raise forms.ValidationError(
+                    f"Your total budget (₱{amount:.2f}) cannot be less than "
+                    f"the sum of your per-category budgets (₱{total_cat:.2f})."
+                )
+        else:
+            # per-category branch: ensure new sum ≤ total‐budget
+            total_obj = Budget.objects.filter(
+                user=self.user, month=month, category__isnull=True
+            ).first()
+            if total_obj and (total_cat + amount) > total_obj.amount:
+                raise forms.ValidationError(
+                    f"The sum of all category budgets (₱{total_cat + amount:.2f}) "
+                    f"cannot exceed your total budget (₱{total_obj.amount:.2f})."
+                )
+
+        return cleaned
+
+
+    class Meta:
+        model = Budget
+        fields = ['category', 'amount']
+        widgets = {
+            'category': forms.Select(attrs={
+                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm '
+                         'focus:ring-indigo-500 focus:border-indigo-500',
+            }),
+            'amount': forms.NumberInput(attrs={
+                'step':'0.01',
+                'class':'mt-1 block w-full',
+                'placeholder':'e.g. 15000.00'
+            }),
+        }
+        help_texts = {
+            'category': 'Leave blank to set the overall budget for this month',
+        }

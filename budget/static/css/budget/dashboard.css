@@ -1,0 +1,24 @@
+th.sortable {
+    position: relative;
+    padding-right: 1.5rem; /* room for arrow */
+    cursor: pointer;
+  }
+  th.sortable::after {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75em;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+  }
+  th.sortable.sort-asc::after {
+    content: '▲';
+    opacity: 1;
+  }
+  th.sortable.sort-desc::after {
+    content: '▼';
+    opacity: 1;
+  }
+  
