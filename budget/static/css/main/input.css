@@ -2,23 +2,22 @@
 
 /* Sidebar */
 .sidebar {
-  @apply w-60 bg-gradient-to-b from-[#BD132D] to-[#642828] text-white p-5 flex flex-col;
+  @apply w-60 bg-[#1e1e1e] text-white p-5 flex flex-col;
 }
 .logo {
   @apply text-2xl font-bold mb-8;
 }
 .create {
-  @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-8;
+  @apply bg-[#ff6f00] text-white border-0 px-4 py-3 rounded-lg cursor-pointer mb-8;
 }
 
 /* Navigation links */
 nav a {
-  @apply text-current no-underline rounded-full mb-2 flex space-x-3 px-4 py-2;
+  @apply text-current no-underline block px-4 py-3 rounded-lg mb-2;
 }
 nav a.active,
-nav a:hover,
-nav a.svg {
-  @apply bg-[#e7e4de] text-black;
+nav a:hover {
+  @apply bg-[#333];
 }
 
 /* Main area */
@@ -32,23 +31,23 @@ header {
   @apply w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg;
 }
 .user {
-  @apply cursor-pointer flex justify-end items-center;
-}
+    @apply cursor-pointer flex justify-end items-center;
+  }  
 
 .button {
-  @apply flex items-center space-x-1 focus:outline-none;
+    @apply flex items-center space-x-1 focus:outline-none
 }
 
 .usermenu {
-  @apply absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50;
+    @apply absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50
 }
 
 .menu {
-  @apply block px-4 py-2 hover:bg-gray-100;
+    @apply block px-4 py-2 hover:bg-gray-100
 }
 
 .pagetitle {
-  @apply text-2xl font-bold text-[#40020F];
+    @apply text-2xl font-bold
 }
 /* Overview cards */
 .overview {
@@ -56,7 +55,7 @@ header {
   @apply grid gap-4 mb-5 grid-cols-[repeat(auto-fit,minmax(200px,1fr))];
 }
 .card {
-  @apply bg-[#fdfdfb] rounded-xl p-4 shadow-md;
+  @apply bg-white rounded-lg p-4 shadow-md;
 }
 .card .title {
   @apply text-sm text-[#666] mb-2;
@@ -73,10 +72,10 @@ header {
   @apply flex flex-wrap gap-8 mb-5;
 }
 .project-summary {
-  @apply flex-[2] bg-[#fdfdfb] rounded-xl p-4 shadow-md mb-5 overflow-hidden;
+  @apply flex-[2] bg-white rounded-lg p-4 shadow-md mb-5 overflow-hidden;
 }
 .progress {
-  @apply flex-[1] bg-[#fdfdfb] rounded-xl p-4 shadow-md flex flex-col items-center;
+  @apply flex-[1] bg-white rounded-lg p-4 shadow-md flex flex-col items-center;
 }
 
 /* Table styles */
@@ -118,7 +117,7 @@ th.sortable {
   cursor: pointer;
 }
 th.sortable::after {
-  content: "";
+  content: '';
   position: absolute;
   right: 0.5rem;
   top: 50%;
@@ -128,10 +127,11 @@ th.sortable::after {
   transition: opacity 0.2s;
 }
 th.sortable.sort-asc::after {
-  content: "▲";
+  content: '▲';
   opacity: 1;
 }
 th.sortable.sort-desc::after {
-  content: "▼";
+  content: '▼';
   opacity: 1;
 }
+
