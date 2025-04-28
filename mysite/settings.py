@@ -32,7 +32,6 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True") != "False"
 if DEBUG:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 else:
-    # your actual Render app URL here:
     ALLOWED_HOSTS = ["pennywaise.onrender.com"]
 
 
