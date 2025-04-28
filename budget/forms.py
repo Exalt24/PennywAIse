@@ -25,8 +25,7 @@ class EntryForm(forms.ModelForm):
 
         # shared base classes
         base_cls = (
-            "mt-1 block w-full border-gray-300 rounded-md shadow-sm "
-            "focus:ring-indigo-500 focus:border-indigo-500"
+            "mt-1 block w-full border-gray-300 rounded-md py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 border"
         )
 
         # placeholders for each field
@@ -45,7 +44,7 @@ class EntryForm(forms.ModelForm):
                 field.widget.attrs['placeholder'] = ph
 
             if isinstance(field.widget, forms.Textarea):
-                field.widget.attrs['class'] += " h-24 resize-none"
+                 field.widget.attrs['class'] += " h-24 resize-none px-3"
 
     # ----- field-specific validation -----
 
