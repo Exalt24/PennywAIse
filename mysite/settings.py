@@ -150,3 +150,7 @@ if not TESTING:
     ]
 
 NPM_BIN_PATH = "C:/Users/Daniel Cruz/AppData/Roaming/npm/npm.cmd"
+
+LOGOUT_REDIRECT_URL = '/'
+
+LOGIN_URL = '/auth/'
