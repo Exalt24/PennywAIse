@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,8 +12,13 @@
   <!-- Navigation -->
   <nav class="w-full fixed top-0 left-0 bg-transparent backdrop-blur-xl z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="#home" class="text-2xl font-bold flex items-center text-[#000000]">
-        PennywAise<span class="text-[#D4D1CA]">/</span>
+      <a href="#home" class="text-2xl font-bold flex items-center">
+        <img
+          id="logoImage"
+          src="{% static 'images/logo3.png' %}"
+          alt="PennywAise logo"
+          class="h-12 w-auto mr-2"
+        />
       </a>
       <ul class="hidden md:flex space-x-8 uppercase ">
         <li><a href="#about" class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1">About</a></li>
@@ -186,7 +192,7 @@
       <h2 class="text-3xl font-bold uppercase tracking-wide mb-8 text-[#40020F] text-center">
         aren't you gonna say hello?
       </h2>
-      
+
       <form method="post" action="#contact" class="max-w-md mx-auto space-y-6">
         {% csrf_token %}
         <!-- Name -->
@@ -250,7 +256,14 @@
     <div class="container max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
       <!-- Brand -->
       <div>
-        <h3 class="text-2xl font-bold text-white mb-2">PennywAIse</h3>
+        <a href="#home" class="text-2xl font-bold flex items-center">
+          <img
+            id="logoImage"
+            src="{% static 'images/logo4.png' %}"
+            alt="PennywAise logo"
+            class="h-20 w-auto mr-2 py-2"
+          />
+        </a>
         <p class="text-sm">© 2025 PennywAIse. All rights reserved.</p>
       </div>
       <!-- Quick Links -->
@@ -324,7 +337,7 @@
         </div>
     </div>
   </footer>
-  
+
   <!-- Notification Modal -->
   <div id="notification-modal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
     <div class="bg-white rounded-lg shadow-lg p-4 max-w-xs w-full mx-4 relative border-l-4 border-green-500">
@@ -345,31 +358,44 @@
       </div>
     </div>
   </div>
-  
+
   <script>
-    const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
+    const sections   = document.querySelectorAll('section[id]');
+    const navLinks   = document.querySelectorAll('.nav-link');
+    const logoImage  = document.getElementById('logoImage');
+
+    // Preload or define your two logo URLs
+    const homeLogoSrc  = "{% static 'images/logo3.png' %}";
+    const otherLogoSrc = "{% static 'images/logo9.png' %}";
 
     function updateNav() {
       let currentSection = '';
 
+      // figure out which section is in view
       sections.forEach(section => {
-        const sectionTop = section.offsetTop - 80;
-        if (window.pageYOffset >= sectionTop) {
+        const secTop = section.offsetTop - 80;
+        if (window.pageYOffset >= secTop) {
           currentSection = section.getAttribute('id');
         }
       });
-      if (currentSection === 'home') {
+
+      // 1) Swap link text colors AND swap logo
+      if (!currentSection || currentSection === 'home') {
+        // Home styles
         navLinks.forEach(link => {
           link.classList.remove('text-[#40020F]');
           link.classList.add('text-white');
         });
+        logoImage.src = homeLogoSrc;
       } else {
+        // Other-section styles
         navLinks.forEach(link => {
           link.classList.remove('text-white');
           link.classList.add('text-[#40020F]');
         });
+        logoImage.src = otherLogoSrc;
       }
+
       // 2) Underline the active link
       navLinks.forEach(link => {
         link.classList.remove('border-b-2', 'border-[#c3002d]');
@@ -378,16 +404,18 @@
         }
       });
     }
+
     window.addEventListener('scroll', updateNav);
     window.addEventListener('load', updateNav);
   </script>
-  
+
+
   <!-- Notification Modal Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const modal = document.getElementById('notification-modal');
       const closeButton = document.getElementById('close-modal');
-      
+
       {% if messages %}
         // Get the first message only
         var messageDisplayed = false;
@@ -395,16 +423,16 @@
           if (!messageDisplayed) {
             document.getElementById('modal-message').textContent = "{{ message|escapejs }}";
             modal.classList.remove('hidden');
-            
+
             setTimeout(function() {
               modal.classList.add('hidden');
             }, 5000);
-            
+
             messageDisplayed = true;
           }
         {% endfor %}
       {% endif %}
-      
+
       closeButton.addEventListener('click', function() {
         modal.classList.add('hidden');
       });
