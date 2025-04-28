@@ -161,3 +161,11 @@ NPM_BIN_PATH = "C:/Users/Daniel Cruz/AppData/Roaming/npm/npm.cmd"
 LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/auth/'
+
+DEBUG = os.getenv("DJANGO_DEBUG", "") != "False"
+
+if DEBUG:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+else:
+    # name your Render service’s URL here
+    ALLOWED_HOSTS = ["pennywaise.onrender.com"]
