@@ -7,11 +7,12 @@ from django.views.generic import TemplateView
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, get_user_model
 from . import forms
-from .models import Category, Entry, Budget
+from .models import Category, Entry, Budget, ContactMessage
 from django.db.models import Sum, Count, Q, F
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dateutil.relativedelta import relativedelta
 from django.http import HttpResponse
+from django.contrib import messages
 import csv
 import secrets
 
@@ -20,6 +21,27 @@ User = get_user_model()
 
 class IndexView(TemplateView):
     template_name = "index.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['contact_form'] = forms.ContactForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        # Handle contact form submission
+        if 'send-message' in request.POST:
+            contact_form = forms.ContactForm(request.POST)
+            if contact_form.is_valid():
+                contact_form.save()
+                messages.success(request, "Your message has been sent! We'll get back to you soon.")
+                return redirect('budget:index')
+            else:
+                # If form is invalid, render the page with the form errors
+                context = self.get_context_data(**kwargs)
+                context['contact_form'] = contact_form
+                return self.render_to_response(context)
+                
+        return super().get(request, *args, **kwargs)
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard.html"
