@@ -86,4 +86,3 @@ This command will:
 - Launch Django at [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 - Watch and recompile Tailwind CSS automatically
 - Enable browser auto-reload on template or static file changes
-

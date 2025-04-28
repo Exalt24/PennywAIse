@@ -1,5 +1,5 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="h-full">
   <head>
     <meta charset="utf-8" />
@@ -38,7 +38,9 @@
           id="register-card"
           class="h-135 absolute inset-0 bg-[#dcdcdc] rounded-lg shadow-lg pt-10 p-6 transform transition-all duration-500 ease-in-out z-10 translate-x-8 translate-y-8 overflow-auto"
         >
-          <h2 class="text-3xl font-bold mb-4 text-[#642828] text-center">Register</h2>
+          <h2 class="text-3xl font-bold mb-4 text-[#642828] text-center">
+            Register
+          </h2>
           <form method="post" class="space-y-4">
             {% csrf_token %} {% if register_form.non_field_errors %}
             <div class="text-sm text-red-600">
@@ -215,7 +217,9 @@
           id="login-card"
           class="h-135 absolute inset-0 bg-[#e7e4de] rounded-lg shadow-lg pt-15 p-6 transform transition-all duration-500 ease-in-out z-20 translate-x-0 translate-y-0 overflow-auto"
         >
-          <h2 class="text-3xl font-bold mb-4 jus text-[#642828] text-center">Login</h2>
+          <h2 class="text-3xl font-bold mb-4 jus text-[#642828] text-center">
+            Login
+          </h2>
           {% if login_error %}
           <div class="mb-4 p-2 bg-red-100 text-red-800 rounded">
             {{ login_error }}
@@ -335,24 +339,24 @@
     <script>
       const loginCard = document.getElementById('login-card');
       const registerCard = document.getElementById('register-card');
-      
+
       function showLogin() {
         loginCard.classList.add('translate-x-0','translate-y-0','z-20');
         loginCard.classList.remove('translate-x-8','translate-y-8','z-10');
         registerCard.classList.add('translate-x-8','translate-y-8','z-10');
         registerCard.classList.remove('translate-x-0','translate-y-0','z-20');
       }
-      
+
       function showRegister() {
         registerCard.classList.add('translate-x-0','translate-y-0','z-20');
         registerCard.classList.remove('translate-x-8','translate-y-8','z-10');
         loginCard.classList.add('translate-x-8','translate-y-8','z-10');
         loginCard.classList.remove('translate-x-0','translate-y-0','z-20');
       }
-      
+
       registerCard.addEventListener('click', showRegister);
       loginCard.addEventListener('click', showLogin);
-      
+
       document.addEventListener('DOMContentLoaded', () => {
         {% if register_form.errors %}
           showRegister();
@@ -374,7 +378,7 @@
                 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542
                 7-4.478 0-8.268-2.943-9.542-7z"/>
           </svg>`;
-          
+
         const eyeClosed = `
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
               viewBox="0 0 24 24" stroke="currentColor">
@@ -385,7 +389,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3l18 18"/>
           </svg>`;
-    
+
         btn.addEventListener("click", () => {
           const inp = document.getElementById(btn.dataset.target);
           if (!inp) return;
@@ -402,21 +406,21 @@
 
     <script>
       // Direct approach to prevent multiple submissions
-      document.querySelectorAll('button[type="submit"]').forEach(button => {
-        button.addEventListener('click', function(e) {
+      document.querySelectorAll('button[type="submit"]').forEach((button) => {
+        button.addEventListener("click", function (e) {
           // If the button has already been clicked, prevent the action
-          if (this.getAttribute('data-clicked') === 'true') {
+          if (this.getAttribute("data-clicked") === "true") {
             e.preventDefault();
             return false;
           }
-          
+
           // Mark as clicked and change appearance
-          this.setAttribute('data-clicked', 'true');
+          this.setAttribute("data-clicked", "true");
           this.dataset.originalText = this.innerHTML;
-          this.innerHTML = 'Processing...';
-          this.style.opacity = '0.7';
-          this.style.cursor = 'not-allowed';
-          
+          this.innerHTML = "Processing...";
+          this.style.opacity = "0.7";
+          this.style.cursor = "not-allowed";
+
           // Allow the form to submit normally
           // The page will refresh or redirect after submission
         });
