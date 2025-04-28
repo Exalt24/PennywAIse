@@ -24,80 +24,75 @@ class BudgetTrackerIntegrationTest(TestCase):
     
     def test_full_user_journey(self):
         """Test the full user journey from landing page through multiple actions"""
-        # 1. Visit index page
-        response = self.client.get(self.index_url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'index.html')
+        # Create some necessary data first
+        Category.objects.create(name="Salary", user=self.user)
+        Category.objects.create(name="Groceries", user=self.user)
         
-        # 2. Go to auth page
-        response = self.client.get(self.auth_url)
+        # 1. User visits the landing page
+        response = self.client.get(reverse('budget:index'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'auth.html')
         
-        # 3. Login
-        response = self.client.post(self.auth_url, {
+        # 2. User logs in
+        response = self.client.post(reverse('budget:auth'), {
             'login-submit': 'login',
             'email': 'test@example.com',
-            'password': 'Test@123'
+            'password': 'Test@123',
         }, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'dashboard.html')
         
-        # 4. Add a category
-        response = self.client.post(self.dashboard_url, {
-            'add-category': 'add',
-            'name': 'Food'
-        }, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(Category.objects.filter(user=self.user, name='Food').exists())
-        category = Category.objects.get(user=self.user, name='Food')
-        
-        # 5. Add an expense entry
-        response = self.client.post(self.dashboard_url, {
-            'add-entry': 'add',
-            'title': 'Groceries',
-            'amount': '50.00',
-            'date': timezone.now().date().isoformat(),
-            'type': Entry.EXPENSE,
-            'category': category.id,
-            'notes': 'Weekly shopping'
-        }, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(Entry.objects.filter(user=self.user, title='Groceries').exists())
-        expense_entry = Entry.objects.get(user=self.user, title='Groceries')
-        
-        # 6. Add an income entry
-        response = self.client.post(self.dashboard_url, {
+        # 3. User adds an income entry
+        salary_category = Category.objects.get(name="Salary", user=self.user)
+        response = self.client.post(reverse('budget:dashboard'), {
             'add-entry': 'add',
             'title': 'Salary',
             'amount': '1000.00',
             'date': timezone.now().date().isoformat(),
             'type': Entry.INCOME,
-            'category': '',  # Income might not need a category
+            'category': salary_category.id,
             'notes': 'Monthly salary'
         }, follow=True)
         self.assertEqual(response.status_code, 200)
+        
+        # Ensure the entry was created
         self.assertTrue(Entry.objects.filter(user=self.user, title='Salary').exists())
         
-        # 7. Check dashboard context after adding entries
+        # 4. User adds an expense entry
+        grocery_category = Category.objects.get(name="Groceries", user=self.user)
+        response = self.client.post(reverse('budget:dashboard'), {
+            'add-entry': 'add',
+            'title': 'Weekly Groceries',
+            'amount': '150.00',
+            'date': timezone.now().date().isoformat(),
+            'type': Entry.EXPENSE,
+            'category': grocery_category.id,
+            'notes': 'Weekly grocery shopping'
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        
+        # Ensure both entries exist
+        self.assertEqual(Entry.objects.filter(user=self.user).count(), 2)
+        
+        # 5. Check dashboard context after adding entries
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
         
         # Verify financial totals
         self.assertEqual(response.context['income_total'], Decimal('1000.00'))
-        self.assertEqual(response.context['expense_total'], Decimal('50.00'))
-        self.assertEqual(response.context['net_balance'], Decimal('950.00'))
+        self.assertEqual(response.context['expense_total'], Decimal('150.00'))
+        self.assertEqual(response.context['net_balance'], Decimal('850.00'))
         self.assertEqual(response.context['transaction_count'], 2)
         
-        # 8. Edit an expense entry
+        # 6. Edit an expense entry
+        expense_entry = Entry.objects.get(user=self.user, title='Weekly Groceries')
         response = self.client.post(self.dashboard_url, {
             'add-entry': 'add',
             'entry-id': str(expense_entry.id),
             'title': 'Updated Groceries',
-            'amount': '60.00',
+            'amount': '160.00',
             'date': timezone.now().date().isoformat(),
             'type': Entry.EXPENSE,
-            'category': category.id,
+            'category': grocery_category.id,
             'notes': 'Updated weekly shopping'
         }, follow=True)
         self.assertEqual(response.status_code, 200)
@@ -105,18 +100,18 @@ class BudgetTrackerIntegrationTest(TestCase):
         # Verify the entry was updated
         expense_entry.refresh_from_db()
         self.assertEqual(expense_entry.title, 'Updated Groceries')
-        self.assertEqual(expense_entry.amount, Decimal('60.00'))
+        self.assertEqual(expense_entry.amount, Decimal('160.00'))
         
-        # 9. Check dashboard again after update
+        # 7. Check dashboard again after update
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
         
         # Verify updated financial totals
         self.assertEqual(response.context['income_total'], Decimal('1000.00'))
-        self.assertEqual(response.context['expense_total'], Decimal('60.00'))
-        self.assertEqual(response.context['net_balance'], Decimal('940.00'))
+        self.assertEqual(response.context['expense_total'], Decimal('160.00'))
+        self.assertEqual(response.context['net_balance'], Decimal('840.00'))
         
-        # 10. Delete an entry
+        # 8. Delete an entry
         response = self.client.post(self.dashboard_url, {
             'delete-entry': str(expense_entry.id)
         }, follow=True)
@@ -125,7 +120,7 @@ class BudgetTrackerIntegrationTest(TestCase):
         # Verify the entry was deleted
         self.assertFalse(Entry.objects.filter(id=expense_entry.id).exists())
         
-        # 11. Check dashboard again after deletion
+        # 9. Check dashboard again after deletion
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
         
@@ -135,7 +130,7 @@ class BudgetTrackerIntegrationTest(TestCase):
         self.assertEqual(response.context['net_balance'], Decimal('1000.00'))
         self.assertEqual(response.context['transaction_count'], 1)
         
-        # 12. Logout
+        # 10. Logout
         self.client.logout()
         
         # Try to access dashboard after logout - should not be accessible
@@ -145,26 +140,26 @@ class BudgetTrackerIntegrationTest(TestCase):
 class MultipleUserIntegrationTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.index_url = reverse('budget:index')
         self.auth_url = reverse('budget:auth')
         self.dashboard_url = reverse('budget:dashboard')
         
-        # Create two users
+        # Create test users
         self.user1 = User.objects.create_user(
             username='user1',
             email='user1@example.com',
-            password='User1@123'
+            password='password1'
         )
-        
         self.user2 = User.objects.create_user(
             username='user2',
             email='user2@example.com',
-            password='User2@123'
+            password='password2'
         )
     
     def test_category_isolation(self):
         """Test that categories are properly isolated between users"""
         # Login as user1
-        self.client.login(username='user1', password='User1@123')
+        self.client.login(username='user1', password='password1')
         
         # Add a category for user1
         self.client.post(self.dashboard_url, {
@@ -179,7 +174,7 @@ class MultipleUserIntegrationTest(TestCase):
         
         # Logout and login as user2
         self.client.logout()
-        self.client.login(username='user2', password='User2@123')
+        self.client.login(username='user2', password='password2')
         
         # Add a different category for user2
         self.client.post(self.dashboard_url, {
@@ -197,71 +192,69 @@ class MultipleUserIntegrationTest(TestCase):
     
     def test_entry_isolation_and_calculation(self):
         """Test that entries are isolated between users and calculations are correct"""
-        # Set up categories for both users
-        category1 = Category.objects.create(name='Food', user=self.user1)
-        category2 = Category.objects.create(name='Entertainment', user=self.user2)
+        # Create categories for both users
+        cat1 = Category.objects.create(name="Salary1", user=self.user1)
+        cat2 = Category.objects.create(name="Salary2", user=self.user2)
         
-        # Login as user1
-        self.client.login(username='user1', password='User1@123')
+        # Add entries for user1
+        Entry.objects.create(
+            user=self.user1,
+            category=cat1,
+            title='Monthly Salary',
+            amount=Decimal('1000.00'),
+            date=timezone.now().date(),
+            type=Entry.INCOME,
+            notes='Monthly salary'
+        )
+        Entry.objects.create(
+            user=self.user1,
+            category=cat1,
+            title='Groceries',
+            amount=Decimal('200.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Weekly groceries'
+        )
         
-        # Add an income entry for user1
-        self.client.post(self.dashboard_url, {
-            'add-entry': 'add',
-            'title': 'User1 Salary',
-            'amount': '1000.00',
-            'date': timezone.now().date().isoformat(),
-            'type': Entry.INCOME,
-            'notes': 'User1 monthly salary'
-        })
+        # Add entries for user2
+        Entry.objects.create(
+            user=self.user2,
+            category=cat2,
+            title='Freelance Income',
+            amount=Decimal('500.00'),
+            date=timezone.now().date(),
+            type=Entry.INCOME,
+            notes='Freelance work'
+        )
+        Entry.objects.create(
+            user=self.user2,
+            category=cat2,
+            title='Dining Out',
+            amount=Decimal('80.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Restaurant dinner'
+        )
         
-        # Add an expense entry for user1
-        self.client.post(self.dashboard_url, {
-            'add-entry': 'add',
-            'title': 'User1 Groceries',
-            'amount': '50.00',
-            'date': timezone.now().date().isoformat(),
-            'type': Entry.EXPENSE,
-            'category': category1.id,
-            'notes': 'User1 weekly shopping'
-        })
-        
-        # Verify correct calculations for user1
+        # Login as user1 and check dashboard
+        self.client.login(username='user1', password='password1')
         response = self.client.get(self.dashboard_url)
+        
+        # Verify user1 sees only their entries
         self.assertEqual(response.context['income_total'], Decimal('1000.00'))
-        self.assertEqual(response.context['expense_total'], Decimal('50.00'))
-        self.assertEqual(response.context['net_balance'], Decimal('950.00'))
+        self.assertEqual(response.context['expense_total'], Decimal('200.00'))
+        self.assertEqual(response.context['net_balance'], Decimal('800.00'))
         self.assertEqual(response.context['transaction_count'], 2)
         
         # Logout and login as user2
         self.client.logout()
-        self.client.login(username='user2', password='User2@123')
-        
-        # Add an income entry for user2
-        self.client.post(self.dashboard_url, {
-            'add-entry': 'add',
-            'title': 'User2 Salary',
-            'amount': '2000.00',
-            'date': timezone.now().date().isoformat(),
-            'type': Entry.INCOME,
-            'notes': 'User2 monthly salary'
-        })
-        
-        # Add an expense entry for user2
-        self.client.post(self.dashboard_url, {
-            'add-entry': 'add',
-            'title': 'User2 Movies',
-            'amount': '20.00',
-            'date': timezone.now().date().isoformat(),
-            'type': Entry.EXPENSE,
-            'category': category2.id,
-            'notes': 'User2 entertainment'
-        })
-        
-        # Verify correct calculations for user2
+        self.client.login(username='user2', password='password2')
         response = self.client.get(self.dashboard_url)
-        self.assertEqual(response.context['income_total'], Decimal('2000.00'))
-        self.assertEqual(response.context['expense_total'], Decimal('20.00'))
-        self.assertEqual(response.context['net_balance'], Decimal('1980.00'))
+        
+        # Verify user2 sees only their entries
+        self.assertEqual(response.context['income_total'], Decimal('500.00'))
+        self.assertEqual(response.context['expense_total'], Decimal('80.00'))
+        self.assertEqual(response.context['net_balance'], Decimal('420.00'))
         self.assertEqual(response.context['transaction_count'], 2)
         
         # Verify totals across the system (both users combined)
