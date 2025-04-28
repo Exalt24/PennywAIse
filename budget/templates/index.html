@@ -10,21 +10,20 @@
 
   <!-- Navigation -->
   <nav class="w-full fixed top-0 left-0 bg-transparent backdrop-blur-xl z-50">
-    <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
       <a href="#home" class="text-2xl font-bold flex items-center text-[#000000]">
         PennywAise<span class="text-[#D4D1CA]">/</span>
       </a>
-      <ul class="hidden md:flex space-x-8 text-[#40020F]">
-        <li><a href="#about" class="hover:text-[#D4D1CA]">About</a></li>
-        <li><a href="#features" class="hover:text-[#D4D1CA]">Features</a></li>
-        <li><a href="#contact" class="hover:text-[#D4D1CA]">Contact</a></li>
+      <ul class="hidden md:flex space-x-8 uppercase ">
+        <li><a href="#about" class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1">About</a></li>
+        <li><a href="#features" class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1">Features</a></li>
+        <li><a href="#contact" class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1">Contact</a></li>
       </ul>
       <a href="/auth" class="hidden md:inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white px-4 py-2 rounded-full transition">
         Log in
       </a>
-    </div>  
+    </div>
   </nav>
-
   <!-- Home / Hero Section -->
   <section id="home" class="relative overflow-hidden min-h-screen flex items-center bg-gradient-to-b from-[#BD132D] to-[#642828]">
     <!-- Background blobs -->
@@ -36,104 +35,223 @@
       <div class="absolute bg-[#1B1F1E] opacity-30 w-56 h-56 rounded-full bottom-20 left-1/3 filter  pointer-events-none"></div>
       <div class="absolute bg-[#1B1F1E] opacity-35 w-32 h-32 rounded-full bottom-10 right-20 filter  pointer-events-none"></div>
     </div>
-
     <div class="relative z-10 container max-w-7xl mx-auto px-6 flex flex-col-reverse lg:flex-row items-center py-24">
       <!-- Left content -->
       <div class="w-full lg:w-1/2 text-center lg:text-left mb-12 lg:mb-0">
         <h1 class="text-6xl font-extrabold text-[#e7e4de] mb-4 leading-tight">
-          Budget Tracker
+          PennywAIse
         </h1>
         <p class="text-lg text-[#e7e4de] mb-8 max-w-md mx-auto lg:mx-0">
           Take control of your spending and save for what matters most. Sign up and start tracking your budget in seconds.
         </p>
-
         <!-- Buttons -->
         <div class="flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4">
-          <button class="bg-[#1B1F1E] hover:bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 shadow-lg transition">
+          <a
+            href="/auth"
+            class="inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 shadow-lg transition"
+          >
             Register
-          </button>
-          <button class="bg-transparent hover:bg-white hover:text-[#1B1F1E] text-white font-semibold rounded-full px-6 py-3 border border-white transition">
+          </a>
+          <a
+            href="#about"
+            class="inline-block bg-transparent hover:bg-white hover:text-[#1B1F1E] text-white font-semibold rounded-full px-6 py-3 border border-white transition"
+          >
             Learn More
-          </button>
+          </a>
         </div>
       </div>
   </section>
-
   <!-- About Section -->
-  <section id="about" class="py-20 bg-[#e7e4de] h-screen">
+  <section id="about" class="py-20 bg-[#e7e4de] h-screen flex items-center">
     <div class="container mx-auto px-6 max-w-4xl text-center">
-      <h2 class="text-3xl font-bold mb-4 text-[#40020F]">About PennywAise</h2>
-      <p class="text-gray-700">
-        PennywAise is your personal finance assistant, helping you track expenses,
-        set budgets, and reach your savings goals with ease. Join thousands
-        of happy users who’ve taken control of their money.
+      <h2 class="text-3xl font-bold mb-10 text-[#40020F]">About PennywAise</h2>
+      <p class="text-[#262F2A] text-justify leading-relaxed tracking-normal">
+        PennywAise is your all-in-one personal finance assistant. From the moment you link your accounts,
+        it automatically categorizes every transaction—so you can see exactly where your money is going
+        without lifting a finger. Set custom budgets for groceries, bills, entertainment or anything else,
+        and get real-time alerts whenever you’re approaching your limits. Want to save for a vacation, a
+        new gadget, or an emergency fund? PennywAise’s goal-tracker breaks down your target into manageable
+        milestones, sends friendly reminders, and even suggests small adjustments you can make this week to stay on pace.
+        Thousands of happy users have already taken control of their finances—reducing overspend by up to
+        30%, hitting savings targets months early, and finally feeling confident about their money. Ready
+        to join them? Let PennywAise guide you to better spending, smarter saving, and greater financial peace of mind.
       </p>
     </div>
   </section>
 
   <!-- Features Section -->
   <section id="features" class="py-20 bg-[#deded9] h-screen">
-    <div class="container mx-auto px-6 max-w-6xl">
-      <h2 class="text-3xl font-bold text-center mb-12 text-[#40020F]">Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h3 class="font-semibold mb-2">Track Expenses</h3>
-          <p class="text-gray-600 text-sm">
-            Log your daily expenses in seconds and visualize where your money goes.
+  <div class="container mx-auto px-6 max-w-6xl">
+    <h2 class="text-3xl font-bold text-center mb-12 text-[#40020F]">Features</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Card 1 -->
+      <div class="bg-[#e7e4de] rounded-lg p-6 shadow flex space-x-4">
+        <!-- Icon -->
+        <div class="flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="w-6 h-6 text-gray-700"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M15.232 5.232l3.536 3.536M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <!-- Text -->
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-[#40020F]">
+            Continue editing.
+          </h3>
+          <p class="text-[#262F2A] text-sm">
+            Your new image will download as an SVG file. Save it, share it, or keep editing it to make it your own.
           </p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h3 class="font-semibold mb-2">Set Budgets</h3>
-          <p class="text-gray-600 text-sm">
-            Create custom budgets for categories and get alerts when you’re close to limits.
+      </div>
+      <!-- Card 2 -->
+      <div class="bg-[#e7e4de] rounded-lg p-6 shadow flex space-x-4">
+        <!-- Icon -->
+        <div class="flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="w-6 h-6 text-gray-700"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M15.232 5.232l3.536 3.536M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <!-- Text -->
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-[#40020F]">
+            Continue editing.
+          </h3>
+          <p class="text-[#262F2A] text-sm">
+            Your new image will download as an SVG file. Save it, share it, or keep editing it to make it your own.
           </p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h3 class="font-semibold mb-2">Save Goals</h3>
+      </div>
+      <!-- Card 3 -->
+      <div class="bg-[#e7e4de] rounded-lg p-6 shadow flex space-x-4">
+        <!-- Icon -->
+        <div class="flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="w-6 h-6 text-gray-700"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor"
+               stroke-width="2">
+            <path d="M15.232 5.232l3.536 3.536M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <!-- Text -->
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-[#40020F]">
+            Continue editing.
+          </h3>
+          <p class="text-[#262F2A] text-sm">
+            Your new image will download as an SVG file. Save it, share it, or keep editing it to make it your own.
+          </p>
+        </div>
+      </div>
+      <!-- Card 4 -->
+      <div class="bg-[#e7e4de] rounded-lg p-6 shadow flex space-x-4">
+        <!-- Icon -->
+        <div class="flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6 text-gray-700"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2">
+            <path d="M15.232 5.232l3.536 3.536M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </div>
+        <!-- Text -->
+        <div>
+          <h3 class="text-xl font-semibold mb-2 text-[#40020F]">
+            Continue editing.
+          </h3>
           <p class="text-gray-600 text-sm">
-            Plan and track your savings goals, whether it’s a vacation or emergency fund.
+            Your new image will download as an SVG file. Save it, share it, or keep editing it to make it your own.
           </p>
         </div>
       </div>
     </div>
-  </section>
-
+  </div>
+</section>
   <!-- Contact Section -->
   <section id="contact" class="py-20 bg-[#e7e4de]">
-    <div class="container mx-auto px-6 max-w-4xl text-center">
-      <h2 class="text-3xl font-bold mb-4 text-[#40020F]">Contact Us</h2>
-      <p class="text-gray-700 mb-6">
-        Have questions or feedback? We’d love to hear from you!
-      </p>
-      <form class="max-w-md mx-auto space-y-4">
-        <input type="text" placeholder="Name" class="w-full border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#642828]" />
-        <input type="email" placeholder="Email" class="w-full border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#642828]" />
-        <textarea placeholder="Message" rows="4" class="w-full border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#642828]"></textarea>
-        <button type="submit" class="bg-[#1B1F1E] hover:bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 transition">
-          Send Message
-        </button>
+    <div class="container mx-auto px-6 max-w-4xl">
+      <!-- Playful heading stays centered -->
+      <h2 class="text-3xl font-bold uppercase tracking-wide mb-8 text-[#40020F] text-center">
+        aren’t you gonna say hello?
+      </h2>
+      <form class="max-w-md mx-auto space-y-6">
+        <!-- Name -->
+        <div>
+          <label for="name" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
+            Name
+          </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Your full name"
+            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2"
+          />
+        </div>
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2"
+          />
+        </div>
+        <!-- Subject -->
+        <div>
+          <label for="subject" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
+            Subject
+          </label>
+          <input
+            id="subject"
+            type="text"
+            placeholder="What’s on your mind?"
+            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2"
+          />
+        </div>
+        <!-- Message -->
+        <div>
+          <label for="message" class="block text-xs font-medium text-[#050704] uppercase mb-1 text-left">
+            Message
+          </label>
+          <textarea
+            id="message"
+            rows="5"
+            placeholder="Write your message here…"
+            class="w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2 resize-none"
+          ></textarea>
+        </div>
+        <!-- Send button -->
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            class="inline-flex items-center border-2 border-[#c3002d] text-[#c3002d] uppercase text-sm tracking-wide px-6 py-2 rounded-full hover:bg-red-50 transition"
+          >
+            Send Message
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M2 2l12 6-12 6 3-6-3-6z"/>
+            </svg>
+          </button>
+        </div>
       </form>
     </div>
   </section>
-
-  <!-- Statistics -->
-  <section class="max-w-screen mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center py-12 bg-[#deded9]">
-    <div>
-      <p class="text-4xl font-bold text-[#40020F]">23</p>
-      <p class="mt-2 text-gray-600">Happy Users</p>
-    </div>
-    <div>
-      <p class="text-4xl font-bold text-[#40020F]">8</p>
-      <p class="mt-2 text-gray-600">Features</p>
-    </div>
-    <div>
-      <p class="text-4xl font-bold text-[#40020F]">11</p>
-      <p class="mt-2 text-gray-600">Awards</p>
-    </div>
-  </section>
-
   <!-- Footer -->
-  <footer class="bg-gray-800 text-gray-300">
+  <footer class="bg-[#050704] text-gray-300">
     <div class="container max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
       <!-- Brand -->
       <div>
@@ -170,8 +288,81 @@
             </svg>
           </a>
         </div>
-      </div>
+        <br />
+        <!-- team -->
+        <div>
+          <h4 class="font-semibold text-white mb-2">Team</h4>
+          <div class="flex space-x-4">
+            <a href="#"
+              aria-label="Twitter"
+              class="p-3 bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full transition flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24">
+                <path d="M8 19c11 0 16-9 16-16v-.73A11.49 11.49 0 0024 2.5a11.4 11.4 0 01-3.27.9A5.72 5.72 0 0023.2.3a11.36 11.36 0 01-3.6 1.38A5.64 5.64 0 0016.6 0a5.72 5.72 0 00-5.72 5.72c0 .45.05.9.15 1.32A16.28 16.28 0 011.95.92a5.74 5.74 0 001.77 7.64A5.6 5.6 0 01.64 8.1v.07a5.73 5.73 0 004.59 5.62 5.61 5.61 0 01-2.57.1 5.73 5.73 0 005.35 3.97A11.47 11.47 0 010 19 16.2 16.2 0 008 21.5"/>
+              </svg>
+            </a>
+
+            <a href="#"
+              aria-label="Facebook"
+              class="p-3 bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full transition flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24">
+                <path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.2v-3h2.2V9.5c0-2.2 1.3-3.4 3.3-3.4.95 0 1.8.07 2.05.1v2.4h-1.4c-1.1 0-1.4.7-1.4 1.4v1.8h2.8l-.4 3h-2.4v7A10 10 0 0022 12"/>
+              </svg>
+            </a>
+
+            <a href="#"
+              aria-label="Instagram"
+              class="p-3 bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full transition flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24">
+                <path d="M7.75 2h8.5A5.75 5.75 0 0122 7.75v8.5A5.75 5.75 0 0116.25 22h-8.5A5.75 5.75 0 012 16.25v-8.5A5.75 5.75 0 017.75 2zm0 1.5A4.25 4.25 0 003.5 7.75v8.5A4.25 4.25 0 007.75 20.5h8.5a4.25 4.25 0 004.25-4.25v-8.5A4.25 4.25 0 0016.25 3.5h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm4.75-.75a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
     </div>
   </footer>
+  <script>
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    function updateNav() {
+      let currentSection = '';
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 80;
+        if (window.pageYOffset >= sectionTop) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+      if (currentSection === 'home') {
+        navLinks.forEach(link => {
+          link.classList.remove('text-[#40020F]');
+          link.classList.add('text-white');
+        });
+      } else {
+        navLinks.forEach(link => {
+          link.classList.remove('text-white');
+          link.classList.add('text-[#40020F]');
+        });
+      }
+      // 2) Underline the active link
+      navLinks.forEach(link => {
+        link.classList.remove('border-b-2', 'border-[#c3002d]');
+        if (link.getAttribute('href') === `#${currentSection}`) {
+          link.classList.add('border-b-2', 'border-[#c3002d]');
+        }
+      });
+    }
+    window.addEventListener('scroll', updateNav);
+    window.addEventListener('load', updateNav);
+  </script>
 </body>
 </html>
