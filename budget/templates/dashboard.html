@@ -194,9 +194,17 @@
               </button>
             </div>
 
-            <!-- Chart canvases (only one visible at a time) -->
-            <canvas id="budgetChart" width="300" height="200"></canvas>
-            <canvas id="catBudgetDonut" width="300" height="200" hidden></canvas>
+            <div id="overallNoData" class="p-4 text-center text-gray-500 hidden">
+              No budget data to display.
+            </div>
+            <canvas id="budgetChart" class="hidden"></canvas>
+            
+            <!-- By-Category -->
+            <div id="catNoData" class="p-4 text-center text-gray-500 hidden">
+              No category data to display.
+            </div>
+            <canvas id="catBudgetDonut" class="hidden"></canvas>
+
 
           </div>
 
@@ -207,43 +215,47 @@
             <h2 class="text-lg mb-2">Category Breakdown</h2>
             <canvas id="categoryChart" width="300" height="200"></canvas>
 
-            <button
-              class="mt-3 text-sm text-indigo-600 hover:underline"
-              onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
-            >
-              Toggle detailed numbers
-            </button>
+            {% if category_summary %}
+  <!-- only show this when you actually have rows -->
+  <button
+    class="mt-3 text-sm text-indigo-600 hover:underline"
+    onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
+  >
+    Toggle detailed numbers
+  </button>
 
-            <div id="categoryTable" class="hidden overflow-x-auto mt-2">
-              <table class="table-fixed w-full">
-                <thead class="bg-gray-100">
-                  <tr>
-                    <th class="px-3 py-2 text-left">Category</th>
-                    <th class="px-3 py-2 text-left">Income</th>
-                    <th class="px-3 py-2 text-left">Expense</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for row in category_summary %}
-                    <tr>
-                      <td class="px-3 py-2">{{ row.name }}</td>
-                      <td class="px-3 py-2 text-green-600">
-                        ₱{{ row.income|floatformat:2 }}
-                      </td>
-                      <td class="px-3 py-2 text-red-600">
-                        ₱{{ row.expense|floatformat:2 }}
-                      </td>
-                    </tr>
-                  {% empty %}
-                    <tr>
-                      <td colspan="3" class="px-3 py-4 text-center text-gray-500">
-                        No data to display.
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+  <div id="categoryTable" class="hidden overflow-x-auto mt-2">
+    <table class="table-fixed w-full">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-3 py-2 text-left">Category</th>
+          <th class="px-3 py-2 text-left">Income</th>
+          <th class="px-3 py-2 text-left">Expense</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in category_summary %}
+          <tr>
+            <td class="px-3 py-2">{{ row.name }}</td>
+            <td class="px-3 py-2 text-green-600">
+              ₱{{ row.income|floatformat:2 }}
+            </td>
+            <td class="px-3 py-2 text-red-600">
+              ₱{{ row.expense|floatformat:2 }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% else %}
+  <!-- fallback if there’s zero categories -->
+  <p class="mt-3 text-center text-gray-500">
+    No categories to display.
+  </p>
+{% endif %}
+
           </div>
         </section>
 
@@ -421,14 +433,28 @@
           <h2 class="pagetitle">Income</h2>
           <div class="filters flex flex-wrap gap-2 items-end mb-4">
 
-            <!-- Date range -->
-            <label class="text-sm">From:</label>
-            <input type="date" id="incDateFrom"
-                   class="px-2 py-1 border rounded" />
+            <!-- Income Date “From” -->
+            <label for="incDateFrom" class="text-sm">From:</label>
+  <div class="flex flex-col">
+   
+    
+    <input type="date" id="incDateFrom"
+           class="px-2 py-1 border rounded" />
+           
+  </div>
 
-            <label class="text-sm">To:</label>
-            <input type="date" id="incDateTo"
-                   class="px-2 py-1 border rounded" />
+  <label for="incDateTo" class="text-sm">To:</label>
+  <div class="flex flex-col">
+    
+    <p id="incDateError"
+           class="text-xs text-red-600 mb-1 hidden">
+          “To” must be on or after “From”
+  </p>
+    <input type="date" id="incDateTo"
+           class="px-2 py-1 border rounded" />
+    
+  </div>
+
 
             <!-- Title substring -->
             <input type="text" id="incTitleFilter"
@@ -444,11 +470,22 @@
               {% endfor %}
             </select>
 
-            <!-- Amount range -->
-            <input type="number" step="0.01" id="incMinAmount"
-                   placeholder="Min ₱" class="px-2 py-1 border rounded w-20" />
-            <input type="number" step="0.01" id="incMaxAmount"
-                   placeholder="Max ₱" class="px-2 py-1 border rounded w-20" />
+  <div class="flex flex-col">
+    <input type="number" step="0.01" id="incMinAmount"
+           placeholder="Min ₱"
+           class="px-2 py-1 border rounded w-20" />
+  </div>
+
+  <div class="flex flex-col">
+    
+    <p id="incAmountError"
+       class="text-xs text-red-600 mb-1 hidden">
+      “Max” must be ≥ “Min”
+    </p>
+    <input type="number" step="0.01" id="incMaxAmount"
+           placeholder="Max ₱"
+           class="px-2 py-1 border rounded w-20" />
+  </div>
 
           </div>
 
@@ -511,14 +548,26 @@
         <header class="flex flex-wrap items-end gap-2 mb-5">
           <h2 class="pagetitle">Expenses</h2>
           <div class="filters flex flex-wrap gap-2 items-end mb-4">
-          <!-- Date range -->
-          <label class="text-sm">From:</label>
-          <input type="date" id="expDateFrom"
-                 class="px-2 py-1 border rounded" />
 
-          <label class="text-sm">To:</label>
-          <input type="date" id="expDateTo"
-                 class="px-2 py-1 border rounded" />
+            <label for="expDateFrom" class="text-sm">From:</label>
+  <div class="flex flex-col">
+    
+
+    <input type="date" id="expDateFrom"
+           class="px-2 py-1 border rounded" />
+  </div>
+
+  <label for="expDateTo" class="text-sm">To:</label>
+  <div class="flex flex-col">
+   
+    <p id="expDateError"
+    class="text-xs text-red-600 mb-1 hidden">
+   “To” must be on or after “From”
+ </p>
+    <input type="date" id="expDateTo"
+           class="px-2 py-1 border rounded" />
+  </div>
+
 
           <!-- Title substring -->
           <input type="text" id="expTitleFilter"
@@ -533,12 +582,24 @@
               <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
             {% endfor %}
           </select>
-
-          <!-- Amount range -->
-          <input type="number" step="0.01" id="expMinAmount"
-                 placeholder="Min ₱" class="px-2 py-1 border rounded w-20" />
-          <input type="number" step="0.01" id="expMaxAmount"
-                 placeholder="Max ₱" class="px-2 py-1 border rounded w-20" />
+          <div class="flex flex-col">
+           
+            
+            <input type="number" step="0.01" id="expMinAmount"
+                   placeholder="Min ₱"
+                   class="px-2 py-1 border rounded w-20" />
+          </div>
+        
+          <div class="flex flex-col">
+           
+            <p id="expAmountError"
+               class="text-xs text-red-600 mb-1 hidden">
+              “Max” must be ≥ “Min”
+            </p>
+            <input type="number" step="0.01" id="expMaxAmount"
+                   placeholder="Max ₱"
+                   class="px-2 py-1 border rounded w-20" />
+          </div>
 
           </div>
         </header>
@@ -611,7 +672,7 @@
             {% endif %}
 
             <div class="flex items-center space-x-2">
-              {{ budget_form.category.label_tag }}
+              <span class="text-sm">{{ budget_form.category.label_tag }}</span>
               {{ budget_form.category }}
               {% for err in budget_form.category.errors %}
                 <p class="text-red-600 text-sm">{{ err }}</p>
@@ -619,7 +680,8 @@
             </div>
 
             <div class="flex items-center space-x-2">
-              {{ budget_form.amount.label_tag }}
+              <span class="text-sm">{{ budget_form.amount.label_tag }}</span>
+              
               {{ budget_form.amount }}
               {% for err in budget_form.amount.errors %}
                 <p class="text-red-600 text-sm">{{ err }}</p>
@@ -778,7 +840,7 @@
   id="editCategoryModal"
   class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50"
 >
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+<div class="bg-[#fdfdfb] rounded-lg shadow-lg w-full max-w-md p-6">
     <h3 class="text-lg font-semibold mb-4">Edit Category</h3>
     <form method="post" action="{% url 'budget:dashboard' %}">
       {% csrf_token %}
@@ -815,168 +877,139 @@
   </div>
 </div>
 
-
-
+      <!-- Modal -->
       <div
-        id="addEntryModal"
-        class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50"
+      id="addEntryModal"
+      class="fixed inset-0 hidden z-50 flex items-center justify-center"
       >
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative flex flex-col">
-
-          <button
-            id="closeModalBtn"
-            class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-          >
-
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-
-          <h2 id="modalTitle" class="text-2xl font-bold mb-4">
-            {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
-          </h2>
-
-          <form
-          method="post"
-          action="{% url 'budget:dashboard' %}"
-          class="space-y-2 grid grid-cols-1 gap-4 w-full"
+      <!-- Overlay -->
+      <div class="absolute inset-0 bg-black/50"></div>
+    
+      <!-- Modal box -->
+      <div class="relative bg-[#fdfdfb] rounded-xl shadow-lg w-full max-w-lg p-6">
+        <!-- Close icon -->
+        <button
+          id="closeModalBtn"
+          class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+          type="button"
         >
-          {% csrf_token %}
-
-          {% if is_edit %}
-            <input id="modalEntryId" type="hidden" name="entry-id" value="{{ edit_id }}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+    
+        <!-- Title -->
+        <h2 id="modalTitle" class="text-2xl font-bold mb-4">
+          {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
+        </h2>
+    
+        <!-- Your form -->
+        <form
+        method="post"
+        action="{% url 'budget:dashboard' %}"
+        class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+      >
+        {% csrf_token %}
+        {% if is_edit %}
+          <input id="modalEntryId" type="hidden" name="entry-id" value="{{ edit_id }}">
+        {% endif %}
+    
+        {# 1) Title (col1) #}
+        <div>
+          <label for="{{ entry_form.title.id_for_label }}"
+                class="block text-sm font-medium text-gray-700">
+            {{ entry_form.title.label }}
+          </label>
+          {{ entry_form.title }}
+          {% if entry_form.title.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ entry_form.title.errors.0 }}</p>
           {% endif %}
-
-
-          {# Non-field errors #}
-          {% if entry_form.non_field_errors %}
-            <div class="text-sm text-red-600">
-              {% for err in entry_form.non_field_errors %}
-                <p>{{ err }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <!-- Title -->
-          <div>
-            <label for="{{ entry_form.title.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.title.label }}
-            </label>
-            {{ entry_form.title }}
-            {% if entry_form.title.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.title.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Amount -->
-          <div>
-            <label for="{{ entry_form.amount.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.amount.label }}
-            </label>
-            {{ entry_form.amount }}
-            {% if entry_form.amount.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.amount.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Date -->
-          <div>
-            <label for="{{ entry_form.date.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.date.label }}
-            </label>
-            {{ entry_form.date }}
-            {% if entry_form.date.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.date.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Type -->
-          <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
-            <label for="{{ entry_form.type.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.type.label }}
-            </label>
-            {{ entry_form.type }}
-            {% if entry_form.type.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.type.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Category -->
-          <div>
-            <label for="{{ entry_form.category.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.category.label }}
-            </label>
-            {{ entry_form.category }}
-            {% if entry_form.category.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.category.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Notes -->
-          <div>
-            <label for="{{ entry_form.notes.id_for_label }}"
-                   class="block text-sm font-medium text-gray-700">
-              {{ entry_form.notes.label }}
-            </label>
-            {{ entry_form.notes }}
-            {% if entry_form.notes.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ entry_form.notes.errors.0 }}
-              </p>
-            {% endif %}
-          </div>
-
-          <!-- Actions -->
-          <div class="flex justify-end space-x-2 pt-4">
-            <button
-              type="button"
-              id="cancelEntryBtn"
-              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              id="modalSubmitBtn"
-              type="submit"
-              name="add-entry"
-              class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-            >
-              {% if is_edit %}Save Changes{% else %}Save{% endif %}
-            </button>
-
-          </div>
-        </form>
-
-
         </div>
+    
+        {# 1) Amount (col2) #}
+        <div>
+          <label for="{{ entry_form.amount.id_for_label }}"
+                class="block text-sm font-medium text-gray-700">
+            {{ entry_form.amount.label }}
+          </label>
+          {{ entry_form.amount }}
+          {% if entry_form.amount.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ entry_form.amount.errors.0 }}</p>
+          {% endif %}
+        </div>
+    
+        {# 2) Date (col1) #}
+        <div>
+          <label for="{{ entry_form.date.id_for_label }}"
+                class="block text-sm font-medium text-gray-700">
+            {{ entry_form.date.label }}
+          </label>
+          {{ entry_form.date }}
+          {% if entry_form.date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ entry_form.date.errors.0 }}</p>
+          {% endif %}
+        </div>
+    
+        {# 2) Type (col2) #}
+        <div id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
+          <label for="{{ entry_form.type.id_for_label }}"
+                class="block text-sm font-medium text-gray-700">
+            {{ entry_form.type.label }}
+          </label>
+          {{ entry_form.type }}
+          {% if entry_form.type.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ entry_form.type.errors.0 }}</p>
+          {% endif %}
+        </div>
+    
+        {# 3a) Category (full width) #}
+        <div class="md:col-span-2">
+          <label for="{{ entry_form.category.id_for_label }}"
+                class="block text-sm font-medium text-gray-700">
+            {{ entry_form.category.label }}
+          </label>
+          {{ entry_form.category }}
+          {% if entry_form.category.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ entry_form.category.errors.0 }}</p>
+          {% endif %}
+        </div>
+    
+        {# 3b) Notes (full width) #}
+        <div class="md:col-span-2">
+          <label for="{{ entry_form.notes.id_for_label }}"
+                class="block text-sm font-medium text-gray-700">
+            {{ entry_form.notes.label }}
+          </label>
+          {{ entry_form.notes }}
+          {% if entry_form.notes.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ entry_form.notes.errors.0 }}</p>
+          {% endif %}
+        </div>
+    
+        {# 4) Actions (full width, right-aligned) #}
+        <div class="md:col-span-2 flex justify-end space-x-2 pt-4">
+          <button
+            type="button"
+            id="cancelEntryBtn"
+            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >Cancel
+        </button>
+        <button
+          id="modalSubmitBtn"
+          type="submit"
+          name="add-entry"
+          class="px-4 py-2 text-white rounded bg-[#1B1F1E] hover:bg-[#3f3a36]"
+        >
+          {% if is_edit %}Save Changes{% else %}Save{% endif %}
+        </button>
       </div>
+      </form>
+  
+      </div>
+    </div>
+
 
     </main>
 
@@ -1172,6 +1205,14 @@
               const mx = document.querySelector(maxAmt);
               const rows = Array.from(document.querySelectorAll(tableBody + ' tr'));
 
+                // grab the pre-declared error nodes by ID:
+              const dateError = document.getElementById(
+                dateFrom === '#incDateFrom' ? 'incDateError' : 'expDateError'
+              );
+              const amtError   = document.getElementById(
+                minAmt === '#incMinAmount' ? 'incAmountError' : 'expAmountError'
+              );
+
               function applyFilters() {
                 const fromDate = df.valueAsDate;
                 const toDate   = dt.valueAsDate;
@@ -1179,11 +1220,32 @@
                 const catQ     = ca.value.trim().toLowerCase();
                 const minA     = parseFloat(mn.value) || -Infinity;
                 const maxA     = parseFloat(mx.value) || Infinity;
-            
+                
+                let valid = true;
+                // 1) Date range
+
+                if (fromDate && toDate && fromDate > toDate) {
+                  valid = false;
+                  dateError.classList.remove('hidden');
+                } else {
+                  dateError.classList.add('hidden');
+                }
+
+                // 2) Amount range
+
+                if (minA && maxA && minA > maxA) {
+                  valid = false;
+                  amtError.classList.remove('hidden');
+                } else {
+                  amtError.classList.add('hidden');
+                }
+
+                if (!valid) return;
+
                 rows.forEach(row => {
                   const cells = row.querySelectorAll('td');
                   let ok = true;
-            
+                  
                   // 1) Date is in cells[3]
                   if ((fromDate || toDate) && cells[3]) {
                     const d = new Date(cells[3].textContent);
@@ -1272,54 +1334,47 @@
             }
           );
           {% endif %}
-
-          // 2) Budget Utilization (DOUGHNUT)
-          {% if chart_budget_data %}
-          new Chart(
-            document.getElementById('budgetChart').getContext('2d'),
-            {
-              type: 'doughnut',
-              data: {
-                labels: ['Spent', 'Remaining'],
-                datasets: [{
-                  data: {{ chart_budget_data|safe }}
-                }]
-              },
-              options: { responsive: true, plugins: {
-                legend: { position: 'bottom' }
-              } }
+            
+          (() => {
+            const data     = {{ chart_budget_data|default:"[]"|safe }};
+            const canvas   = document.getElementById('budgetChart');
+            const noData   = document.getElementById('overallNoData');
+            const hasData  = Array.isArray(data)
+                          && data.length > 0
+                          && !data.every(v => v === 0);
+          
+            canvas.classList.toggle('hidden', !hasData);
+            noData.classList.toggle('hidden',  hasData);
+          
+            if (hasData) {
+              new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels:['Spent','Remaining'], datasets:[{ data }] },
+                options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
+              });
             }
-          );
-          {% endif %}
-
-          {% if chart_cat_labels and chart_cat_budget and chart_cat_expense %}
-  new Chart(
-    document.getElementById('catBudgetDonut').getContext('2d'),
-    {
-      type: 'doughnut',
-      data: {
-        labels: {{ chart_cat_labels|safe }},
-        datasets: [
-          {
-            label: 'Budget',
-            data: {{ chart_cat_budget|safe }},
-            // Chart.js will auto-pick colors
-          },
-          {
-            label: 'Spent',
-            data: {{ chart_cat_expense|safe }},
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'bottom' }
-        }
-      }
-    }
-  );
-  {% endif %}
+          })();
+          
+          // same for by‐category
+          (() => {
+            const labels  = {{ chart_cat_labels|default:"[]"|safe }};
+            const budg    = {{ chart_cat_budget|default:"[]"|safe }};
+            const spent   = {{ chart_cat_expense|default:"[]"|safe }};
+            const canvas  = document.getElementById('catBudgetDonut');
+            const noData  = document.getElementById('catNoData');
+            const hasData = labels.length > 0 && !(budg.every(v=>v===0) && spent.every(v=>v===0));
+          
+            canvas.classList.toggle('hidden', !hasData);
+            noData.classList.toggle('hidden',  hasData);
+          
+            if (hasData) {
+              new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets:[{ label:'Budget', data:budg }, { label:'Spent', data:spent }] },
+                options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
+              });
+            }
+          })();
           // 3) Category Breakdown (BAR)
           {% if chart_cat_labels and chart_cat_expense and chart_cat_income %}
           new Chart(
@@ -1475,7 +1530,10 @@
             const btnByCat      = document.getElementById('showByCategory');
             const chartOverall  = document.getElementById('budgetChart');
             const chartByCat    = document.getElementById('catBudgetDonut');
-            const statsOverall  = document.getElementById('overallStats');
+            const noOverall  = document.getElementById('overallNoData');
+  const noByCat    = document.getElementById('catNoData');
+
+
 
             function activateOverall() {
               btnOverall.classList.replace('bg-gray-200','bg-indigo-600');
@@ -1485,7 +1543,8 @@
 
               chartOverall.hidden = false;
               chartByCat.hidden = true;
-              statsOverall.classList.remove('hidden');
+              noByCat.classList.add('hidden');
+              noOverall.classList.toggle('hidden', !chartOverall.classList.contains('hidden'));
             }
 
             function activateByCategory() {
@@ -1493,10 +1552,11 @@
               btnByCat.classList.replace('text-gray-700','text-white');
               btnOverall.classList.replace('bg-indigo-600','bg-gray-200');
               btnOverall.classList.replace('text-white','text-gray-700');
-
+              noOverall.classList.add('hidden');
+              noByCat.classList.toggle('hidden', !chartByCat.classList.contains('hidden'));
               chartOverall.hidden = true;
               chartByCat.hidden = false;
-              statsOverall.classList.add('hidden');
+
             }
 
             btnOverall.addEventListener('click',    activateOverall);
