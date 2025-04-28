@@ -4,153 +4,15 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from .models import Category, Entry
-from .forms import EntryForm, CategoryForm, LoginForm, RegisterForm
-
-# Import all tests from modularized test files
-from .test_models import CategoryModelTest, EntryModelTest
-from .test_forms import CategoryFormTest, EntryFormTest, LoginFormTest, RegisterFormTest
-from .test_views import IndexViewTest, AuthViewTest, DashboardViewTest
-from .test_security import SecurityTest
-from .test_integration import BudgetTrackerIntegrationTest, MultipleUserIntegrationTest
 
 User = get_user_model()
 
-class CategoryModelTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
-        )
-        self.category = Category.objects.create(
-            name='Food',
-            user=self.user
-        )
-    
-    def test_category_creation(self):
-        """Test that a category can be created correctly"""
-        self.assertEqual(self.category.name, 'Food')
-        self.assertEqual(self.category.user, self.user)
-        self.assertEqual(str(self.category), 'Food')
-        
-    def test_category_user_relationship(self):
-        """Test that categories are correctly associated with users"""
-        user_categories = Category.objects.filter(user=self.user)
-        self.assertEqual(user_categories.count(), 1)
-        self.assertEqual(user_categories.first(), self.category)
-
-class EntryModelTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
-        )
-        self.category = Category.objects.create(
-            name='Food',
-            user=self.user
-        )
-        self.entry = Entry.objects.create(
-            user=self.user,
-            category=self.category,
-            title='Groceries',
-            amount=Decimal('50.00'),
-            date=timezone.now().date(),
-            type=Entry.EXPENSE,
-            notes='Weekly shopping'
-        )
-    
-    def test_entry_creation(self):
-        """Test that an entry can be created correctly"""
-        self.assertEqual(self.entry.title, 'Groceries')
-        self.assertEqual(self.entry.amount, Decimal('50.00'))
-        self.assertEqual(self.entry.type, Entry.EXPENSE)
-        self.assertEqual(self.entry.category, self.category)
-        self.assertEqual(self.entry.user, self.user)
-        
-    def test_entry_user_relationship(self):
-        """Test that entries are correctly associated with users"""
-        user_entries = Entry.objects.filter(user=self.user)
-        self.assertEqual(user_entries.count(), 1)
-        self.assertEqual(user_entries.first(), self.entry)
-
-class CategoryFormTest(TestCase):
-    def test_category_form_valid(self):
-        """Test that the category form validates correctly"""
-        form = CategoryForm(data={'name': 'Transportation'})
-        self.assertTrue(form.is_valid())
-    
-    def test_category_form_empty(self):
-        """Test that the category form requires a name"""
-        form = CategoryForm(data={'name': ''})
-        self.assertFalse(form.is_valid())
-
-class EntryFormTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser',
-            email='test@example.com',
-            password='testpass123'
-        )
-        self.category = Category.objects.create(
-            name='Food',
-            user=self.user
-        )
-        self.valid_data = {
-            'title': 'Groceries',
-            'amount': Decimal('50.00'),
-            'date': timezone.now().date(),
-            'type': Entry.EXPENSE,
-            'category': self.category.id,
-            'notes': 'Weekly shopping'
-        }
-    
-    def test_entry_form_valid(self):
-        """Test that the entry form validates correctly with valid data"""
-        form = EntryForm(data=self.valid_data, user=self.user)
-        self.assertTrue(form.is_valid())
-    
-    def test_entry_form_amount_validation(self):
-        """Test amount validation in the entry form"""
-        # Test with zero amount
-        data = self.valid_data.copy()
-        data['amount'] = 0
-        form = EntryForm(data=data, user=self.user)
-        self.assertFalse(form.is_valid())
-        self.assertIn('amount', form.errors)
-        
-        # Test with negative amount
-        data['amount'] = -10
-        form = EntryForm(data=data, user=self.user)
-        self.assertFalse(form.is_valid())
-        self.assertIn('amount', form.errors)
-    
-    def test_entry_form_date_validation(self):
-        """Test date validation in the entry form"""
-        # Test with future date
-        future_date = timezone.now().date() + timezone.timedelta(days=10)
-        data = self.valid_data.copy()
-        data['date'] = future_date
-        form = EntryForm(data=data, user=self.user)
-        self.assertFalse(form.is_valid())
-        self.assertIn('date', form.errors)
-
-    def test_entry_form_user_categories(self):
-        """Test that entry form only shows categories for the current user"""
-        other_user = User.objects.create_user(
-            username='otheruser',
-            email='other@example.com',
-            password='otherpass123'
-        )
-        other_category = Category.objects.create(
-            name='Other Food',
-            user=other_user
-        )
-        
-        # Form for first user should only show their categories
-        form = EntryForm(user=self.user)
-        self.assertIn(self.category, form.fields['category'].queryset)
-        self.assertNotIn(other_category, form.fields['category'].queryset)
+class IndexViewTest(TestCase):
+    def test_index_view(self):
+        """Test that the index page loads correctly"""
+        response = self.client.get(reverse('budget:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'index.html')
 
 class AuthViewTest(TestCase):
     def setUp(self):
@@ -177,6 +39,8 @@ class AuthViewTest(TestCase):
             'password': 'Test@123'
         })
         self.assertRedirects(response, self.dashboard_url)
+        # Check that user is logged in
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
     
     def test_login_invalid_credentials(self):
         """Test login with invalid credentials"""
@@ -188,6 +52,8 @@ class AuthViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'auth.html')
         self.assertContains(response, "Invalid email or password")
+        # Check that user is not logged in
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
     
     def test_register_success(self):
         """Test successful user registration"""
@@ -200,6 +66,8 @@ class AuthViewTest(TestCase):
         })
         self.assertRedirects(response, self.dashboard_url)
         self.assertTrue(User.objects.filter(email='new@example.com').exists())
+        # Check that user is logged in
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
     
     def test_register_duplicate_email(self):
         """Test registration with duplicate email"""
@@ -213,6 +81,8 @@ class AuthViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'auth.html')
         self.assertContains(response, "email address is already in use")
+        # Check that user is not logged in
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
 
 class DashboardViewTest(TestCase):
     def setUp(self):
@@ -252,6 +122,7 @@ class DashboardViewTest(TestCase):
         # Logout the user
         self.client.logout()
         response = self.client.get(self.dashboard_url)
+        # Should redirect to login page
         self.assertNotEqual(response.status_code, 200)
     
     def test_dashboard_context(self):
@@ -326,10 +197,74 @@ class DashboardViewTest(TestCase):
         """Test attempting to edit a nonexistent entry"""
         response = self.client.get(f"{self.dashboard_url}?edit=9999")  # Assume ID 9999 doesn't exist
         self.assertEqual(response.status_code, 404)  # Should return 404 Not Found
-
-class IndexViewTest(TestCase):
-    def test_index_view(self):
-        """Test that the index page loads correctly"""
-        response = self.client.get(reverse('budget:index'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'index.html')
+    
+    def test_delete_nonexistent_entry(self):
+        """Test attempting to delete a nonexistent entry"""
+        response = self.client.post(self.dashboard_url, {
+            'delete-entry': '9999'  # Assume ID 9999 doesn't exist
+        })
+        self.assertEqual(response.status_code, 404)  # Should return 404 Not Found
+    
+    def test_edit_entry_from_other_user(self):
+        """Test attempting to edit an entry belonging to another user"""
+        # Create another user with their own entry
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='Other@123'
+        )
+        other_entry = Entry.objects.create(
+            user=other_user,
+            title='Other expense',
+            amount=Decimal('30.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Expense from other user'
+        )
+        
+        # Attempt to edit the other user's entry
+        response = self.client.get(f"{self.dashboard_url}?edit={other_entry.id}")
+        self.assertEqual(response.status_code, 404)  # Should return 404 Not Found
+        
+        # Attempt to post edit to the other user's entry
+        response = self.client.post(self.dashboard_url, {
+            'add-entry': 'add',
+            'entry-id': str(other_entry.id),
+            'title': 'Trying to edit other users entry',
+            'amount': '100.00',
+            'date': timezone.now().date().isoformat(),
+            'type': Entry.EXPENSE,
+            'category': self.category.id,
+            'notes': 'Should not work'
+        })
+        self.assertEqual(response.status_code, 404)  # Should return 404 Not Found
+        
+        # Check that the entry was not modified
+        other_entry.refresh_from_db()
+        self.assertEqual(other_entry.title, 'Other expense')
+    
+    def test_delete_entry_from_other_user(self):
+        """Test attempting to delete an entry belonging to another user"""
+        # Create another user with their own entry
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='Other@123'
+        )
+        other_entry = Entry.objects.create(
+            user=other_user,
+            title='Other expense',
+            amount=Decimal('30.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+            notes='Expense from other user'
+        )
+        
+        # Attempt to delete the other user's entry
+        response = self.client.post(self.dashboard_url, {
+            'delete-entry': str(other_entry.id)
+        })
+        self.assertEqual(response.status_code, 404)  # Should return 404 Not Found
+        
+        # Check that the entry still exists
+        self.assertTrue(Entry.objects.filter(id=other_entry.id).exists()) 
