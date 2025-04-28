@@ -63,7 +63,7 @@ PennywAIse is a Django-powered budgeting dashboard designed to help you take con
 3. **Install Python dependencies**
 
    ```bash
-   pip install python-dateutil
+   pip install -r requirements.txt
    ```
 
 4. **Apply database migrations**
