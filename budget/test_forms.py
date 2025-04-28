@@ -4,7 +4,7 @@ from django.utils import timezone
 from decimal import Decimal
 from datetime import timedelta
 from .models import Category, Entry
-from .forms import EntryForm, CategoryForm, LoginForm, RegisterForm
+from .forms import EntryForm, CategoryForm, LoginForm, RegisterForm, ContactForm
 
 User = get_user_model()
 
@@ -214,4 +214,58 @@ class RegisterFormTest(TestCase):
         data['password1'] = 'N@1'
         data['password2'] = 'N@1'
         form = RegisterForm(data=data)
-        self.assertFalse(form.is_valid()) 
+        self.assertFalse(form.is_valid())
+
+class ContactFormTest(TestCase):
+    def test_contact_form_valid(self):
+        """Test that the contact form validates correctly with valid data"""
+        form = ContactForm(data={
+            'name': 'Test User',
+            'email': 'test@example.com',
+            'subject': 'Test Subject',
+            'message': 'This is a test message'
+        })
+        self.assertTrue(form.is_valid())
+        
+    def test_contact_form_invalid_email(self):
+        """Test contact form with invalid email format"""
+        form = ContactForm(data={
+            'name': 'Test User',
+            'email': 'invalid-email',
+            'subject': 'Test Subject',
+            'message': 'This is a test message'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+    
+    def test_contact_form_empty_fields(self):
+        """Test contact form with empty required fields"""
+        form = ContactForm(data={
+            'name': '',
+            'email': 'test@example.com',
+            'subject': '',
+            'message': 'This is a test message'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('name', form.errors)
+        self.assertIn('subject', form.errors)
+        
+    def test_contact_form_save(self):
+        """Test that the contact form saves correctly to the database"""
+        form = ContactForm(data={
+            'name': 'Test User',
+            'email': 'test@example.com',
+            'subject': 'Test Subject',
+            'message': 'This is a test message'
+        })
+        self.assertTrue(form.is_valid())
+        
+        # Save the form
+        message = form.save()
+        
+        # Check that the message was saved correctly
+        self.assertEqual(message.name, 'Test User')
+        self.assertEqual(message.email, 'test@example.com')
+        self.assertEqual(message.subject, 'Test Subject')
+        self.assertEqual(message.message, 'This is a test message')
+        self.assertFalse(message.is_read) 
