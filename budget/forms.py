@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from .models import Entry, Category, Budget
+from .models import Entry, Category, Budget, ContactMessage
 from django.utils import timezone
 from django.db.models import Sum
 from datetime import date
@@ -368,3 +368,52 @@ class BudgetForm(forms.ModelForm):
         help_texts = {
             'category': 'Leave blank to set the overall budget for this month',
         }
+
+class ContactForm(forms.ModelForm):
+    """Form for the website contact form."""
+    name = forms.CharField(
+        label="Name",
+        widget=forms.TextInput(attrs={
+            'id': 'name',
+            'placeholder': 'Your full name',
+            'class': 'w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2'
+        })
+    )
+    
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.EmailInput(attrs={
+            'id': 'email',
+            'placeholder': 'you@example.com',
+            'class': 'w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2'
+        }),
+        validators=[
+            RegexValidator(
+                regex=EMAIL_REGEX,
+                message="Enter a valid email address."
+            )
+        ]
+    )
+    
+    subject = forms.CharField(
+        label="Subject",
+        widget=forms.TextInput(attrs={
+            'id': 'subject',
+            'placeholder': "What's on your mind?",
+            'class': 'w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2'
+        })
+    )
+    
+    message = forms.CharField(
+        label="Message",
+        widget=forms.Textarea(attrs={
+            'id': 'message',
+            'placeholder': 'Write your message here…',
+            'rows': '5',
+            'class': 'w-full bg-transparent border-b-2 border-[#c3002d] focus:outline-none focus:border-red-600 pb-2 resize-none'
+        })
+    )
+    
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'subject', 'message']
