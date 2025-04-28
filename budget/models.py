@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 
 class Category(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -14,9 +14,36 @@ class Entry(models.Model):
     TYPE_CHOICES = [(INCOME, 'Income'), (EXPENSE, 'Expense')]
 
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
     title    = models.CharField(max_length=100)
     amount   = models.DecimalField(max_digits=10, decimal_places=2)
     date     = models.DateField()
     type     = models.CharField(max_length=2, choices=TYPE_CHOICES)
     notes    = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = (
+            ('user', 'title', 'date', 'category'),
+        )
+
+class Budget(models.Model):
+    user     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # if category is null, it’s the global/total budget
+    category = models.ForeignKey(
+        'Category',
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        help_text="Leave blank for a total budget"
+    )
+    # e.g. 2025-04-01 → budget applies to that month
+    month    = models.DateField(help_text="First day of the month this budget applies to")
+    amount   = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ('user', 'category', 'month')
+        ordering = ('-month',)
+
+    def __str__(self):
+        if self.category:
+            return f"{self.user} – {self.month:%b %Y} – {self.category.name}: ₱{self.amount}"
+        return f"{self.user} – {self.month:%b %Y} – Total: ₱{self.amount}"

@@ -8,6 +8,7 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/main/output.css' %}" />
     <link rel="stylesheet" href="{% static 'css/budget/dashboard.css' %}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
     
@@ -16,9 +17,10 @@
       <button id="addEntryBtn" class="create">+ Add Entry</button>
       <nav>
         <a href="#dashboard" class="active">Dashboard</a>
+        <a href="#categories">Categories</a>
         <a href="#income">Income</a>
         <a href="#expenses">Expenses</a>
-        <a href="#categories">Categories</a>
+        <a href="#budgets">Budgets</a>
         <a href="#reports">Reports</a>
       </nav>
     </aside>
@@ -28,7 +30,7 @@
       <header class="user">
         <div class="relative">
           <button id="userBtn" class="button">
-            <span>Hello, Jane Doe</span>
+            <span>Hello, {{ user.username }}!</span>
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z"
@@ -39,7 +41,10 @@
             <a href="#" class="menu">Profile</a>
             <a href="#" class="menu">Settings</a>
             <div class="border-t my-1"></div>
-            <a href="#" class="menu">Logout</a>
+            <form method="post" action="{% url 'logout' %}" class="menu p-0">
+              {% csrf_token %}
+              <button type="submit" class="w-full text-left">Logout</button>
+            </form>
           </div>
         </div>
       </header>
@@ -47,171 +52,364 @@
       <section id="dashboard" class="page-content">
         <header>
           <h2 class="pagetitle">Dashboard</h2>
-          <div class="search">
-            <input type="text" placeholder="Search expenses…" />
-          </div>
         </header>
-        
+      
+        <!-- OVERVIEW CARDS -->
         <section id="overview" class="overview">
           <article class="card">
             <h3 class="title">Total Income</h3>
-            <p class="value">$5,200.00</p>
+            <p class="value">₱{{ income_total|floatformat:2 }}</p>
             <p class="meta">This month</p>
           </article>
           <article class="card">
             <h3 class="title">Total Expenses</h3>
-            <p class="value">$3,450.00</p>
+            <p class="value">₱{{ expense_total|floatformat:2 }}</p>
             <p class="meta">This month</p>
           </article>
           <article class="card">
             <h3 class="title">Net Balance</h3>
-            <p class="value">$1,750.00</p>
+            <p
+              class="value
+                {% if net_balance > 0 %}text-green-600{% elif net_balance < 0 %}text-red-600{% endif %}"
+            >
+              {% if net_balance > 0 %}
+                +₱{{ net_balance_abs|floatformat:2 }}
+              {% elif net_balance < 0 %}
+                −₱{{ net_balance_abs|floatformat:2 }}
+              {% else %}
+                ₱0.00
+              {% endif %}
+            </p>
             <p class="meta">Income − Expenses</p>
           </article>
+
+          <article class="card">
+            <h3 class="title">Monthly Budget</h3>
+            {% if total_budget is not None %}
+              <p class="value">
+                ₱{{ total_budget|floatformat:2 }}
+                <p>
+                {% if over_budget %}
+                  <span class="text-red-600"> (Over by ₱{{ total_remaining|floatformat:2 }})</span>
+                {% else %}
+                  <span class="text-green-600"> (Remaining ₱{{ total_remaining|floatformat:2 }})</span>
+                {% endif %}
+              </p>
+              </p>
+            {% else %}
+              <p class="value text-gray-500">Not set</p>
+            {% endif %}
+            <p class="meta">Total budget</p>
+          </article>
+          
+          
           <article class="card">
             <h3 class="title">Transactions</h3>
-            <p class="value">18</p>
+            <p class="value">{{ transaction_count }}</p>
             <p class="meta">Entries this month</p>
           </article>
         </section>
-
-        
-        <section id="charts" class="content">
-          <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
-            <h2>Monthly Trend</h2>
+      
+        <section id="charts" class="content grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <!-- Monthly Trend -->
+          <div class="progress bg-white rounded-lg p-4 shadow-md">
+            <h2 class="text-lg mb-2">Monthly Trend</h2>
             <canvas id="trendChart" width="300" height="200"></canvas>
           </div>
-          <div class="progress flex-1 bg-white rounded-lg p-4 shadow-md">
-            <h2>Expenses by Category</h2>
+        
+          <div id="budgetCard" class="progress bg-white rounded-lg p-4 shadow-md">
+            <h2 id="budgetCardTitle" class="text-lg mb-2">Budget Utilization</h2>
+            
+            <!-- toggles -->
+            <div class="flex space-x-2 mb-4">
+              <button id="showOverall" class="px-3 py-1 rounded bg-indigo-600 text-white">
+                Overall
+              </button>
+              <button id="showByCategory" class="px-3 py-1 rounded bg-gray-200 text-gray-700">
+                By Category
+              </button>
+            </div>
+            
+            <!-- Chart canvases (only one visible at a time) -->
+            <canvas id="budgetChart" width="300" height="200"></canvas>
+            <canvas id="catBudgetDonut" width="300" height="200" hidden></canvas>
+            
+          </div>
+          
+          
+        
+          <!-- Category Breakdown (chart + table) -->
+          <div class="progress bg-white rounded-lg p-4 shadow-md">
+            <h2 class="text-lg mb-2">Category Breakdown</h2>
             <canvas id="categoryChart" width="300" height="200"></canvas>
+        
+            <button
+              class="mt-3 text-sm text-indigo-600 hover:underline"
+              onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
+            >
+              Toggle detailed numbers
+            </button>
+        
+            <div id="categoryTable" class="hidden overflow-x-auto mt-2">
+              <table class="table-fixed w-full">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <th class="px-3 py-2 text-left">Category</th>
+                    <th class="px-3 py-2 text-left">Income</th>
+                    <th class="px-3 py-2 text-left">Expense</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in category_summary %}
+                    <tr>
+                      <td class="px-3 py-2">{{ row.name }}</td>
+                      <td class="px-3 py-2 text-green-600">
+                        ₱{{ row.income|floatformat:2 }}
+                      </td>
+                      <td class="px-3 py-2 text-red-600">
+                        ₱{{ row.expense|floatformat:2 }}
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="3" class="px-3 py-4 text-center text-gray-500">
+                        No data to display.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
-        
+        <!-- RECENT TRANSACTIONS -->
         <section id="recent" class="project-summary overflow-hidden">
-          <h2>Recent Transactions</h2>
-
-          
+          <h3 class="text-lg font-semibold mb-4">Recent Transactions</h3>
           <div class="overflow-x-auto">
             <table class="table-auto w-full">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Actions</th>
+                  <th class="px-3 py-2 text-left">Date</th>
+                  <th class="px-3 py-2 text-left">Title</th>
+                  <th class="px-3 py-2 text-left">Category</th>
+                  <th class="px-3 py-2 text-left">Amount</th>
+                  <th class="px-3 py-2 text-left">Type</th>
+                  <th class="px-3 py-2 text-left">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>Apr 25, 2025</td>
-                  <td>Salary</td>
-                  <td>Income</td>
-                  <td>$3,000.00</td>
-                  <td>Income</td>
-                  <td class="whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a>
-                      <span>|</span>
-                      <a href="#">Delete</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  
-                  <td>Apr 25, 2025</td>
-                  <td>Salary</td>
-                  <td>Income</td>
-                  <td>$3,000.00</td>
-                  <td>Income</td>
-                  <td class="whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a>
-                      <span>|</span>
-                      <a href="#">Delete</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Apr 25, 2025</td>
-                  <td>Salary</td>
-                  <td>Income</td>
-                  <td>$3,000.00</td>
-                  <td>Income</td>
-                  <td class="whitespace-nowrap">
-                    <div class="inline-flex items-center space-x-1">
-                      <a href="#">Edit</a>
-                      <span>|</span>
-                      <a href="#">Delete</a>
-                    </div>
-                  </td>
-                </tr>
-                
+              <tbody id="dashboardTable">
+                {% for entry in recent_transactions %}
+                  <tr>
+                    <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
+                    <td class="px-3 py-2">{{ entry.title }}</td>
+                    <td class="px-3 py-2">
+                      {% if entry.category %}
+                        {{ entry.category.name }}
+                      {% else %}
+                        &mdash;
+                      {% endif %}
+                    </td>
+                    
+                    <td class="px-3 py-2 {% if entry.type == entry.INCOME %}text-green-600{% else %}text-red-600{% endif %}">
+                      {% if entry.type == entry.INCOME %}+{% else %}–{% endif %}₱{{ entry.amount|floatformat:2 }}
+                    </td>
+                    <td class="px-3 py-2">{{ entry.get_type_display }}</td>
+                    <td class="px-3 py-2 whitespace-nowrap">
+                      <a href="?edit={{ entry.pk }}#dashboard" class="text-blue-600 hover:underline">Edit</a>
+                      <span class="px-1">|</span>
+                      <form method="post" class="inline">
+                        {% csrf_token %}
+                        <button
+                          type="submit"
+                          name="delete-entry"
+                          value="{{ entry.pk }}"
+                          class="text-red-600 hover:underline"
+                          onclick="return confirm('Delete this entry?');">
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="px-3 py-4 text-center text-gray-500">
+                      No transactions yet.
+                    </td>
+                  </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
         </section>
 
-        
-        <section
-          id="actions"
-          class="bottom grid grid-cols-1 md:grid-cols-2 gap-8"
-        >
-          <div class="tasks">
-            <h2>Quick Actions</h2>
-            <ul>
-              <li><a href="#">Add Income</a></li>
-              <li><a href="#">Add Expense</a></li>
-              <li><a href="#">View Full Reports</a></li>
-            </ul>
-          </div>
-          <div class="workload">
-            <h2>Category Summary</h2>
-            <ul class="list-none">
-              <li>Food: $600.00</li>
-              <li>Bills: $400.00</li>
-              <li>Transport: $200.00</li>
-              <li>Entertainment: $150.00</li>
-              <li>Others: $100.00</li>
-            </ul>
-          </div>
-        </section>
-      </section>
 
+      </section>
+      
+      <section id="categories" class="page-content hidden">
+        <header class="flex items-center justify-between mb-5">
+          <h2 class="text-2xl font-bold">Categories</h2>
+        </header>
+      
+        <!-- Add New Category -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+          <form method="post" class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
+            {% csrf_token %}
+            <div>
+              <label for="id_name" class="block text-sm font-medium text-gray-700">
+                New category
+              </label>
+              <input
+                type="text"
+                name="name"
+                id="id_name"
+                placeholder="e.g. Groceries"
+                required
+                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+
+              {% if category_form.name.errors %}
+                <div class="non-field-error text-sm text-red-600 mt-1">
+                  {% for err in category_form.name.errors %}
+                    <p>{{ err }}</p>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            <button
+              type="submit"
+              name="add-category"
+              class="self-end px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Add Category
+            </button>
+          </form>
+        </div>
+      
+        <!-- Category Overview Table -->
+        <div class="bg-white rounded-lg shadow-md p-4">
+          <h3 class="font-semibold mb-3">Overview</h3>
+          <div class="overflow-x-auto">
+            <table class="table-auto w-full">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="px-3 py-2 text-left sortable sort-asc">Category</th>
+                  <th class="px-3 py-2 text-center sortable"># of Entries</th>
+                  <th class="px-3 py-2 text-right sortable">Income</th>
+                  <th class="px-3 py-2 text-right sortable">Expenses</th>
+                  <th class="px-3 py-2 text-right sortable">Net</th>
+                  <th class="px-3 py-2 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cat in category_stats %}
+                  <tr>
+                    <td class="px-3 py-2 cat-name">{{ cat.name }}</td>
+                    <td class="px-3 py-2 text-center">{{ cat.entry_count }}</td>
+                    <td class="px-3 py-2 text-right text-green-600">
+                      ₱{{ cat.total_inc|floatformat:2 }}
+                    </td>
+                    <td class="px-3 py-2 text-right text-red-600">
+                      ₱{{ cat.total_exp|floatformat:2 }}
+                    </td>
+                    <td class="px-3 py-2 text-right
+      {% if cat.net > 0 %}text-green-600{% elif cat.net < 0 %}text-red-600{% endif %}">
+  {% if cat.net > 0 %}+{% elif cat.net < 0 %}–{% endif %}₱{{ cat.net_abs|floatformat:2 }}
+</td>
+
+                    <td class="px-3 py-2 text-center space-x-2">
+                      <form method="post" class="inline">
+                        {% csrf_token %}
+                        <button
+                          type="button"
+                          class="edit-cat-btn text-blue-600 text-sm hover:underline"
+                          data-id="{{ cat.id }}"
+                          data-name="{{ cat.name }}"
+                        >
+                          Edit
+                        </button>
+                        <span class="px-1">|</span>
+                        <button
+                          type="submit"
+                          name="delete-category"
+                          value="{{ cat.id }}"
+                          class="text-red-600 text-sm hover:underline"
+                          onclick="return confirm('Delete &quot;{{ cat.name }}&quot;?');"
+                        >Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="px-3 py-4 text-center text-gray-500">
+                      You haven’t added any categories yet.
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      
+      
       
       <section id="income" class="page-content hidden">
         <header class="flex justify-between items-center mb-5">
           <h2 class="text-2xl font-bold">Income</h2>
-          <div class="search">
-            <input
-              type="text"
-              placeholder="Search income…"
-              id="incomeSearch"
-              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
-            />
+          <div class="filters flex flex-wrap gap-2 items-end mb-4">
+
+            <!-- Date range -->
+            <label class="text-sm">From:</label>
+            <input type="date" id="incDateFrom"
+                   class="px-2 py-1 border rounded" />
+          
+            <label class="text-sm">To:</label>
+            <input type="date" id="incDateTo"
+                   class="px-2 py-1 border rounded" />
+          
+            <!-- Title substring -->
+            <input type="text" id="incTitleFilter"
+                   placeholder="Title contains…"
+                   class="px-2 py-1 border rounded" />
+          
+            <!-- Category dropdown -->
+            <select id="incCategoryFilter"
+                    class="px-2 py-1 border rounded">
+              <option value="">All categories</option>
+              {% for cat in user_categories %}
+                <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          
+            <!-- Amount range -->
+            <input type="number" step="0.01" id="incMinAmount"
+                   placeholder="Min ₱" class="px-2 py-1 border rounded w-20" />
+            <input type="number" step="0.01" id="incMaxAmount"
+                   placeholder="Max ₱" class="px-2 py-1 border rounded w-20" />
+          
           </div>
+          
         </header>
       
         <div class="overflow-x-auto bg-white rounded-lg shadow-md">
           <table class="table-auto w-full">
             <thead class="bg-gray-100">
               <tr>
-                <th class="px-3 py-2 text-left">Date</th>
-                <th class="px-3 py-2 text-left">Title</th>
-                <th class="px-3 py-2 text-left">Category</th>
-                <th class="px-3 py-2 text-left">Amount</th>
+                <th class="px-3 py-2 text-left sortable sort-asc">Title</th>
+                <th class="px-3 py-2 text-left sortable">Category</th>
+                <th class="px-3 py-2 text-left sortable">Amount</th>
+                <th class="px-3 py-2 text-left sortable">Date</th>
                 <th class="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody id="incomeTable">
               {% for entry in income_entries %}
                 <tr>
-                  <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
                   <td class="px-3 py-2">{{ entry.title }}</td>
                   <td class="px-3 py-2">{{ entry.category.name }}</td>
                   <td class="px-3 py-2 text-green-600">+ ₱{{ entry.amount }}</td>
+                  <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
                     <!-- Edit: reload page with ?edit=<id>, preserving hash so modal opens -->
                     <a
@@ -248,15 +446,38 @@
 
       
       <section id="expenses" class="page-content hidden">
-        <header class="flex justify-between items-center mb-5">
-          <h2 class="text-2xl font-bold">Expenses</h2>
-          <div class="search">
-            <input
-              type="text"
-              placeholder="Search expenses…"
-              id="expenseSearch"
-              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
-            />
+        <header class="flex flex-wrap items-end gap-2 mb-5">
+          <h2 class="text-2xl font-bold w-full md:w-auto">Expenses</h2>
+          <div class="filters flex flex-wrap gap-2 items-end mb-4">
+          <!-- Date range -->
+          <label class="text-sm">From:</label>
+          <input type="date" id="expDateFrom"
+                 class="px-2 py-1 border rounded" />
+      
+          <label class="text-sm">To:</label>
+          <input type="date" id="expDateTo"
+                 class="px-2 py-1 border rounded" />
+      
+          <!-- Title substring -->
+          <input type="text" id="expTitleFilter"
+                 placeholder="Title contains…"
+                 class="px-2 py-1 border rounded flex-1 min-w-[120px]" />
+      
+          <!-- Category dropdown -->
+          <select id="expCategoryFilter"
+                  class="px-2 py-1 border rounded">
+            <option value="">All categories</option>
+            {% for cat in user_categories %}
+              <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+      
+          <!-- Amount range -->
+          <input type="number" step="0.01" id="expMinAmount"
+                 placeholder="Min ₱" class="px-2 py-1 border rounded w-20" />
+          <input type="number" step="0.01" id="expMaxAmount"
+                 placeholder="Max ₱" class="px-2 py-1 border rounded w-20" />
+
           </div>
         </header>
       
@@ -264,20 +485,20 @@
           <table class="table-auto w-full">
             <thead class="bg-gray-100">
               <tr>
-                <th class="px-3 py-2 text-left">Date</th>
-                <th class="px-3 py-2 text-left">Title</th>
-                <th class="px-3 py-2 text-left">Category</th>
-                <th class="px-3 py-2 text-left">Amount</th>
+                <th class="px-3 py-2 text-left sortable sort-asc">Title</th>
+                <th class="px-3 py-2 text-left sortable">Category</th>
+                <th class="px-3 py-2 text-left sortable">Amount</th>
+                <th class="px-3 py-2 text-left sortable">Date</th>
                 <th class="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody id="expenseTable">
               {% for entry in expense_entries %}
                 <tr>
-                  <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
                   <td class="px-3 py-2">{{ entry.title }}</td>
                   <td class="px-3 py-2">{{ entry.category.name }}</td>
                   <td class="px-3 py-2 text-red-600">- ₱{{ entry.amount }}</td>
+                  <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
                   <td class="px-3 py-2 whitespace-nowrap">
                     <!-- Edit: reload page with ?edit=<id>, preserving hash so modal opens -->
                     <a
@@ -312,59 +533,230 @@
       </section>
       
 
-      <section id="categories" class="page-content {% if not register_form.errors %}hidden{% endif %}">
+      <section id="budgets" class="page-content">
         <header class="flex justify-between items-center mb-5">
-          <h2 class="text-2xl font-bold">Categories</h2>
-          <form method="post" class="flex space-x-2">
+          <h2 class="text-2xl font-bold">Budgets</h2>
+          <form method="post" class="flex flex-wrap items-end space-x-4">
             {% csrf_token %}
-            <input
-              type="text"
-              name="name"
-              placeholder="New category"
-              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
-            />
-            <button
-              type="submit"
-              name="add-category"
-              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-            >
-              Add
+        
+            {# show any clean() errors here #}
+            {% if budget_form.non_field_errors %}
+              <div id="budgetErrors" class="non-field-error w-full text-sm text-red-600 mb-2">
+                {% for err in budget_form.non_field_errors %}
+                  <p>{{ err }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+        
+            <div class="flex items-center space-x-2">
+              {{ budget_form.category.label_tag }}
+              {{ budget_form.category }}
+              {% for err in budget_form.category.errors %}
+                <p class="text-red-600 text-sm">{{ err }}</p>
+              {% endfor %}
+            </div>
+        
+            <div class="flex items-center space-x-2">
+              {{ budget_form.amount.label_tag }}
+              {{ budget_form.amount }}
+              {% for err in budget_form.amount.errors %}
+                <p class="text-red-600 text-sm">{{ err }}</p>
+              {% endfor %}
+            </div>
+        
+            <button type="submit" name="set-budget"
+                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+              Save
             </button>
           </form>
         </header>
+        
       
-        <ul class="list-disc pl-10 bg-white rounded-lg p-4 shadow-md mb-5">
-          {% for cat in user_categories %}
-            <li class="py-1">{{ cat.name }}</li>
-          {% empty %}
-            <li class="text-gray-500">No categories yet.</li>
-          {% endfor %}
-        </ul>
-      </section>
-      
-      
-      <section id="reports" class="page-content hidden">
-        <header class="flex justify-between items-center mb-5">
-          <h2 class="text-2xl font-bold">Reports</h2>
-          <div class="search">
-            <input
-              type="text"
-              placeholder="Search expenses…"
-              class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-        </header>
-
-        <div
-          class="project-summary overflow-hidden bg-white rounded-lg p-4 shadow-md w-full mb-5"
-        >
+        <div class="overflow-x-auto bg-white rounded-lg shadow-md p-4 mb-5">
+          <table class="table-auto w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left sortable sort-asc">Category</th>
+                <th class="px-3 py-2 text-left sortable">Budget</th>
+                <th class="px-3 py-2 text-left sortable">Spent</th>
+                <th class="px-3 py-2 text-left sortable">Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+              {# — Total row — #}
+              <tr class="font-semibold">
+                <td class="px-3 py-2">Total</td>
+                <td class="px-3 py-2">
+                  {% if total_budget is not None %}
+                    ₱{{ total_budget|floatformat:2 }}
+                  {% else %}
+                    &mdash;
+                  {% endif %}
+                </td>
+                <td class="px-3 py-2 text-red-600">₱{{ total_spent|floatformat:2 }}</td>
+                <td class="px-3 py-2
+                           {% if total_remaining > 0 %}text-green-600
+                           {% elif total_remaining < 0 %}text-red-600{% endif %}"
+                >
+                  {% if total_remaining is not None %}
+                    {% if total_remaining >= 0 %}+{% else %}–{% endif %}
+                    ₱{{ total_remaining_abs|floatformat:2 }}
+                  {% else %}
+                    &mdash;
+                  {% endif %}
+                </td>
+              </tr>
+          
+              {# — Per‐category rows — #}
+              {% for row in category_summary %}
+                <tr>
+                  <td class="px-3 py-2">{{ row.name }}</td>
+                  <td class="px-3 py-2">
+                    {% if row.budget is not None %}
+                      ₱{{ row.budget|floatformat:2 }}
+                    {% else %}
+                      &mdash;
+                    {% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-red-600">
+                    ₱{{ row.expense|floatformat:2 }}
+                  </td>
+                  <td class="px-3 py-2
+                             {% if row.remaining > 0 %}text-green-600
+                             {% elif row.remaining < 0 %}text-red-600{% endif %}"
+                  >
+                    {% if row.remaining is not None %}
+                      {% if row.remaining >= 0 %}+{% else %}–{% endif %}
+                      ₱{{ row.remaining_abs|floatformat:2 }}
+                    {% else %}
+                      &mdash;
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="px-3 py-4 text-center text-gray-500">
+                    No per-category budgets set.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
           
         </div>
       </section>
-
+    
+      <section id="reports" class="page-content hidden">
+        <header class="flex justify-between items-center mb-5">
+          <h2 class="text-2xl font-bold">Reports</h2>
+          <div class="flex space-x-2 items-end">
+            <!-- Date range -->
+            <div class="flex flex-col">
+              <label for="repFrom" class="text-sm">From</label>
+              <input type="date" id="repFrom" class="px-2 py-1 border rounded" />
+            </div>
+            <div class="flex flex-col">
+              <label for="repTo" class="text-sm">To</label>
+              <input type="date" id="repTo" class="px-2 py-1 border rounded" />
+            </div>
+            <!-- Type -->
+            <div class="flex flex-col">
+              <label for="repType" class="text-sm">Type</label>
+              <select id="repType" class="px-2 py-1 border rounded">
+                <option value="">Both</option>
+                <option value="IN">Income</option>
+                <option value="EX">Expense</option>
+              </select>
+            </div>
+            <!-- Category -->
+            <div class="flex flex-col">
+              <label for="repCat" class="text-sm">Category</label>
+              <select id="repCat" class="px-2 py-1 border rounded">
+                <option value="">All</option>
+                {% for cat in user_categories %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button id="exportCsv" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+              Export CSV
+            </button>
+          </div>
+        </header>
       
-
+        <div class="overflow-x-auto bg-white rounded-lg shadow-md p-4">
+          <table id="reportTable" class="table-auto w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left">Date</th>
+                <th class="px-3 py-2 text-left">Title</th>
+                <th class="px-3 py-2 text-left">Category</th>
+                <th class="px-3 py-2 text-left">Type</th>
+                <th class="px-3 py-2 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for e in report_entries %}
+              <tr>
+                <td class="px-3 py-2">{{ e.date|date:"Y-m-d" }}</td>
+                <td class="px-3 py-2">{{ e.title }}</td>
+                <td class="px-3 py-2">{{ e.category.name }}</td>
+                <td class="px-3 py-2">{{ e.get_type_display }}</td>
+                <td class="px-3 py-2">₱{{ e.amount|floatformat:2 }}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">No entries.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
       
+      
+      <div
+  id="editCategoryModal"
+  class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50"
+>
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+    <h3 class="text-lg font-semibold mb-4">Edit Category</h3>
+    <form method="post" action="{% url 'budget:dashboard' %}">
+      {% csrf_token %}
+      <input
+        type="hidden"
+        name="category-id"
+        id="editCategoryId"
+        value="{{ edit_category_id }}"
+      >
+
+      <div class="mb-4">
+        {{ edit_category_form.name.label_tag }}
+        {{ edit_category_form.name }}
+        {% if edit_category_form.name.errors %}
+          {% for err in edit_category_form.name.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button
+          type="button"
+          id="cancelEditCategory"
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >Cancel</button>
+        <button
+          type="submit"
+          name="add-category"
+          class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
       <div
         id="addEntryModal"
         class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50"
@@ -416,7 +808,7 @@
               {% endfor %}
             </div>
           {% endif %}
-        
+      
           <!-- Title -->
           <div>
             <label for="{{ entry_form.title.id_for_label }}"
@@ -527,25 +919,54 @@
       </div>
       
     </main>
-
     
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         // ---- Sidebar tab switching ----
-        const links = document.querySelectorAll('aside.sidebar nav a');
-        const pages = document.querySelectorAll('.page-content');
-        links.forEach(link => {
-          link.addEventListener('click', e => {
-            const targetId = link.getAttribute('href').slice(1);
-            if (!targetId) return;
-            e.preventDefault();
-      
-            links.forEach(a => a.classList.remove('active'));
-            link.classList.add('active');
-      
-            pages.forEach(sec => sec.classList.toggle('hidden', sec.id !== targetId));
+        const links = Array.from(document.querySelectorAll('aside.sidebar nav a'));
+        const pages = Array.from(document.querySelectorAll('.page-content'));
+
+        function showTab(tabId) {
+          links.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${tabId}`);
           });
+          pages.forEach(page => {
+            page.classList.toggle('hidden', page.id !== tabId);
+          });
+        }
+
+      // Wire up click handlers
+      links.forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const target = link.getAttribute('href').slice(1) || 'dashboard';
+          showTab(target);
+
+          document.querySelectorAll('.non-field-error')
+            .forEach(el => el.remove());
+
+          const newHash = target !== 'dashboard' ? `#${target}` : '';
+          history.replaceState(null, '', window.location.pathname + newHash);
         });
+      });
+
+
+      {% if active_tab != 'dashboard' %}
+
+    showTab('{{ active_tab }}');
+    history.replaceState(null, '', window.location.pathname + '#{{ active_tab }}');
+  {% else %}
+    // normal load: respect the URL hash or default
+    const hash    = window.location.hash.slice(1);
+    const valid   = pages.map(p => p.id);
+    if (hash && valid.includes(hash)) {
+      showTab(hash);
+    } else {
+      showTab('dashboard');
+      history.replaceState(null, '', window.location.pathname);
+    }
+  {% endif %}
+
       
         // ---- User menu toggle ----
         const userBtn  = document.getElementById('userBtn');
@@ -623,7 +1044,8 @@
           showModal();
           cleanUrl();
         {% endif %}
-      
+        
+        
         // ---- Table filtering ----
         function setupFilter(inputId, tableId) {
           const inp = document.getElementById(inputId);
@@ -637,11 +1059,399 @@
             });
           });
         }
-        setupFilter('incomeSearch','incomeTable');
-        setupFilter('expenseSearch','expenseTable');
       });
+
+      const editCatModal     = document.getElementById('editCategoryModal');
+            const editCatIdInput   = document.getElementById('editCategoryId');
+            // we rely on Django giving us <input name="name" …> inside the modal:
+            const editCatNameInput = editCatModal.querySelector('input[name="name"]');
+            const cancelBtn        = document.getElementById('cancelEditCategory');
+        
+            // 1) User clicks “Edit” in the table
+            document.querySelectorAll('.edit-cat-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                editCatIdInput.value   = btn.dataset.id;
+                editCatNameInput.value = btn.dataset.name;
+                editCatModal.classList.remove('hidden');
+              });
+            });
+        
+            // 2) Cancel closes
+            cancelBtn.addEventListener('click', e => {
+              e.preventDefault();
+              editCatModal.classList.add('hidden');
+              // 2) Clear the hidden ID + the name input
+  editCatIdInput.value = '';
+  editCatNameInput.value = '';
+
+  // 3) Remove any error <p> tags in the modal
+  editCatModal.querySelectorAll('.text-red-600.mt-1')
+    .forEach(el => el.remove());
+            });
+        
+            // 3) Clicking outside the dialog closes
+            editCatModal.addEventListener('click', e => {
+              if (e.target === editCatModal) {
+                editCatModal.classList.add('hidden');
+              }
+            });
+        
+            // 4) Auto-open if validation failed
+            {% if is_edit_category %}
+              
+              editCatModal.classList.remove('hidden');
+            {% endif %}
+            
+            function initTableFilter(opts) {
+              const { dateFrom, dateTo, title, category, minAmt, maxAmt, tableBody } = opts;
+              const df = document.querySelector(dateFrom);
+              const dt = document.querySelector(dateTo);
+              const ti = document.querySelector(title);
+              const ca = document.querySelector(category);
+              const mn = document.querySelector(minAmt);
+              const mx = document.querySelector(maxAmt);
+              const rows = Array.from(document.querySelectorAll(tableBody + ' tr'));
+          
+              function applyFilters() {
+                const fromDate = df.valueAsDate;
+                const toDate   = dt.valueAsDate;
+                const titleQ   = ti.value.trim().toLowerCase();
+                const catQ     = ca.value.trim().toLowerCase();
+                const minA     = parseFloat(mn.value) || -Infinity;
+                const maxA     = parseFloat(mx.value) || Infinity;
+          
+                rows.forEach(row => {
+                  const cells = row.querySelectorAll('td');
+                  let ok = true;
+          
+                  // 1) Date filter
+                  if ((fromDate || toDate) && cells[0]) {
+                    const d = new Date(cells[0].textContent);
+                    if (fromDate && d < fromDate) ok = false;
+                    if (toDate   && d > toDate)   ok = false;
+                  }
+          
+                  // 2) Title substring
+                  if (titleQ && cells[1] && !cells[1].textContent.toLowerCase().includes(titleQ)) {
+                    ok = false;
+                  }
+          
+                  // 3) Category match
+                  if (catQ && cells[2] && !cells[2].textContent.toLowerCase().includes(catQ)) {
+                    ok = false;
+                  }
+          
+                  // 4) Amount range (strip non‐digits)
+                  if (cells[3]) {
+                    const amt = parseFloat(cells[3].textContent.replace(/[^\d\.-]/g, '')) || 0;
+                    if (amt < minA || amt > maxA) ok = false;
+                  }
+          
+                  row.style.display = ok ? '' : 'none';
+                });
+              }
+          
+              // wire up all inputs to re‐filter on change
+              [df, dt, ti, ca, mn, mx].forEach(el => el && el.addEventListener('input', applyFilters));
+            }
+          
+            // now initialise Income filters
+            initTableFilter({
+              dateFrom:  '#incDateFrom',
+              dateTo:    '#incDateTo',
+              title:     '#incTitleFilter',
+              category:  '#incCategoryFilter',
+              minAmt:    '#incMinAmount',
+              maxAmt:    '#incMaxAmount',
+              tableBody: '#incomeTable'
+            });
+          
+            // …and Expense filters
+            initTableFilter({
+              dateFrom:  '#expDateFrom',
+              dateTo:    '#expDateTo',
+              title:     '#expTitleFilter',
+              category:  '#expCategoryFilter',
+              minAmt:    '#expMinAmount',
+              maxAmt:    '#expMaxAmount',
+              tableBody: '#expenseTable'
+            });
+            
       </script>
       
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          // 1) Monthly Trend (LINE) – you’ll need to add these in your view:
+          //    ctx['chart_trend_labels'], ctx['chart_trend_income'], ctx['chart_trend_expense']
+          {% if chart_trend_labels and chart_trend_income and chart_trend_expense %}
+          new Chart(
+            document.getElementById('trendChart').getContext('2d'),
+            {
+              type: 'line',
+              data: {
+                labels: {{ chart_trend_labels|safe }},
+                datasets: [
+                  {
+                    label: 'Income',
+                    data: {{ chart_trend_income|safe }},
+                    borderColor: 'rgba(16,185,129,1)',
+                    fill: false
+                  },
+                  {
+                    label: 'Expenses',
+                    data: {{ chart_trend_expense|safe }},
+                    borderColor: 'rgba(239,68,68,1)',
+                    fill: false
+                  }
+                ]
+              },
+              options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            }
+          );
+          {% endif %}
+        
+          // 2) Budget Utilization (DOUGHNUT)
+          {% if chart_budget_data %}
+          new Chart(
+            document.getElementById('budgetChart').getContext('2d'),
+            {
+              type: 'doughnut',
+              data: {
+                labels: ['Spent', 'Remaining'],
+                datasets: [{
+                  data: {{ chart_budget_data|safe }}
+                }]
+              },
+              options: { responsive: true, plugins: {
+                legend: { position: 'bottom' }
+              } }
+            }
+          );
+          {% endif %}
+        
+          {% if chart_cat_labels and chart_cat_budget and chart_cat_expense %}
+  new Chart(
+    document.getElementById('catBudgetDonut').getContext('2d'),
+    {
+      type: 'doughnut',
+      data: {
+        labels: {{ chart_cat_labels|safe }},
+        datasets: [
+          {
+            label: 'Budget',
+            data: {{ chart_cat_budget|safe }},
+            // Chart.js will auto-pick colors
+          },
+          {
+            label: 'Spent',
+            data: {{ chart_cat_expense|safe }},
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    }
+  );
+  {% endif %}
+          // 3) Category Breakdown (BAR)
+          {% if chart_cat_labels and chart_cat_expense and chart_cat_income %}
+          new Chart(
+            document.getElementById('categoryChart').getContext('2d'),
+            {
+              type: 'bar',
+              data: {
+                labels: {{ chart_cat_labels|safe }},
+                datasets: [
+                  {
+                    label: 'Expense',
+                    data: {{ chart_cat_expense|safe }},
+                    backgroundColor: 'rgba(239,68,68,0.5)'
+                  },
+                  {
+                    label: 'Income',
+                    data: {{ chart_cat_income|safe }},
+                    backgroundColor: 'rgba(16,185,129,0.5)'
+                  }
+                ]
+              },
+              options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+              }
+            }
+          );
+          {% endif %}
+
+                  // helper to pull cell text
+          const getCell = (tr, idx) =>
+          tr.children[idx].innerText.trim();
+
+        // comparer: numeric if both numeric, else string
+        const comparer = (idx, asc) => (a, b) => {
+          const v1 = getCell(asc ? a : b, idx);
+          const v2 = getCell(asc ? b : a, idx);
+          return !isNaN(v1) && !isNaN(v2)
+            ? v1 - v2
+            : v1.localeCompare(v2);
+        };
+
+        
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+          let asc = false;
+          th.addEventListener('click', () => {
+            const table = th.closest('table');
+            const body  = table.querySelector('tbody');
+            const idx   = Array.from(th.parentNode.children).indexOf(th);
+        
+            // 1) clear arrows on *all* sortable headers
+            table.querySelectorAll('th.sortable')
+                 .forEach(h => h.classList.remove('sort-asc','sort-desc'));
+        
+            // 2) sort rows
+            Array.from(body.querySelectorAll('tr'))
+              .sort((a,b) => {
+                const aText = a.children[idx].textContent.trim();
+                const bText = b.children[idx].textContent.trim();
+                return asc
+                  ? aText.localeCompare(bText, undefined, { numeric: true })
+                  : bText.localeCompare(aText, undefined, { numeric: true });
+              })
+              .forEach(tr => body.appendChild(tr));
+        
+            // 3) show the proper arrow
+            th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+            asc = !asc;
+          });
+        });
+        
+        const inputs = {
+          from:   document.getElementById('repFrom'),
+          to:     document.getElementById('repTo'),
+          type:   document.getElementById('repType'),
+          cat:    document.getElementById('repCat'),
+        };
+        const tableBody = document.querySelector('#reportTable tbody');
+    
+        function applyReportFilter() {
+          const fromDate = inputs.from.valueAsDate;
+          const toDate   = inputs.to.valueAsDate;
+          const typeVal  = inputs.type.value;
+          const catVal   = inputs.cat.value;
+    
+          Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+            const cells = row.children;
+            if (!cells.length) return;
+            let show = true;
+    
+            // Date filter
+            const d = new Date(cells[0].textContent);
+            if (fromDate && d < fromDate) show = false;
+            if (toDate   && d > toDate)   show = false;
+    
+            // Type filter
+            if (typeVal && cells[3].textContent.trim() !== (typeVal === 'IN' ? 'Income' : 'Expense')) {
+              show = false;
+            }
+    
+            // Category filter
+            if (catVal && cells[2].dataset.catId !== catVal) {
+              show = false;
+            }
+    
+            row.style.display = show ? '' : 'none';
+          });
+        }
+    
+        // hook up live filtering
+        Object.values(inputs).forEach(inp => inp.addEventListener('input', applyReportFilter));
+        applyReportFilter(); // initial
+    
+        document.getElementById('exportCsv').addEventListener('click', () => {
+          const headers = Array.from(document.querySelectorAll('#reportTable thead th'))
+                               .map(th => th.textContent.trim());
+          const rows = Array.from(tableBody.querySelectorAll('tr'))
+                            .filter(r => r.style.display !== 'none')
+                            .map(r => {
+                              return Array.from(r.children).map((td, idx) => {
+                                let cell = td.textContent.trim();
+                                // for the amount column (zero-based idx 4) strip out ₱,+,– etc
+                                if (idx === 4) {
+                                  cell = cell.replace(/[^\d\.-]/g, '');
+                                }
+                                return cell;
+                              });
+                            });
+        
+          // build CSV
+          let csv = [headers, ...rows]
+            .map(r => r.map(cell => `"${cell.replace(/"/g,'""')}"`).join(','))
+            .join('\n');
+        
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a');
+          a.href     = url;
+          a.download = 'report.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        });
+
+
+        
+        });
+        </script>
+        
+        <script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const btnOverall    = document.getElementById('showOverall');
+            const btnByCat      = document.getElementById('showByCategory');
+            const chartOverall  = document.getElementById('budgetChart');
+            const chartByCat    = document.getElementById('catBudgetDonut');
+            const statsOverall  = document.getElementById('overallStats');
+          
+            function activateOverall() {
+              btnOverall.classList.replace('bg-gray-200','bg-indigo-600');
+              btnOverall.classList.replace('text-gray-700','text-white');
+              btnByCat.classList.replace('bg-indigo-600','bg-gray-200');
+              btnByCat.classList.replace('text-white','text-gray-700');
+          
+              chartOverall.hidden = false;
+              chartByCat.hidden = true;
+              statsOverall.classList.remove('hidden');
+            }
+          
+            function activateByCategory() {
+              btnByCat.classList.replace('bg-gray-200','bg-indigo-600');
+              btnByCat.classList.replace('text-gray-700','text-white');
+              btnOverall.classList.replace('bg-indigo-600','bg-gray-200');
+              btnOverall.classList.replace('text-white','text-gray-700');
+          
+              chartOverall.hidden = true;
+              chartByCat.hidden = false;
+              statsOverall.classList.add('hidden');
+            }
+          
+            btnOverall.addEventListener('click',    activateOverall);
+            btnByCat.addEventListener('click',      activateByCategory);
+          
+            // set initial state
+            activateOverall();
+          });
+
+          
+          </script>
+          
+        
+        
+        
+        
 
 
   </body>
