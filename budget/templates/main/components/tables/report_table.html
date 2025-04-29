@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block table_body %}
+  <input type="hidden" id="filterApplied" value="false">
   {% for e in report_entries %}
     <tr>
       <td class="px-3 py-2" role="cell">{{ e.title }}</td>
@@ -26,4 +27,27 @@
       </td>
     </tr>
   {% endfor %}
+
+  <table id="fullReportTable" class="hidden">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in report_entries_all %}
+        <tr>
+          <td>{{ e.title }}</td>
+          <td>{{ e.category.name }}</td>
+          <td>{{ e.amount|floatformat:2 }}</td>
+          <td>{{ e.date|date:"Y-m-d" }}</td>
+          <td>{{ e.get_type_display }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

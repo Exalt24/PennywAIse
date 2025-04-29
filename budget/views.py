@@ -5,13 +5,14 @@ from django.utils import timezone
 from django.contrib.auth import authenticate, login, get_user_model
 from . import forms
 from .models import Category, Entry, Budget
-from django.db.models import Sum, Count, Q, F
+from django.db.models import Sum, Count, Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dateutil.relativedelta import relativedelta
 from django.http import HttpResponse
 import csv
 from django.contrib import messages
 import secrets
+from django.core.paginator import Paginator
 
 User = get_user_model()
 
@@ -234,6 +235,39 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             qs = qs.filter(category_id=gf['category'])
 
         ctx['report_entries'] = qs.order_by('-date')
+
+        inc_qs = ctx['income_entries']
+        inc_page = Paginator(inc_qs,10).get_page(self.request.GET.get('inc_page'))
+        ctx['page_obj_income']   = inc_page
+        ctx['income_entries']     = inc_page.object_list
+
+        exp_qs = ctx['expense_entries']
+        exp_page = Paginator(exp_qs,10).get_page(self.request.GET.get('exp_page'))
+        ctx['page_obj_expense']   = exp_page
+        ctx['expense_entries']     = exp_page.object_list
+
+        recent_qs = Entry.objects.filter(user=user).order_by('-date')
+        recent_page = Paginator(recent_qs,10).get_page(self.request.GET.get('recent_page'))
+        ctx['page_obj_recent']       = recent_page
+        ctx['recent_transactions']   = recent_page.object_list
+
+        full_qs = Entry.objects.filter(user=user).order_by('-date')
+        ctx['report_entries_all'] = full_qs
+
+        rep_qs = ctx['report_entries']
+        rep_page = Paginator(rep_qs,10).get_page(self.request.GET.get('report_page'))
+        ctx['page_obj_report']      = rep_page
+        ctx['report_entries']       = rep_page.object_list
+
+        cat_qs = ctx['category_stats']
+        cat_page = Paginator(cat_qs,10).get_page(self.request.GET.get('cat_page'))
+        ctx['page_obj_category']     = cat_page
+        ctx['category_stats']        = cat_page.object_list
+        
+        ctx['budget_rows_list'] = summary  
+        budg_page = Paginator(ctx['budget_rows_list'],10).get_page(self.request.GET.get('budget_page'))
+        ctx['page_obj_budget']   = budg_page
+        ctx['budget_rows']       = budg_page.object_list
 
         return ctx
 

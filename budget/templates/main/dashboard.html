@@ -390,7 +390,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  
   // ---- Report Table Filtering + Exporting ----
+
   const inputs = {
     from: document.getElementById('repFrom'),
     to: document.getElementById('repTo'),
@@ -404,6 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const toDate = inputs.to.valueAsDate;
     const typeVal = inputs.type.value;
     const catVal = inputs.cat.value;
+
+    const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
+    document.getElementById('filterApplied').value = isFilterActive;
 
     Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
       const cells = row.children;
@@ -422,14 +427,22 @@ document.addEventListener('DOMContentLoaded', () => {
   applyReportFilter();
 
   document.getElementById('exportCsv').addEventListener('click', () => {
-    const headers = Array.from(document.querySelectorAll('#reportTable thead th')).map(th => th.textContent.trim());
-    const rows = Array.from(tableBody.querySelectorAll('tr')).filter(r => r.style.display !== 'none').map(r => {
-      return Array.from(r.children).map((td, idx) => {
-        let cell = td.textContent.trim();
-        if (idx === 4) cell = cell.replace(/[^\d\.-]/g, '');
-        return cell;
+    const isFiltered = document.getElementById('filterApplied').value === 'true';
+  
+    const tableToExport = isFiltered 
+      ? document.querySelector('#reportTable') 
+      : document.querySelector('#fullReportTable');
+    
+    const headers = Array.from(tableToExport.querySelectorAll('thead th')).map(th => th.textContent.trim());
+    const rows = Array.from(tableToExport.querySelectorAll('tbody tr'))
+      .filter(r => isFiltered ? r.style.display !== 'none' : true)
+      .map(r => {
+        return Array.from(r.children).map((td, idx) => {
+          let cell = td.textContent.trim();
+          if (idx === 2) cell = cell.replace(/[^\d\.-]/g, ''); // Adjusted index for amount column
+          return cell;
+        });
       });
-    });
     let csv = [headers, ...rows].map(r => r.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

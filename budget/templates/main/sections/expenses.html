@@ -8,7 +8,7 @@
       {% endwith %}
     </header>
   
-    {% with section_id="expenses" aria_label="Expense entries" tbody_id="expenseTable" amount_prefix="-" amount_class="text-red-600" empty_message="No expense entries found." %}
+    {% with section_id="expenses" aria_label="Expense entries" tbody_id="expenseTable" amount_prefix="-" amount_class="text-red-600" empty_message="No expense entries found." page_obj=page_obj_expense page_param="exp_page" %}
       {% include "main/components/tables/entries_table.html" with entries=expense_entries %}
     {% endwith %}
 </section>
