@@ -161,7 +161,7 @@ header {
   @apply grid grid-cols-1 md:grid-cols-3 gap-8;
 }
 .feature-section {
-  @apply py-20 bg-[#deded9] h-screen;
+  @apply py-20 bg-[#deded9] min-h-screen;
 }
 .contact-title {
   @apply text-3xl font-bold uppercase tracking-wide mb-8 text-[#40020F] text-center;
