@@ -15,6 +15,7 @@ import secrets
 from django.core.paginator import Paginator
 from django.http           import JsonResponse
 from django.template.loader import render_to_string
+from django.views import View
 
 User = get_user_model()
 
@@ -44,51 +45,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "main/dashboard.html"
 
     def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        # CSV export if requested
         if request.GET.get('export') == 'csv':
             return self._export_csv(request)
-
-        # if this is our JS-driven filter/pagination request…
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            # decide which entries and page_obj to feed in:
-            is_income = any(k.startswith("inc_") for k in request.GET) or "inc_page" in request.GET
-            if is_income:
-                entries    = context["income_entries"]
-                page_obj   = context["page_obj_income"]
-                section_id = "income"
-                tbody_id   = "incomeTable"
-                page_param = "inc_page"
-                empty_msg  = "No income entries found."
-                amount_cls = "text-green-600"
-                amount_pre = "+"
-            else:
-                entries    = context["expense_entries"]
-                page_obj   = context["page_obj_expense"]
-                section_id = "expenses"
-                tbody_id   = "expenseTable"
-                page_param = "exp_page"
-                empty_msg  = "No expense entries found."
-                amount_cls = "text-red-600"
-                amount_pre = "-"
-
-            html = render_to_string(
-                "main/components/tables/entries_table.html",
-                {
-                  # everything base_table.html needs:
-                  "section_id":   section_id,
-                  "aria_label":   f"{section_id.capitalize()} entries",
-                  "tbody_id":     tbody_id,
-                  "page_obj":     page_obj,
-                  "page_param":   page_param,
-                  "empty_message":empty_msg,
-                  "amount_class": amount_cls,
-                  "amount_prefix":amount_pre,
-                  "entries":      entries,
-                },
-                request=request
-            )
-            return JsonResponse({"html": html})
 
         return super().get(request, *args, **kwargs)
 
@@ -564,3 +522,132 @@ class ResetPasswordView(TemplateView):
             context['password_reset_complete'] = True
             
         return self.render_to_response(context)
+
+class EntriesAjaxView(View):
+    def get(self, request, *args, **kwargs):
+        prefix = request.GET.get('prefix')  # expected 'inc' or 'exp'
+        user = request.user
+
+        # map prefix → configuration
+        if prefix == 'inc':
+            entry_type    = Entry.INCOME
+            page_param    = 'inc_page'
+            section_id    = 'income'
+            aria_label    = 'Income entries'
+            tbody_id      = 'incomeTable'
+            amount_prefix = '+'
+            amount_class  = 'text-green-600'
+            empty_msg     = 'No income entries found.'
+        elif prefix == 'exp':
+            entry_type    = Entry.EXPENSE
+            page_param    = 'exp_page'
+            section_id    = 'expenses'
+            aria_label    = 'Expense entries'
+            tbody_id      = 'expenseTable'
+            amount_prefix = '-'
+            amount_class  = 'text-red-600'
+            empty_msg     = 'No expense entries found.'
+        else:
+            return JsonResponse({'error': 'Invalid prefix'}, status=400)
+
+        # base QuerySet
+        qs = Entry.objects.filter(user=user, type=entry_type)
+
+        # apply identical filters to your client-side ones
+        # date
+        date_from = request.GET.get(f'{prefix}DateFrom')
+        date_to   = request.GET.get(f'{prefix}DateTo')
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+
+        # title
+        title_q = request.GET.get(f'{prefix}TitleFilter', '').strip()
+        if title_q:
+            qs = qs.filter(title__icontains=title_q)
+
+        # category (values are lower-cased in your <select>)
+        cat_q = request.GET.get(f'{prefix}CategoryFilter', '').strip().lower()
+        if cat_q:
+            qs = qs.filter(category__name__iexact=cat_q)
+
+        # amounts
+        min_amt = request.GET.get(f'{prefix}MinAmount')
+        max_amt = request.GET.get(f'{prefix}MaxAmount')
+        if min_amt:
+            try:
+                qs = qs.filter(amount__gte=float(min_amt))
+            except ValueError:
+                pass
+        if max_amt:
+            try:
+                qs = qs.filter(amount__lte=float(max_amt))
+            except ValueError:
+                pass
+
+        # ordering + pagination
+        qs = qs.order_by('title', '-date')
+        page_num = request.GET.get(page_param) or 1
+        page_obj = Paginator(qs, 10).get_page(page_num)
+
+        # render your existing entries_table.html
+        html = render_to_string('main/components/tables/entries_table.html', {
+            'entries':        page_obj.object_list,
+            'page_obj':       page_obj,
+            'page_param':     page_param,
+            'section_id':     section_id,
+            'aria_label':     aria_label,
+            'tbody_id':       tbody_id,
+            'amount_prefix':  amount_prefix,
+            'amount_class':   amount_class,
+            'empty_message':  empty_msg,
+        }, request=request)
+
+        return JsonResponse({'html': html})
+    
+class ReportsAjaxView(View):
+    def get(self, request, *args, **kwargs):
+        user    = request.user
+        # base QS for reports
+        qs      = Entry.objects.filter(user=user).order_by('-date')
+        
+        # apply the exact same filters you do in JS:
+        frm     = request.GET.get('repFrom')
+        to      = request.GET.get('repTo')
+        ttype   = request.GET.get('repType')
+        cat     = request.GET.get('repCat')
+
+        if frm:
+            qs = qs.filter(date__gte=frm)
+        if to:
+            qs = qs.filter(date__lte=to)
+        if ttype:
+            # JS maps 'IN'→Income, 'EX'→Expense
+            typemap = {'IN': Entry.INCOME, 'EX': Entry.EXPENSE}
+            if ttype in typemap:
+                qs = qs.filter(type=typemap[ttype])
+        if cat:
+            qs = qs.filter(category__id=cat)
+
+        # paginate
+        page_num = request.GET.get('report_page') or 1
+        page_obj = Paginator(qs, 10).get_page(page_num)
+        entries  = page_obj.object_list
+        
+        # render just the report_table fragment
+        html = render_to_string(
+            'main/components/tables/report_table.html',
+            {
+              'report_entries':      entries,
+              'report_entries_all':  Entry.objects.filter(user=user).order_by('-date'),
+              'page_obj':            page_obj,
+              'page_param':          'report_page',
+              'section_id':          'reports',
+              'aria_label':          'Report entries table',
+              'table_id':            'reportTable',
+              'tbody_id':            'reportTable',
+            },
+            request=request
+        )
+        return JsonResponse({'html': html})

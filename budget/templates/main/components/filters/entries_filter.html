@@ -10,6 +10,7 @@
       type="date"
       id="{{ prefix }}DateFrom"
       class="px-2 py-1 border rounded"
+      name="{{ prefix }}DateFrom"
       aria-label="Filter from date"
     />
   </section>
@@ -28,6 +29,7 @@
       type="date"
       id="{{ prefix }}DateTo"
       class="px-2 py-1 border rounded"
+      name="{{ prefix }}DateTo"
       aria-label="Filter to date"
     />
   </section>
@@ -37,12 +39,14 @@
     id="{{ prefix }}TitleFilter"
     placeholder="Title contains…"
     class="{{ title_input_class }}"
+    name="{{ prefix }}TitleFilter"
     aria-label="Filter by title"
   />
 
   <select
     id="{{ prefix }}CategoryFilter"
     class="px-2 py-1 border rounded"
+    name="{{ prefix }}CategoryFilter"
     aria-label="Filter by category"
   >
     <option value="">All categories</option>
@@ -54,6 +58,7 @@
   <section class="flex flex-col">
     <input
       type="number"
+      name="{{ prefix }}MinAmount"
       step="0.01"
       id="{{ prefix }}MinAmount"
       placeholder="Min ₱"
@@ -73,6 +78,7 @@
     </p>
     <input
       type="number"
+      name="{{ prefix }}MaxAmount"
       step="0.01"
       id="{{ prefix }}MaxAmount"
       placeholder="Max ₱"

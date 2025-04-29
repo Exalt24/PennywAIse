@@ -8,7 +8,9 @@
         {% endwith %}
     </header>
     
-    {% with section_id="income" aria_label="Income entries" tbody_id="incomeTable" amount_prefix="+" amount_class="text-green-600" empty_message="No income entries found." page_obj=page_obj_income page_param="inc_page" %}
-        {% include "main/components/tables/entries_table.html" with entries=income_entries %}
-    {% endwith %}
+    <section id="incContainer">
+        {% with section_id="income" aria_label="Income entries" tbody_id="incomeTable" amount_prefix="+" amount_class="text-green-600" empty_message="No income entries found." page_obj=page_obj_income page_param="inc_page" %}
+            {% include "main/components/tables/entries_table.html" with entries=income_entries %}
+        {% endwith %}
+    </section>
 </section>
