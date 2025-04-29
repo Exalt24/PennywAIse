@@ -7,8 +7,6 @@ from django.contrib.auth import get_user_model
 from .models import Entry, Category, Budget, ContactMessage
 from django.utils import timezone
 from django.db.models import Sum
-from datetime import date
-from dateutil.relativedelta import relativedelta
 
 User = get_user_model()
 
@@ -19,22 +17,19 @@ class EntryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
-        # limit categories to this user
         if user is not None:
             self.fields['category'].queryset = Category.objects.filter(user=user)
 
-        # shared base classes
         base_cls = (
             "mt-1 block w-full border-gray-300 rounded-md py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 border"
         )
 
-        # placeholders for each field
         placeholders = {
             'title':    'e.g., Groceries',
             'amount':   'e.g., 50.00',
             'date':     '',
-            'type':     '',                # select shows its own
-            'category': '',                # we’ll rely on validation
+            'type':     '',
+            'category': '',
             'notes':    'Optional notes about this entry',
         }
 
@@ -45,8 +40,6 @@ class EntryForm(forms.ModelForm):
 
             if isinstance(field.widget, forms.Textarea):
                  field.widget.attrs['class'] += " h-24 resize-none px-3"
-
-    # ----- field-specific validation -----
 
     def clean(self):
         cleaned = super().clean()
@@ -61,7 +54,6 @@ class EntryForm(forms.ModelForm):
                 date=date,
                 category=category
             )
-            # if we’re editing, exclude ourselves
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
@@ -96,7 +88,6 @@ class EntryForm(forms.ModelForm):
 
     def clean_type(self):
         t = self.cleaned_data.get('type')
-        # Entry.TYPE_CHOICES is something like [('IN','Income'),('EX','Expense')]
         valid = {c[0] for c in Entry.TYPE_CHOICES}
         if t not in valid:
             raise forms.ValidationError("Please select Income or Expense.")
@@ -108,8 +99,6 @@ class EntryForm(forms.ModelForm):
             raise forms.ValidationError("Please pick a category.")
         return cat
     
-    
-
     class Meta:
         model = Entry
         fields = ['title', 'amount', 'date', 'type', 'category', 'notes']
@@ -120,9 +109,8 @@ class EntryForm(forms.ModelForm):
 class CategoryForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = user  # remember who we’re validating for
+        self.user = user
 
-        # apply your existing styling/placeholder
         self.fields['name'].widget.attrs.update({
             'class': 'mt-1 block w-full border-gray-300 rounded-md py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 border',
             'placeholder': 'New category',
@@ -130,9 +118,7 @@ class CategoryForm(forms.ModelForm):
 
     def clean_name(self):
         name = self.cleaned_data['name'].strip()
-        # build a queryset for this user, same name (case-insensitive)
         qs = Category.objects.filter(user=self.user, name__iexact=name)
-        # if we’re editing, exclude our own instance
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
@@ -249,11 +235,9 @@ class BudgetForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        # limit categories to this user
         if user is not None:
             self.fields['category'].queryset = Category.objects.filter(user=user)
         self.fields['category'].empty_label = "Total Budget"
-        # we no longer expose `month` to the form
         self.fields.pop('month', None)
 
     def clean(self):
@@ -262,26 +246,21 @@ class BudgetForm(forms.ModelForm):
         category = cleaned.get('category')
         month    = timezone.localdate().replace(day=1)
 
-        # all per-category budgets for this user/month
         qs = Budget.objects.filter(user=self.user, month=month, category__isnull=False)
         total_cat = qs.aggregate(total=Sum('amount'))['total'] or 0
 
-        # if there’s already a budget on this same category, drop it from the sum
         if category is not None:
             old = qs.filter(category=category).first()
             if old:
                 total_cat -= old.amount
 
-        # Now total_cat is “all other categories,” so adding the new amount is safe
         if category is None:
-            # total‐budget branch: must be ≥ sum of category budgets
             if amount is not None and amount < total_cat:
                 raise forms.ValidationError(
                     f"Your total budget (₱{amount:.2f}) cannot be less than "
                     f"the sum of your per-category budgets (₱{total_cat:.2f})."
                 )
         else:
-            # per-category branch: ensure new sum ≤ total‐budget
             total_obj = Budget.objects.filter(
                 user=self.user, month=month, category__isnull=True
             ).first()
@@ -292,7 +271,6 @@ class BudgetForm(forms.ModelForm):
                 )
 
         return cleaned
-
 
     class Meta:
         model = Budget

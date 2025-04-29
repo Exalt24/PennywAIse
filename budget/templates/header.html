@@ -1,0 +1,38 @@
+{% load static %}
+
+<section aria-label="Header" class="w-full fixed top-0 left-0 bg-transparent backdrop-blur-xl z-50 bg-gray-50">
+  <section class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <a href="/"
+        aria-label="Go to homepage"
+        class="font-bold flex items-center">
+        <img id="logoImage" alt="PennywAise logo" class="h-12 w-auto mr-2"/>
+    </a>
+    <ul class="hidden md:flex space-x-8 uppercase">
+      <li>
+        <a href="#about"
+            class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1"
+            aria-current="page">
+            About
+        </a>
+      </li>
+      <li>
+        <a href="#features"
+            class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1">
+            Features
+        </a>
+      </li>
+      <li>
+        <a href="#contact"
+            class="nav-link text-white hover:text-[#8a4554] transition px-2 pb-1">
+            Contact
+        </a>
+      </li>
+    </ul>
+    <span class="text-white">
+        <a href="/auth"
+            class="hidden md:inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white px-4 py-2 rounded-full transition">
+            Login
+        </a>
+    </span>
+  </section>
+</section>

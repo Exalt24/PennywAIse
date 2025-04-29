@@ -1,8 +1,5 @@
-from itertools import chain
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.views import generic
 from django.views.generic import TemplateView
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, get_user_model
@@ -16,7 +13,6 @@ import csv
 from django.contrib import messages
 import secrets
 
-
 User = get_user_model()
 
 class IndexView(TemplateView):
@@ -28,7 +24,6 @@ class IndexView(TemplateView):
         return context
     
     def post(self, request, *args, **kwargs):
-        # Handle contact form submission
         if 'send-message' in request.POST:
             contact_form = forms.ContactForm(request.POST)
             if contact_form.is_valid():
@@ -36,7 +31,6 @@ class IndexView(TemplateView):
                 messages.success(request, "Your message has been sent! We'll get back to you soon.")
                 return redirect('budget:index')
             else:
-                # If form is invalid, render the page with the form errors
                 context = self.get_context_data(**kwargs)
                 context['contact_form'] = contact_form
                 return self.render_to_response(context)
@@ -44,7 +38,7 @@ class IndexView(TemplateView):
         return super().get(request, *args, **kwargs)
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    template_name = "dashboard.html"
+    template_name = "main/dashboard.html"
 
     def get(self, request, *args, **kwargs):
         # CSV export if requested
@@ -150,7 +144,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # ─── build unified category summary ────────────────────────────────────────
         summary = []
         for cat in user_cats:
-            name_str = cat.name                       # ← pull out the string
+            name_str = cat.name                  
             inc_amt   = inc_map.get(name_str, 0)
             exp_amt   = exp_map.get(name_str, 0)
             budg      = cat_budget_map.get(name_str)
@@ -170,15 +164,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['category_summary'] = summary
 
         # ─── tables & recent transactions ─────────────────────────────────────────
-        ctx['income_entries']      = Entry.objects.filter(user=user, type=Entry.INCOME).order_by('-date')
-        ctx['expense_entries']     = Entry.objects.filter(user=user, type=Entry.EXPENSE).order_by('-date')
+        ctx['income_entries']      = Entry.objects.filter(user=user, type=Entry.INCOME).order_by('title', '-date')
+        ctx['expense_entries']     = Entry.objects.filter(user=user, type=Entry.EXPENSE).order_by('title', '-date')
         ctx['recent_transactions'] = Entry.objects.filter(user=user).order_by('-date')[:10]
 
         # ─── chart data (for Chart.js) ────────────────────────────────────────────
         ctx['chart_cat_labels']    = [r['name']    for r in summary]
         ctx['chart_cat_expense']   = [float(r['expense'])  for r in summary]
         ctx['chart_cat_income']    = [float(r['income'])   for r in summary]
-        # donut of spent vs. remaining
+
         ctx['chart_budget_data']   = (
             [float(total_spent), float(total_remaining)]
             if total_budget is not None
@@ -194,7 +188,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                         total_exp   = Sum('entry__amount', filter=Q(entry__type=Entry.EXPENSE)),
                     )
         )
-        # force zeros instead of None
+
         for c in cats:
             c.total_inc = c.total_inc or 0
             c.total_exp = c.total_exp or 0
@@ -203,7 +197,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         ctx['category_stats'] = cats
 
-        # e.g. last 6 months
         labels = []
         inc_vals = []
         exp_vals = []
@@ -300,7 +293,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 return redirect(f"{base}#{tab}")
 
             ctx = self.get_context_data(**kwargs)
-            # validation failed → re-render with the bound form & flag
             if instance:
                 ctx['edit_category_form'] = form
                 ctx['is_edit_category']   = True
@@ -326,7 +318,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 tab = 'income' if e.type == Entry.INCOME else 'expenses'
                 return redirect(f"{base}#{tab}")
 
-            # validation errors → re-render with modal open
             ctx = self.get_context_data(**kwargs)
             ctx['entry_form'] = form
             ctx['is_edit']    = bool(eid)
@@ -350,7 +341,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 month = today.replace(day=1)
                 amt   = bform.cleaned_data['amount']
 
-                # upsert: if one exists, update, otherwise create
                 Budget.objects.update_or_create(
                     user=user,
                     category=cat,
@@ -359,7 +349,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 )
                 return redirect(f"{base}#{tab}")
 
-            # on validation error re-render so user sees messages
             ctx = self.get_context_data(**kwargs)
             ctx['budget_form'] = bform
             return self.render_to_response(ctx)\
@@ -375,7 +364,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return super().post(request, *args, **kwargs)
 
 class AuthView(TemplateView):
-    template_name = "auth.html"
+    template_name = "authentication/auth.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -415,13 +404,11 @@ class AuthView(TemplateView):
                 user = register_form.save()
                 login(request, user)
                 return redirect('budget:dashboard')
-            # else: form errors will be shown via {{ register_form.errors }}
 
-        # re-render with bound forms + any errors
         return self.render_to_response(context)
 
 class ForgotPasswordView(TemplateView):
-    template_name = "forgot_password.html"
+    template_name = "authentication/forgot_password.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -452,8 +439,6 @@ class ForgotPasswordView(TemplateView):
                 reverse('budget:reset_password', kwargs={'token': token})
             )
             
-            # In a real application, send an email here
-            # For now, we'll just display the link on the response page
             context['reset_url'] = reset_url
             context['success'] = True
             
@@ -461,7 +446,7 @@ class ForgotPasswordView(TemplateView):
 
 
 class ResetPasswordView(TemplateView):
-    template_name = "reset_password.html"
+    template_name = "authentication/reset_password.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

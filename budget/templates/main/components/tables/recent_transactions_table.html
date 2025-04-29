@@ -1,0 +1,53 @@
+{% extends "main/components/base_table.html" %}
+
+{% block table_head %}
+  <tr>
+    <th class="px-3 py-2 text-left">Date</th>
+    <th class="px-3 py-2 text-left">Title</th>
+    <th class="px-3 py-2 text-left">Category</th>
+    <th class="px-3 py-2 text-left">Amount</th>
+    <th class="px-3 py-2 text-left">Type</th>
+    <th class="px-3 py-2 text-left">Actions</th>
+  </tr>
+{% endblock %}
+
+{% block table_body %}
+  {% for entry in entries %}
+    <tr>
+      <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
+      <td class="px-3 py-2">{{ entry.title }}</td>
+      <td class="px-3 py-2">
+        {% if entry.category %}{{ entry.category.name }}{% else %}&mdash;{% endif %}
+      </td>
+      <td
+        class="px-3 py-2 {% if entry.type == entry.INCOME %}text-green-600{% else %}text-red-600{% endif %}"
+      >
+        {% if entry.type == entry.INCOME %}+{% else %}–{% endif %}₱{{ entry.amount|floatformat:2 }}
+      </td>
+      <td class="px-3 py-2">{{ entry.get_type_display }}</td>
+      <td class="px-3 py-2 whitespace-nowrap">
+        <a
+          href="?edit={{ entry.pk }}"
+          class="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-400"
+        >Edit</a>
+        <span class="px-1">|</span>
+        <form method="post" class="inline" role="presentation">
+          {% csrf_token %}
+          <button
+            type="submit"
+            name="delete-entry"
+            value="{{ entry.pk }}"
+            class="text-red-600 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
+            onclick="return confirm('Delete this entry?');"
+          >Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="6" class="px-3 py-4 text-center text-gray-500" role="row">
+        {{ empty_message }}
+      </td>
+    </tr>
+  {% endfor %}
+{% endblock %}

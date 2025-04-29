@@ -26,7 +26,7 @@ nav a.svg {
   @apply flex-1 p-5 overflow-y-auto;
 }
 header {
-  @apply flex justify-between items-center mb-5;
+  @apply flex justify-between items-center;
 }
 .search input {
   @apply w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg;
@@ -50,9 +50,8 @@ header {
 .pagetitle {
   @apply text-2xl font-bold text-[#40020F];
 }
-/* Overview cards */
+
 .overview {
-  /* auto-fit cards at min-200px */
   @apply grid gap-4 mb-5 grid-cols-[repeat(auto-fit,minmax(200px,1fr))];
 }
 .card {
@@ -68,7 +67,6 @@ header {
   @apply text-xs text-[#666];
 }
 
-/* Content section */
 .content {
   @apply flex flex-wrap gap-8 mb-5;
 }
@@ -79,7 +77,6 @@ header {
   @apply flex-[1] bg-[#fdfdfb] rounded-xl p-4 shadow-md flex flex-col items-center;
 }
 
-/* Table styles */
 table {
   @apply w-full border-collapse;
 }
@@ -91,7 +88,6 @@ th {
   @apply bg-gray-100;
 }
 
-/* Bottom section */
 .bottom {
   @apply grid grid-cols-1 md:grid-cols-2 gap-8;
 }

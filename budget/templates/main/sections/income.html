@@ -1,0 +1,14 @@
+{% load static %}
+
+<section id="income" class="page-content hidden" role="region" aria-label="Income entries">
+    <header class="flex justify-between items-center mb-5">
+        <h2 class="pagetitle">Income</h2>
+        {% with prefix="inc" filter_aria_label="Filter income entries" title_input_class="px-2 py-1 border rounded" %}
+          {% include "main/components/filters/entries_filter.html" %}
+        {% endwith %}
+    </header>
+    
+    {% with section_id="income" aria_label="Income entries" tbody_id="incomeTable" amount_prefix="+" amount_class="text-green-600" empty_message="No income entries found." %}
+        {% include "main/components/tables/entries_table.html" with entries=income_entries %}
+    {% endwith %}
+</section>
