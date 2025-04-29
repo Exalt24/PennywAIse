@@ -17,14 +17,22 @@
   @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-8;
 }
 
-/* Navigation links */
-nav a {
-  @apply text-current no-underline rounded-full mb-2 flex space-x-3 px-4 py-2;
+.footer-layout {
+  @apply text-gray-300 max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-8
 }
+
+.quick-link {
+  @apply font-semibold text-white mb-2
+}
+
+nav a {
+  @apply hover:bg-transparent mb-2 flex;
+}
+
 nav a.active,
 nav a:hover,
 nav a.svg {
-  @apply bg-[#e7e4de] text-black;
+  @apply text-[#C2544F]
 }
 
 /* Main area */
