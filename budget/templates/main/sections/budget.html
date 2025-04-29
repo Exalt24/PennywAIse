@@ -34,7 +34,7 @@
       </form>
     </header>
 
-  {% with section_id="budget" aria_label="Budget overview table" category_summary=category_summary total_budget=total_budget total_spent=total_spent total_remaining=total_remaining total_remaining_abs=total_remaining_abs %}
+  {% with section_id="budgets" aria_label="Budget overview table" category_summary=category_summary total_budget=total_budget total_spent=total_spent total_remaining=total_remaining total_remaining_abs=total_remaining_abs page_obj=page_obj_budget page_param="budget_page" %}
     {% include "main/components/tables/budget_table.html" %}
   {% endwith %}
 

@@ -39,7 +39,7 @@
     </form>
   </section>
 
-  {% with aria_label="Category overview table" title="Overview" title_id="overview-heading" tbody_id="categoryTable" %}
+  {% with section_id="categories" aria_label="Category overview table" title="Overview" title_id="overview-heading" tbody_id="categoryTable" page_obj=page_obj_category page_param="cat_page" %}
       {% include "main/components/tables/category_table.html" %}
   {% endwith %}
   </section>

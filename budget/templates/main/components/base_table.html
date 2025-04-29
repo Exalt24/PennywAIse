@@ -1,26 +1,67 @@
 {% load static %}
 
 <section
+  id="{{ section_id }}"
   class="overflow-x-auto bg-[#fdfdfb] rounded-xl p-4 shadow-md"
   role="region"
   aria-label="{{ aria_label }}"
 >
   {% if title %}
-  <h3 id="{{ title_id }}" class="font-semibold mb-3">{{ title }}</h3>
+    <h3 id="{{ title_id }}" class="font-semibold mb-3">{{ title }}</h3>
   {% endif %}
 
   <table
     class="table-auto w-full"
-    {% if table_id %} id="{{ table_id }}"{% endif %}
+    {% if table_id %}id="{{ table_id }}"{% endif %}
     aria-label="{{ aria_label }}"
   >
     <thead class="bg-gray-100">
       {% block table_head %}{% endblock %}
     </thead>
     <tbody
-      {% if tbody_id %} id="{{ tbody_id }}"{% endif %}
+      {% if tbody_id %}id="{{ tbody_id }}"{% endif %}
     >
       {% block table_body %}{% endblock %}
     </tbody>
   </table>
+
+  {# ——— pagination controls ——— #}
+  {% if page_obj %}
+    {% with param=page_param|default:'page' %}
+      <nav aria-label="Page navigation" class="mt-4">
+        <ul class="inline-flex items-center space-x-2">
+          {% if page_obj.has_previous %}
+            <li>
+              <a
+                href="?{{ param }}={{ page_obj.previous_page_number }}#{{ section_id }}"
+                class="px-3 py-1 border rounded hover:bg-gray-100"
+              >&laquo; Previous</a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            <li>
+              {% if page_obj.number == num %}
+                <span class="px-3 py-1 border bg-gray-200 rounded">{{ num }}</span>
+              {% else %}
+                <a
+                  href="?{{ param }}={{ num }}#{{ section_id }}"
+                  class="px-3 py-1 border rounded hover:bg-gray-100"
+                >{{ num }}</a>
+              {% endif %}
+            </li>
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li>
+              <a
+                href="?{{ param }}={{ page_obj.next_page_number }}#{{ section_id }}"
+                class="px-3 py-1 border rounded hover:bg-gray-100"
+              >Next &raquo;</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endwith %}
+  {% endif %}
 </section>
