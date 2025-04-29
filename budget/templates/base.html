@@ -19,6 +19,9 @@
     </header>
  
     <main id="main-content" role="main">
+      {% block message_container %}
+        {% include "main/components/message_container.html" %}
+      {% endblock %}
       {% block content %}{% endblock %}
     </main>
 
@@ -28,7 +31,77 @@
       {% endblock %}
     </footer>
 
-    {% block extra_js %}
+    {% block scripts %}
+      <script>
+        document.querySelectorAll('button[type="submit"]').forEach(button => {
+          button.addEventListener('click', function(e) {
+            const form = this.closest('form');
+            if (!form) return;
+            if (this.dataset.clicked === 'true') {
+              e.preventDefault(); return;
+            }
+            if (!form.checkValidity()) {
+              form.reportValidity(); return;
+            }
+            this.dataset.clicked = 'true';
+            this.dataset.originalText = this.innerHTML;
+            this.innerHTML = 'Processing…';
+            this.style.opacity = '0.7';
+            this.style.cursor = 'not-allowed';
+          });
+        });
+      
+        window.addEventListener('DOMContentLoaded', () => {
+          const toasts = document.querySelectorAll('#toast-container .toast');
+          toasts.forEach((toast, i) => {
+            setTimeout(() => {
+              // fade out
+              toast.style.transition = 'opacity 0.5s ease';
+              toast.style.opacity = '0';
+              // remove from DOM once invisible
+              setTimeout(() => toast.remove(), 500);
+            }, 5000 + (i * 300)); // stagger by 300ms if multiple
+          });
+        });
+
+        document.querySelectorAll(".pw-toggle").forEach((btn) => {
+          const eyeOpen = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0
+                  8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542
+                  7-4.478 0-8.268-2.943-9.542-7z"/>
+            </svg>`;
+            
+          const eyeClosed = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7
+                  a9.97 9.97 0 011.563-3.023m2.507-2.507A9.953 9.953 0 0112 5
+                  c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-.753 1.556"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3l18 18"/>
+            </svg>`;
+      
+          btn.addEventListener("click", () => {
+            const inp = document.getElementById(btn.dataset.target);
+            if (!inp) return;
+            if (inp.type === "password") {
+              inp.type = "text";
+              btn.innerHTML = eyeClosed;
+            } else {
+              inp.type = "password";
+              btn.innerHTML = eyeOpen;
+            }
+          });
+        });
+      </script>
     {% endblock %}
+
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

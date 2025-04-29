@@ -2,14 +2,20 @@ from pathlib import Path
 import sys
 import mimetypes
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 mimetypes.add_type("application/javascript", ".js", True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-5e5)4e+(5dz9b*j!lkdcnlnf5od^zcauul-wr*m_2s-x=v5$1j'
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-DEBUG = os.getenv("DJANGO_DEBUG", "True") != "False"
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 if DEBUG:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
@@ -23,8 +29,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'budget.apps.BudgetConfig',
     "django_browser_reload",
+    "django_apscheduler",
+    'budget.apps.BudgetConfig',
 ]
 
 
@@ -122,5 +129,10 @@ LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/auth/'
 
-EMAIL_BACKEND   = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'no-reply@pennywaise.local'
+EMAIL_BACKEND   = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST      = 'smtp.gmail.com'
+EMAIL_PORT      = 587
+EMAIL_USE_TLS   = True
+EMAIL_USE_SSL   = False
+EMAIL_HOST_USER     = os.environ.get("GMAIL_ADDRESS")      # ← your Gmail address
+EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASS")

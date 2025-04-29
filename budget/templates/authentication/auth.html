@@ -6,6 +6,7 @@
 {% block header %}{% endblock %}
 
 {% block content %}
+
   <section role="region" aria-label="Authentication page" class="grid grid-cols-1 md:grid-cols-2">
     <!-- Hero / Left Panel -->
     <section role="region" aria-label="Hero section" class="h-screen bg-gradient-to-b from-[#BD132D] to-[#642828] relative flex flex-col justify-center px-12 text-white">
@@ -396,10 +397,7 @@
       });
     }
   });
-</script>
 
-
-<script>
   document.addEventListener('DOMContentLoaded', () => {
     const cards         = document.querySelectorAll('#register-card, #login-card');
     const authContainer = document.querySelector('section[aria-label="Authentication container"]');

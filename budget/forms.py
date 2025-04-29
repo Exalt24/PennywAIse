@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from .models import Entry, Category, Budget, ContactMessage
+from .models import Entry, Category, Budget, ContactMessage, PasswordResetToken
 from django.utils import timezone
 from django.db.models import Sum
 
@@ -160,8 +160,15 @@ class LoginForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
-        if not User.objects.filter(email__iexact=email).exists():
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
             raise forms.ValidationError("No account is registered with this email.")
+        if not user.is_active:
+            raise forms.ValidationError(
+                "Your account isn’t activated yet. "
+                "Please check your email for the verification link."
+            )
         return email
 
 class RegisterForm(UserCreationForm):
@@ -356,8 +363,28 @@ class ForgotPasswordForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
-        if not User.objects.filter(email__iexact=email).exists():
+
+        # 1) Does this address exist?
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
             raise forms.ValidationError("No account is registered with this email.")
+
+        # 2) Has a token already been sent in the last 24 h?
+        cutoff = timezone.now() - timezone.timedelta(hours=24)
+        existing = PasswordResetToken.objects.filter(
+            user=user,
+            expired=False,
+            created_at__gte=cutoff
+        ).exists()
+        if existing:
+            raise forms.ValidationError(
+                "A reset link was already sent recently. "
+                "Please check your email (or wait a bit before requesting again)."
+            )
+
+        # Attach the user to the form so the view doesn’t have to re-query
+        self.cleaned_data['user_obj'] = user
         return email
 
 class ResetPasswordForm(forms.Form):
