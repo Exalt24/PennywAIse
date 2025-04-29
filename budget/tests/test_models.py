@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from .models import Category, Entry, ContactMessage
+from ..models import Category, Entry, ContactMessage
 
 User = get_user_model()
 

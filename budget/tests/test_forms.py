@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from datetime import timedelta
-from .models import Category, Entry
-from .forms import EntryForm, CategoryForm, LoginForm, RegisterForm, ContactForm
+from ..models import Category, Entry
+from ..forms import EntryForm, CategoryForm, LoginForm, RegisterForm, ContactForm
 
 User = get_user_model()
 
