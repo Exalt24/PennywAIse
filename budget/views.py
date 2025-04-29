@@ -684,7 +684,6 @@ class VerifyEmailView(View):
         tok.used = True
         tok.save()
 
-        # Log in the user automatically
         login(request, user)
-        messages.success(request, "Email verified! You can now log in.")
+        messages.success(request, "Your email has been verified. Welcome to PennywAIse!")
         return redirect('budget:dashboard')
