@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+}
 /* Sidebar */
 .sidebar {
   @apply w-60 bg-gradient-to-b from-[#BD132D] to-[#642828] text-white p-5 flex flex-col;
