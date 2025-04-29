@@ -1,51 +1,49 @@
 # PennywAIse
 
-PennywAIse is a Django-powered budgeting dashboard designed to help you take control of your finances. With a clean Tailwind CSS design, interactive Chart.js visualizations, and an intuitive interface, PennywAIse makes tracking income, expenses, and budgets both simple and insightful.
+PennywAIse is a Django‑powered budgeting dashboard designed to help you take control of your finances. With a clean Tailwind CSS design, interactive Chart.js visualizations, and an intuitive interface—plus our AI‑driven insight engine—PennywAIse makes tracking income, expenses, and budgets both simple and transformative.
 
-## ✨ Features
+---
 
-### 1. Secure User Authentication
+## ✨ Key Features
 
-- **User Registration**: Create an account with your email and a secure password. All passwords are hashed and safely stored.
-- **User Login**: Access your personal dashboard with a simple login form. Unauthenticated users are redirected to the login page to protect your data.
-- **Access Control**: All dashboard views are protected—only authenticated users can view or modify data.
+1. **AI‑Powered Financial Coaching**
 
-### 2. Dashboard Overview
+   - Get intelligent, personalized tips on where to save, which subscriptions to trim, and how to optimize your spending habits—instantly, based on your real data.
 
-- **Net Balance Card**: Instantly see your total income, total expenses, and net balance for the current month.
-- **Trend Chart**: View a line chart displaying income and expenses over the last six months, helping you spot patterns and seasonality.
-- **Transaction Count**: See the total number of entries made this month at a glance.
+2. **Secure User Authentication**
 
-### 3. Budgets Management
+   - **Registration & Login**: Sign up, log in, and out securely; passwords are hashed and safely stored.
+   - **Access Control**: All dashboard views are protected—only authenticated users can access or modify data.
 
-- **Set Monthly Budgets**: Allocate a budget for the entire month or per category.
-- **Donut Charts**: Visualize your overall budget utilization and compare budget vs. actual spending by category.
-- **Dynamic Switching**: Toggle between overall budget and per-category breakdown within a single card.
+3. **Income & Expense Management**
 
-### 4. Categories
+   - **Add / Edit / Delete Entries**: Record a title, amount, date, type (Income/Expense), category, and optional notes.
+   - **Categorization**: Organize your transactions into custom or preset categories (Food, Travel, Bills, etc.).
 
-- **CRUD Operations**: Add new spending categories (e.g., Groceries, Utilities), edit existing ones, or delete unused categories.
-- **Summary Table**: View the number of entries, total income, expenses, and net balance per category.
-- **Sortable Columns**: Click on table headers to sort categories by name, entry count, income, expenses, or net balance.
+4. **Visual Dashboard**
 
-### 5. Income & Expense Entries
+   - **Net Balance Card**: See total income, total expenses, and remaining balance for the current month.
+   - **Charts & Graphs**: Pie chart of expense breakdown by category; bar/line charts showing trends over time.
+   - **Quick Stats**: Transaction counts, month‑to‑month comparisons, and real‑time filtering.
 
-- **Entry Form**: Record income or expenses with title, amount, date, type, category, and optional notes.
-- **Edit & Delete**: Modify or remove entries directly from the dashboard.
-- **Real-Time Filtering**: Filter entries by date range, title keyword, category, and amount range without reloading the page.
+5. **Budgets & Alerts** *(Stretch Goal)*
 
-### 6. Reports & CSV Export
+   - Define monthly budgets (overall or per category) and receive over‑budget warnings.
 
-- **Dynamic Reporting**: Run customized reports by selecting date range, entry type (income/expense), and category.
-- **Instant CSV Export**: Download your filtered report as a CSV file ready for analysis in Excel or Google Sheets.
-- **Consistent Formatting**: Amounts are exported as raw numbers (no currency symbols), ensuring compatibility with spreadsheet calculations.
+6. **Data Export** *(Stretch Goal)*
 
-## ⚙️ Prerequisites
+   - Export your entries or reports as CSV for deeper analysis in Excel or Google Sheets.
 
-- **Python 3.8+** with Django installed
-- **Node.js 14+** and npm
+---
 
-## 🛠 Setup Instructions
+## 🚀 Prerequisites
+
+- **Python 3.8+** and **Node.js 14+**
+- **pip**, **npm**, and **Git** installed
+
+---
+
+## 🛠️ Setup & Development
 
 1. **Clone the repository**
 
@@ -54,15 +52,20 @@ PennywAIse is a Django-powered budgeting dashboard designed to help you take con
    cd WebEngLongExam2
    ```
 
-2. **Install Node.js dependencies**
+2. **Environment variables**
+   Create a `.env` file in the project root:
 
-   ```bash
-   npm install
+   ```dotenv
+   SECRET_KEY=<your-secret-key>
+   DEBUG=True                # False in production
+   GMAIL_ADDRESS=<your-gmail>@gmail.com
+   GMAIL_APP_PASS=<your-16-char-app-password>
    ```
 
-3. **Install Python dependencies**
+3. **Install dependencies**
 
    ```bash
+   npm install             # Tailwind & tooling
    pip install -r requirements.txt
    ```
 
@@ -73,17 +76,80 @@ PennywAIse is a Django-powered budgeting dashboard designed to help you take con
    python manage.py migrate
    ```
 
-## 🏃‍♂️ Running the Development Server
+5. **Create a test user**
 
-Start the Django development server and Tailwind CSS watcher together:
+   ```bash
+   # Built‑in helper to create a user for development/testing
+   python manage.py create_test_user --username testuser --email test@example.com --password Passw0rd!
+   ```
+
+6. **Run in development mode**
+
+   ```bash
+   npm run dev
+   ```
+
+   - Django server at `http://127.0.0.1:8000/`
+   - Tailwind CSS watcher & auto‑reload enabled
+
+---
+
+## ✅ Testing Suite
+
+All tests live under the `budget` app. You can run:
+
+- **All tests**:
+
+  ```bash
+  python manage.py test budget
+  ```
+
+- **Specific module**:
+
+  ```bash
+  python manage.py test budget.test_models
+  python manage.py test budget.test_forms
+  python manage.py test budget.test_views
+  python manage.py test budget.test_security
+  python manage.py test budget.test_integration
+  ```
+
+- **Specific class or method**:
+
+  ```bash
+  python manage.py test budget.test_models.CategoryModelTest
+  python manage.py test budget.test_models.CategoryModelTest.test_category_creation
+  ```
+
+### Coverage Report
 
 ```bash
-npm run dev
+pip install coverage
+python -m coverage run --source='budget' manage.py test budget
+python -m coverage report
+python -m coverage html   # view `htmlcov/index.html`
 ```
 
-This command will:
+---
 
-- Launch Django at [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- Watch and recompile Tailwind CSS automatically
-- Enable browser auto-reload on template or static file changes
+## 👥 Team & Division of Labor
+
+| Member                 | Responsibility                                                                              |
+|------------------------|---------------------------------------------------------------------------------------------|
+| Amielle Jaezxier Perez | Testing framework, Models & business logic                                                  |
+| Daniel Alexis Cruz     | Authentication, Email workflows, Models & business logic, Tailwind integration, Frontend UI |
+| Nikka Joie Mendoza     | Frontend UI & refinement, Tailwind Integration                                              |
+
+---
+
+## 📖 Usage Guide
+
+1. **Log in** or **register** to access your dashboard.
+2. **Add** income/expense entries via the form in the sidebar.
+3. **Categorize** each entry and watch your Dashboard update in real time.
+4. Use the **AI suggestions** card to get personalized recommendations.
+5. **Set budgets** and get alerted when you approach limits.
+6. **Export** data via the Reports page for further analysis.
+
+Enjoy taking control of your financial future with PennywAIse!
 
