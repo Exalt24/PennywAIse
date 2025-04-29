@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from .models import Category, Entry
+from ..models import Category, Entry
 
 User = get_user_model()
 

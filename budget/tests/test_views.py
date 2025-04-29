@@ -3,8 +3,8 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from .models import Category, Entry, ContactMessage
-from .forms import ContactForm
+from ..models import Category, Entry, ContactMessage
+from ..forms import ContactForm
 
 User = get_user_model()
 
