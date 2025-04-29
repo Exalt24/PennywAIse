@@ -1,0 +1,49 @@
+{% load static %}
+
+<header class="user" role="banner">
+    <nav aria-label="User menu" class="relative">
+      <button
+        id="userBtn"
+        class="button"
+        aria-haspopup="true"
+        aria-controls="userMenu"
+        aria-expanded="false"
+      >
+        <span>Hello, {{ user.username }}!</span>
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z"
+          />
+        </svg>
+      </button>
+  
+      <ul
+        id="userMenu"
+        class="hidden usermenu"
+        role="menu"
+        aria-labelledby="userBtn"
+      >
+        <li role="none">
+          <a href="#" role="menuitem" class="menu">Profile</a>
+        </li>
+        <li role="none">
+          <a href="#" role="menuitem" class="menu">Settings</a>
+        </li>
+        <li role="separator" class="border-t my-1"></li>
+        <li role="none">
+          <form
+            method="post"
+            action="{% url 'logout' %}"
+            class="menu p-0"
+            role="none"
+          >
+            {% csrf_token %}
+            <button type="submit" role="menuitem" class="w-full text-left">
+              Logout
+            </button>
+          </form>
+        </li>
+      </ul>
+    </nav>
+</header>
+  

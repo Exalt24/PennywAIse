@@ -1,0 +1,77 @@
+{% load static %}
+
+<aside class="sidebar">
+    <a href="{% url 'budget:dashboard' %}" class="logo block mb-6">
+        <img
+        src="{% static 'images/logo3.png' %}"
+        alt="PennywAIse logo"
+        class="h-12 w-auto"
+        />
+    </a>
+    <button id="addEntryBtn" class="create">+ Add Entry</button>
+    <nav>
+        <a href="#dashboard">
+        <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24">
+            <rect x="3"  y="3"  width="7" height="7" rx="1"/>
+            <rect x="14" y="3"  width="7" height="7" rx="1"/>
+            <rect x="3"  y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Dashboard</span>
+        </a>
+
+        <a href="#categories">
+        <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24">
+            <path d="M7.75 3A1.75 1.75 0 006 4.75v5.586c0 .465.184.912.512 1.24l7.207 7.207a1.75 1.75 0 002.475 0l5.586-5.586a1.75 1.75 0 000-2.475L9.99 3.512A1.75 1.75 0 007.75 3zm.5 4.75a1 1 0 112 0 1 1 0 01-2 0z"/>
+        </svg>
+        <span>Categories</span>
+        </a>
+
+        <a href="#income">
+        <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24">
+            <path d="M4 7h16v12H4z"/>
+            <path d="M9 7V5a3 3 0 016 0v2"/>
+            <circle cx="8" cy="11" r="1"/>
+        </svg>
+        <span>Income</span>
+        </a>
+
+        <a href="#expenses">
+        <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24">
+            <ellipse cx="12" cy="6" rx="8" ry="3"/>
+            <path d="M4 6v8c0 1.657 3.582 3 8 3s8-1.343 8-3V6"/>
+            <ellipse cx="12" cy="14" rx="8" ry="3"/>
+        </svg>
+        <span>Expenses</span>
+        </a>
+
+        <a href="#budgets">
+        <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24">
+            <path d="M12 2a10 10 0 1010 10"/>
+            <path d="M12 2v10h8a8 8 0 01-8 8"/>
+        </svg>
+        <span>Budgets</span>
+        </a>
+
+        <a href="#reports">
+        <svg xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 fill-current"
+                viewBox="0 0 24 24">
+            <rect x="4" y="4" width="4" height="16"/>
+            <rect x="10" y="10" width="4" height="10"/>
+            <rect x="16" y="14" width="4" height="6"/>
+        </svg>
+        <span>Reports</span>
+        </a>
+    </nav>
+</aside>

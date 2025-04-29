@@ -1,0 +1,41 @@
+<section id="budgets" class="page-content" role="region" aria-label="Budgets">
+    <header class="flex justify-between items-center mb-5">
+      <h2 class="pagetitle">Budgets</h2>
+      <form method="post" class="flex flex-wrap items-end space-x-4" role="form" aria-describedby="budgetErrors">
+        {% csrf_token %}
+  
+        {% if budget_form.non_field_errors %}
+          <section id="budgetErrors" role="alert" class="non-field-error w-full text-sm text-red-600 mb-2">
+            {% for err in budget_form.non_field_errors %}
+              <p>{{ err }}</p>
+            {% endfor %}
+          </section>
+        {% endif %}
+  
+        <section class="flex items-center space-x-2">
+          <span class="text-sm">{{ budget_form.category.label_tag }}</span>
+          {{ budget_form.category }}
+          {% for err in budget_form.category.errors %}
+            <p role="alert" class="text-red-600 text-sm">{{ err }}</p>
+          {% endfor %}
+        </section>
+  
+        <section class="flex items-center space-x-2">
+          <span class="text-sm">{{ budget_form.amount.label_tag }}</span>
+          {{ budget_form.amount }}
+          {% for err in budget_form.amount.errors %}
+            <p role="alert" class="text-red-600 text-sm">{{ err }}</p>
+          {% endfor %}
+        </section>
+  
+        <button type="submit" name="set-budget" class="px-4 py-2 text-white rounded-full bg-[#1B1F1E] hover:bg-[#3f3a36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1B1F1E]">
+          Save
+        </button>
+      </form>
+    </header>
+
+  {% with section_id="budget" aria_label="Budget overview table" category_summary=category_summary total_budget=total_budget total_spent=total_spent total_remaining=total_remaining total_remaining_abs=total_remaining_abs %}
+    {% include "main/components/tables/budget_table.html" %}
+  {% endwith %}
+
+</section>

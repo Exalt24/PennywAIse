@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login/Register{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block content %}
+  <section role="region" aria-label="Authentication page" class="grid grid-cols-1 md:grid-cols-2">
+    <!-- Hero / Left Panel -->
+    <section role="region" aria-label="Hero section" class="h-screen bg-gradient-to-b from-[#BD132D] to-[#642828] relative flex flex-col justify-center px-12 text-white">
+      <h1 class="text-5xl font-bold mb-4">PennywAIse</h1>
+      <p class="text-lg mb-8">Join our community of users and take control of your financial future.</p>
+      <figure aria-hidden="true" class="absolute">
+        <span class="md:w-64 md:h-64 border-2 border-white rounded-full absolute opacity-20 left-70 top-3" aria-hidden="true"></span>
+        <span class="md:w-96 md:h-96 border-2 border-white rounded-full absolute opacity-20 left-70 bottom-30" aria-hidden="true"></span>
+      </figure>
+    </section>
+
+    <!-- Auth Forms / Right Panel -->
+    <section role="region" aria-label="Authentication container" class="bg-white flex justify-center mt-20">
+      <section class="relative w-full max-w-md">
+        <!-- Register Card -->
+        <article
+          id="register-card"
+          role="region"
+          aria-labelledby="register-heading"
+          class="h-135 absolute inset-0 bg-[#dcdcdc] rounded-lg shadow-lg pt-10 p-6 transform transition-all duration-500 ease-in-out z-10 translate-x-8 translate-y-8 overflow-auto"
+        >
+          <h2 id="register-heading" class="text-3xl font-bold mb-4 text-[#642828] text-center">Register</h2>
+          <form method="post" role="form" aria-describedby="register-errors" class="space-y-4">
+            {% csrf_token %}
+            {% if register_form.non_field_errors %}
+              <section id="register-errors" role="alert" class="text-sm text-red-600">
+                {% for err in register_form.non_field_errors %}
+                  <p>{{ err }}</p>
+                {% endfor %}
+              </section>
+            {% endif %}
+
+            <section>
+              <label for="id_reg_username" class="block text-sm font-medium text-[#050704]">Username</label>
+              <input
+                type="text" name="username" id="id_reg_username"
+                value="{{ register_form.username.value|default_if_none:'' }}"
+                placeholder="Enter your username"
+                class="w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2"
+                aria-required="true"
+              />
+              {% if register_form.username.errors %}
+                <p role="alert" class="text-sm text-red-600 mt-1">{{ register_form.username.errors.0 }}</p>
+              {% endif %}
+            </section>
+
+            <section>
+              <label for="id_email" class="block text-sm font-medium text-[#050704]">Email</label>
+              <input
+                type="email" name="email" id="id_email"
+                value="{{ register_form.email.value|default_if_none:'' }}"
+                placeholder="you@example.com"
+                class="w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2"
+                aria-required="true"
+              />
+              {% if register_form.email.errors %}
+                <p role="alert" class="text-sm text-red-600 mt-1">{{ register_form.email.errors.0 }}</p>
+              {% endif %}
+            </section>
+
+            <section>
+              <label for="id_reg_password1" class="block text-sm font-medium text-[#050704]">Password</label>
+              <section class="relative">
+                <input
+                  type="password" name="password1" id="id_reg_password1"
+                  placeholder="••••••••"
+                  class="w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2"
+                  aria-required="true"
+                />
+                <button
+                  type="button"
+                  data-target="id_reg_password1"
+                  class="pw-toggle absolute inset-y-0 right-0 pr-3 pt-2 flex items-center text-gray-500"
+                  aria-label="Toggle password visibility"
+                >
+                <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.522 5 12 5
+            c4.478 0 8.268 2.943 9.542 7
+            -1.274 4.057-5.064 7-9.542 7
+            -4.478 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                </button>
+              </section>
+              {% if register_form.password1.errors %}
+                <p role="alert" class="text-sm text-red-600 mt-1">{{ register_form.password1.errors.0 }}</p>
+              {% endif %}
+            </section>
+
+            <section>
+              <label for="id_reg_password2" class="block text-sm font-medium text-[#050704]">Confirm Password</label>
+              <section class="relative">
+                <input
+                  type="password" name="password2" id="id_reg_password2"
+                  placeholder="••••••••"
+                  class="w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2"
+                  aria-required="true"
+                />
+                <button
+                  type="button"
+                  data-target="id_reg_password2"
+                  class="pw-toggle absolute inset-y-0 right-0 pr-3 pt-2 flex items-center text-gray-500"
+                  aria-label="Toggle password visibility"
+                >
+                <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.522 5 12 5
+            c4.478 0 8.268 2.943 9.542 7
+            -1.274 4.057-5.064 7-9.542 7
+            -4.478 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                </button>
+              </section>
+              {% if register_form.password2.errors %}
+                <p role="alert" class="text-sm text-red-600 mt-1">{{ register_form.password2.errors.0 }}</p>
+              {% endif %}
+            </section>
+
+            <button
+              type="submit" name="register-submit"
+              class="w-full py-2 my-6 text-white font-semibold rounded-full bg-[#1B1F1E] hover:bg-[#3f3a36] transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#62303B]"
+            >
+              Register
+            </button>
+          </form>
+        </article>
+
+        <!-- Login Card -->
+        <article
+          id="login-card"
+          role="region"
+          aria-labelledby="login-heading"
+          class="h-135 absolute inset-0 bg-[#e7e4de] rounded-lg shadow-lg pt-15 p-6 transform transition-all duration-500 ease-in-out z-20 translate-x-0 translate-y-0 overflow-auto"
+        >
+          <h2 id="login-heading" class="text-3xl font-bold mb-4 jus text-[#642828] text-center">Login</h2>
+          {% if login_error %}
+            <section role="alert" class="mb-4 p-2 bg-red-100 text-red-800 rounded">
+              {{ login_error }}
+            </section>
+          {% endif %}
+          <form method="post" role="form" aria-describedby="login-errors" class="space-y-4">
+            {% csrf_token %}
+            {% if login_form.non_field_errors %}
+              <section id="login-errors" role="alert" class="text-sm text-red-600">
+                {% for err in login_form.non_field_errors %}
+                  <p>{{ err }}</p>
+                {% endfor %}
+              </section>
+            {% endif %}
+
+            <section>
+              <label for="id_email_login" class="block text-sm font-medium text-[#050704]">Email</label>
+              <input
+                type="email" name="email" id="id_email_login"
+                value="{{ login_form.email.value|default_if_none:'' }}"
+                placeholder="you@example.com"
+                class="w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2"
+                aria-required="true"
+              />
+              {% if login_form.email.errors %}
+                <p role="alert" class="text-sm text-red-600 mt-1">{{ login_form.email.errors.0 }}</p>
+              {% endif %}
+            </section>
+
+            <section>
+              <label for="id_password" class="block text-sm font-medium text-[#050704]">Password</label>
+              <section class="relative">
+                <input
+                  type="password" name="password" id="id_password"
+                  placeholder="••••••••"
+                  class="w-full pl-4 pr-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-[#62303B] mt-2"
+                  aria-required="true"
+                />
+                <button
+                  type="button"
+                  data-target="id_password"
+                  class="pw-toggle absolute inset-y-0 right-0 pr-3 pt-2 flex items-center text-gray-500"
+                  aria-label="Toggle password visibility"
+                >
+                <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.522 5 12 5
+            c4.478 0 8.268 2.943 9.542 7
+            -1.274 4.057-5.064 7-9.542 7
+            -4.478 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                </button>
+              </section>
+              {% if login_form.password.errors %}
+                <p role="alert" class="text-sm text-red-600 mt-1">{{ login_form.password.errors.0 }}</p>
+              {% endif %}
+            </section>
+
+            <button
+              type="submit" name="login-submit"
+              class="w-full py-2 mt-10 text-white font-semibold rounded-full bg-[#1B1F1E] hover:bg-[#3f3a36] transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#62303B]"
+            >
+              Log In
+            </button>
+
+            <p class="text-center">
+              <a href="{% url 'budget:forgot_password' %}" class="text-sm text-gray-600 hover:underline">Forgot Password?</a>
+            </p>
+          </form>
+        </article>
+      </section>
+    </section>
+  </section>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    const loginCard = document.getElementById('login-card');
+    const registerCard = document.getElementById('register-card');
+
+    function showLogin() {
+      loginCard.classList.add('translate-x-0','translate-y-0','z-20');
+      loginCard.classList.remove('translate-x-8','translate-y-8','z-10');
+      registerCard.classList.add('translate-x-8','translate-y-8','z-10');
+      registerCard.classList.remove('translate-x-0','translate-y-0','z-20');
+    }
+    function showRegister() {
+      registerCard.classList.add('translate-x-0','translate-y-0','z-20');
+      registerCard.classList.remove('translate-x-8','translate-y-8','z-10');
+      loginCard.classList.add('translate-x-8','translate-y-8','z-10');
+      loginCard.classList.remove('translate-x-0','translate-y-0','z-20');
+    }
+    registerCard.addEventListener('click', showRegister);
+    loginCard.addEventListener('click', showLogin);
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const formParam = urlParams.get('form');
+      
+      if (formParam === 'register') {
+        showRegister();
+        if (window.history && window.history.replaceState) {
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      } else {
+        {% if register_form.errors %} showRegister(); {% else %} showLogin(); {% endif %}
+      }
+    });
+
+    document.querySelectorAll(".pw-toggle").forEach((btn) => {
+      const eyeOpen = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0
+              8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542
+              7-4.478 0-8.268-2.943-9.542-7z"/>
+        </svg>`;
+        
+      const eyeClosed = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7
+              a9.97 9.97 0 011.563-3.023m2.507-2.507A9.953 9.953 0 0112 5
+              c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-.753 1.556"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 3l18 18"/>
+        </svg>`;
+
+      btn.addEventListener("click", () => {
+        const inp = document.getElementById(btn.dataset.target);
+        if (!inp) return;
+        if (inp.type === "password") {
+          inp.type = "text";
+          btn.innerHTML = eyeClosed;
+        } else {
+          inp.type = "password";
+          btn.innerHTML = eyeOpen;
+        }
+      });
+    });
+
+    document.querySelectorAll('button[type="submit"]').forEach(button => {
+      button.addEventListener('click', function(e) {
+        const form = this.closest('form');
+        if (!form) return;
+        if (this.dataset.clicked === 'true') {
+          e.preventDefault(); return;
+        }
+        if (!form.checkValidity()) {
+          form.reportValidity(); return;
+        }
+        this.dataset.clicked = 'true';
+        this.dataset.originalText = this.innerHTML;
+        this.innerHTML = 'Processing…';
+        this.style.opacity = '0.7';
+        this.style.cursor = 'not-allowed';
+      });
+    });
+  </script>
+{% endblock %}

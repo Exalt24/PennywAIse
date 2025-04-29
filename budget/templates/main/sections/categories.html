@@ -1,0 +1,46 @@
+{% load static %}
+
+<section id="categories" class="page-content hidden" role="region" aria-label="Category management">
+  <header class="flex items-center justify-between mb-5">
+    <h2 class="pagetitle">Categories</h2>
+  </header>
+
+  <section class="bg-[#fdfdfb] rounded-xl p-4 shadow-md mb-6" role="region" aria-labelledby="add-category-heading">
+    <h3 id="add-category-heading" class="sr-only">Add New Category</h3>
+    <form method="post" class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4" role="form">
+      {% csrf_token %}
+      <section>
+        <label for="id_name" class="block text-sm font-medium text-[#1B1F1E] mb-4">New category</label>
+        <input
+          type="text"
+          name="name"
+          id="id_name"
+          placeholder="e.g. Groceries"
+          required
+          class="mt-1 block border w-full md:w-1/2 border-gray-300 rounded-full px-4 py-2"
+          aria-required="true"
+        />
+
+        {% if category_form.name.errors %}
+          <section role="alert" class="non-field-error text-sm text-red-600 mt-1">
+            {% for err in category_form.name.errors %}
+              <p>{{ err }}</p>
+            {% endfor %}
+          </section>
+        {% endif %}
+      </section>
+      <button
+        type="submit"
+        name="add-category"
+        class="self-center px-4 py-2 bg-[#BD132D] text-white rounded-full hover:bg-[#642828] transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#BD132D]"
+      >
+        Add Category
+      </button>
+    </form>
+  </section>
+
+  {% with aria_label="Category overview table" title="Overview" title_id="overview-heading" tbody_id="categoryTable" %}
+      {% include "main/components/tables/category_table.html" %}
+  {% endwith %}
+  </section>
+</section>

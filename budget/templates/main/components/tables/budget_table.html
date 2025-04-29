@@ -1,0 +1,66 @@
+{% extends "main/components/base_table.html" %}
+
+{% block table_head %}
+  <tr>
+    <th class="px-3 py-2 text-left sortable sort-asc" aria-sort="ascending">Category</th>
+    <th class="px-3 py-2 text-left sortable" aria-sort="none">Budget</th>
+    <th class="px-3 py-2 text-left sortable" aria-sort="none">Spent</th>
+    <th class="px-3 py-2 text-left sortable" aria-sort="none">Remaining</th>
+  </tr>
+{% endblock %}
+
+{% block table_body %}
+  <tr class="font-semibold" role="row">
+    <td class="px-3 py-2" role="cell">Total</td>
+    <td class="px-3 py-2" role="cell">
+      {% if total_budget is not None %}
+        ₱{{ total_budget|floatformat:2 }}
+      {% else %}
+        &mdash;
+      {% endif %}
+    </td>
+    <td class="px-3 py-2 text-red-600" role="cell">
+      ₱{{ total_spent|floatformat:2 }}
+    </td>
+    <td class="px-3 py-2
+           {% if total_remaining > 0 %}text-green-600{% elif total_remaining < 0 %}text-red-600{% endif %}"
+        role="cell">
+      {% if total_remaining is not None %}
+        {% if total_remaining >= 0 %}+{% else %}–{% endif %}₱{{ total_remaining_abs|floatformat:2 }}
+      {% else %}
+        &mdash;
+      {% endif %}
+    </td>
+  </tr>
+
+  {% for row in category_summary %}
+    <tr role="row">
+      <td class="px-3 py-2" role="cell">{{ row.name }}</td>
+      <td class="px-3 py-2" role="cell">
+        {% if row.budget is not None %}
+          ₱{{ row.budget|floatformat:2 }}
+        {% else %}
+          &mdash;
+        {% endif %}
+      </td>
+      <td class="px-3 py-2 text-red-600" role="cell">
+        ₱{{ row.expense|floatformat:2 }}
+      </td>
+      <td class="px-3 py-2
+             {% if row.remaining > 0 %}text-green-600{% elif row.remaining < 0 %}text-red-600{% endif %}"
+          role="cell">
+        {% if row.remaining is not None %}
+          {% if row.remaining >= 0 %}+{% else %}–{% endif %}₱{{ row.remaining_abs|floatformat:2 }}
+        {% else %}
+          &mdash;
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="4" class="px-3 py-4 text-center text-gray-500" role="row">
+        No per-category budgets set.
+      </td>
+    </tr>
+  {% endfor %}
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+import uuid
 
 class Category(models.Model):
     name = models.CharField(max_length=50)
@@ -32,14 +33,12 @@ class Entry(models.Model):
 
 class Budget(models.Model):
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # if category is null, it’s the global/total budget
     category = models.ForeignKey(
         'Category',
         null=True, blank=True,
         on_delete=models.CASCADE,
         help_text="Leave blank for a total budget"
     )
-    # e.g. 2025-04-01 → budget applies to that month
     month    = models.DateField(help_text="First day of the month this budget applies to")
     amount   = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -53,7 +52,6 @@ class Budget(models.Model):
         return f"{self.user} – {self.month:%b %Y} – Total: ₱{self.amount}"
 
 class PasswordResetToken(models.Model):
-    """Model for storing password reset tokens."""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -73,3 +71,15 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} - {self.subject}"
+
+class EmailVerificationToken(models.Model):
+    user       = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                      on_delete=models.CASCADE)
+    token      = models.UUIDField(default=uuid.uuid4,
+                                 unique=True,
+                                 editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used       = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Verify {self.user.email} → {self.token}"

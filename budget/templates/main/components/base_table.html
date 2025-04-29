@@ -1,0 +1,26 @@
+{% load static %}
+
+<section
+  class="overflow-x-auto bg-[#fdfdfb] rounded-xl p-4 shadow-md"
+  role="region"
+  aria-label="{{ aria_label }}"
+>
+  {% if title %}
+  <h3 id="{{ title_id }}" class="font-semibold mb-3">{{ title }}</h3>
+  {% endif %}
+
+  <table
+    class="table-auto w-full"
+    {% if table_id %} id="{{ table_id }}"{% endif %}
+    aria-label="{{ aria_label }}"
+  >
+    <thead class="bg-gray-100">
+      {% block table_head %}{% endblock %}
+    </thead>
+    <tbody
+      {% if tbody_id %} id="{{ tbody_id }}"{% endif %}
+    >
+      {% block table_body %}{% endblock %}
+    </tbody>
+  </table>
+</section>

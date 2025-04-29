@@ -1,0 +1,174 @@
+{% load static %}
+
+<section
+  id="editCategoryModal"
+  class="fixed inset-0 hidden z-50 flex items-center justify-center bg-black/50"
+  role="dialog"
+  aria-labelledby="edit-category-title"
+  aria-modal="true"
+>
+  <article class="relative bg-[#fdfdfb] rounded-lg shadow-lg w-full max-w-md p-6">
+    <button
+      id="closeEditCatModal"
+      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+      type="button"
+      aria-label="Close edit category dialog"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <h3 id="edit-category-title" class="text-lg font-semibold mb-4">Edit Category</h3>
+    <form method="post" action="{% url 'budget:dashboard' %}">
+      {% csrf_token %}
+      <input
+        type="hidden"
+        name="category-id"
+        id="editCategoryId"
+        value="{{ edit_category_id }}"
+      >
+
+      <section class="mb-4">
+        {{ edit_category_form.name.label_tag }}
+        {{ edit_category_form.name }}
+        {% if edit_category_form.name.errors %}
+          {% for err in edit_category_form.name.errors %}
+            <p class="text-sm text-red-600 mt-1" role="alert">{{ err }}</p>
+          {% endfor %}
+        {% endif %}
+      </section>
+
+      <footer class="md:col-span-2 flex justify-end space-x-2 pt-4">
+        <button
+          type="button"
+          id="cancelEditCategory"
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+        >Cancel</button>
+        <button
+          type="submit"
+          name="add-category"
+          class="px-4 py-2 text-white rounded bg-[#1B1F1E] hover:bg-[#3f3a36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1B1F1E]"
+        >Save</button>
+      </footer>
+    </form>
+  </article>
+</section>
+
+<section
+  id="addEntryModal"
+  class="fixed inset-0 hidden z-50 flex items-center justify-center"
+  role="dialog"
+  aria-labelledby="modalTitle"
+  aria-modal="true"
+>
+  <section class="absolute inset-0 bg-black/50" aria-hidden="true"></section>
+
+  <article class="relative bg-[#fdfdfb] rounded-xl shadow-lg w-full max-w-lg p-6">
+    <button
+      id="closeModalBtn"
+      class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+      type="button"
+      aria-label="Close entry dialog"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <h2 id="modalTitle" class="text-2xl font-bold mb-4">
+      {% if is_edit %}Edit Entry{% else %}Add New Entry{% endif %}
+    </h2>
+
+    <form method="post"
+          action="{% url 'budget:dashboard' %}"
+          id="entryModalForm"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
+    >
+      {% csrf_token %}
+
+      <input id="modalEntryId"
+             type="hidden"
+             name="entry-id"
+             value="{{ edit_id|default:'' }}">
+
+      <section>
+        <label for="id_title" class="block text-sm font-medium text-gray-700">
+          {{ entry_form.title.label }}
+        </label>
+        {{ entry_form.title }}
+        {% if entry_form.title.errors %}
+          <p class="mt-1 text-sm text-red-600" role="alert">{{ entry_form.title.errors.0 }}</p>
+        {% endif %}
+      </section>
+
+      <section>
+        <label for="id_amount" class="block text-sm font-medium text-gray-700">
+          {{ entry_form.amount.label }}
+        </label>
+        {{ entry_form.amount }}
+        {% if entry_form.amount.errors %}
+          <p class="mt-1 text-sm text-red-600" role="alert">{{ entry_form.amount.errors.0 }}</p>
+        {% endif %}
+      </section>
+
+      <section>
+        <label for="id_date" class="block text-sm font-medium text-gray-700">
+          {{ entry_form.date.label }}
+        </label>
+        {{ entry_form.date }}
+        {% if entry_form.date.errors %}
+          <p class="mt-1 text-sm text-red-600" role="alert">{{ entry_form.date.errors.0 }}</p>
+        {% endif %}
+      </section>
+
+      <section id="modalTypeDiv" {% if is_edit %}class="hidden"{% endif %}>
+        <label for="id_type" class="block text-sm font-medium text-gray-700">
+          {{ entry_form.type.label }}
+        </label>
+        {{ entry_form.type }}
+        {% if entry_form.type.errors %}
+          <p class="mt-1 text-sm text-red-600" role="alert">{{ entry_form.type.errors.0 }}</p>
+        {% endif %}
+      </section>
+
+      <section class="md:col-span-2">
+        <label for="id_category" class="block text-sm font-medium text-gray-700">
+          {{ entry_form.category.label }}
+        </label>
+        {{ entry_form.category }}
+        {% if entry_form.category.errors %}
+          <p class="mt-1 text-sm text-red-600" role="alert">{{ entry_form.category.errors.0 }}</p>
+        {% endif %}
+      </section>
+
+      <section class="md:col-span-2">
+        <label for="id_notes" class="block text-sm font-medium text-gray-700">
+          {{ entry_form.notes.label }}
+        </label>
+        {{ entry_form.notes }}
+        {% if entry_form.notes.errors %}
+          <p class="mt-1 text-sm text-red-600" role="alert">{{ entry_form.notes.errors.0 }}</p>
+        {% endif %}
+      </section>
+
+      <footer class="md:col-span-2 flex justify-end space-x-2 pt-4">
+        <button type="button"
+                id="cancelEntryBtn"
+                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+        >Cancel</button>
+        <button id="modalSubmitBtn"
+                type="submit"
+                name="add-entry"
+                class="px-4 py-2 text-white bg-[#1B1F1E] rounded hover:bg-[#3f3a36] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1B1F1E]"
+        >
+          {% if is_edit %}Save Changes{% else %}Save{% endif %}
+        </button>
+      </footer>
+    </form>
+  </article>
+</section>

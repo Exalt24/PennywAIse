@@ -1,0 +1,41 @@
+{% load static %}
+
+<section id="reports" class="page-content hidden" role="region" aria-label="Reports">
+    <header class="flex justify-between items-center mb-5">
+      <h2 class="pagetitle">Reports</h2>
+      <form role="search" aria-label="Filter report entries" class="flex space-x-2 items-end">
+        <section class="flex flex-col">
+          <label for="repFrom" class="text-sm">From</label>
+          <input type="date" id="repFrom" class="px-2 py-1 border rounded" aria-label="Filter from date" />
+        </section>
+        <section class="flex flex-col">
+          <label for="repTo" class="text-sm">To</label>
+          <input type="date" id="repTo" class="px-2 py-1 border rounded" aria-label="Filter to date" />
+        </section>
+        <section class="flex flex-col">
+          <label for="repType" class="text-sm">Type</label>
+          <select id="repType" class="px-2 py-1 border rounded" aria-label="Filter by type">
+            <option value="">Both</option>
+            <option value="IN">Income</option>
+            <option value="EX">Expense</option>
+          </select>
+        </section>
+        <section class="flex flex-col">
+          <label for="repCat" class="text-sm">Category</label>
+          <select id="repCat" class="px-2 py-1 border rounded" aria-label="Filter by category">
+            <option value="">All</option>
+            {% for cat in user_categories %}
+              <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </section>
+        <button id="exportCsv" class="px-4 py-2 bg-[#1B1F1E] hover:bg-[#3f3a36] text-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1B1F1E]" aria-label="Export CSV">
+          Export CSV
+        </button>
+      </form>
+    </header>
+
+    {% with aria_label="Report entries table" table_id="reportTable" %}
+      {% include "main/components/tables/report_table.html" %}
+    {% endwith %}
+</section>

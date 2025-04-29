@@ -1,0 +1,47 @@
+{% extends "main/components/base_table.html" %}
+
+{% block table_head %}
+  <tr>
+    <th class="px-3 py-2 text-left sortable sort-asc" aria-sort="ascending">Category</th>
+    <th class="px-3 py-2 text-center sortable" aria-sort="none"># of Entries</th>
+    <th class="px-3 py-2 text-right sortable" aria-sort="none">Income</th>
+    <th class="px-3 py-2 text-right sortable" aria-sort="none">Expenses</th>
+    <th class="px-3 py-2 text-right sortable" aria-sort="none">Net</th>
+    <th class="px-3 py-2 text-center">Actions</th>
+  </tr>
+{% endblock %}
+
+{% block table_body %}
+  {% for cat in category_stats %}
+    <tr>
+      <td class="px-3 py-2 cat-name">{{ cat.name }}</td>
+      <td class="px-3 py-2 text-center">{{ cat.entry_count }}</td>
+      <td class="px-3 py-2 text-right text-green-600">₱{{ cat.total_inc|floatformat:2 }}</td>
+      <td class="px-3 py-2 text-right text-red-600">₱{{ cat.total_exp|floatformat:2 }}</td>
+      <td class="px-3 py-2 text-right
+            {% if cat.net > 0 %}text-green-600{% elif cat.net < 0 %}text-red-600{% endif %}">
+        {% if cat.net > 0 %}+{% elif cat.net < 0 %}–{% endif %}₱{{ cat.net_abs|floatformat:2 }}
+      </td>
+      <td class="px-3 py-2 text-center space-x-2">
+        <form method="post" class="inline" role="presentation">
+          {% csrf_token %}
+          <button type="button"
+                  class="edit-cat-btn text-blue-600 text-sm hover:underline focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+                  data-id="{{ cat.id }}" data-name="{{ cat.name }}"
+                  aria-label="Edit category {{ cat.name }}">Edit</button>
+          <span class="px-1" aria-hidden="true">|</span>
+          <button type="submit" name="delete-category" value="{{ cat.id }}"
+                  class="text-red-600 text-sm hover:underline focus:ring-2 focus:ring-offset-2 focus:ring-red-400"
+                  onclick="return confirm('Delete &quot;{{ cat.name }}&quot;?');"
+                  aria-label="Delete category {{ cat.name }}">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="6" class="px-3 py-4 text-center text-gray-500" role="alert">
+        You haven’t added any categories yet.
+      </td>
+    </tr>
+  {% endfor %}
+{% endblock %}
