@@ -1,6 +1,9 @@
 {% extends "base.html" %} {% load static %} {% block title %}Home{% endblock %}
 {% block content %}
 <section id="home" role="region" aria-label="Home" class="hero-section">
+
+  
+
   <figure class="absolute inset-0" aria-hidden="true">
     <span class="circle1"></span>
     <span class="circle2"></span>
@@ -17,8 +20,18 @@
         and start tracking your budget in seconds.
       </p>
       <section class="hero-button-layout">
-        <a href="/auth?form=register" class="button-dark"> Register </a>
-        <a href="#about" class="button-outline"> Learn More </a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'budget:dashboard' %}" class="button-dark">
+            Go to Dashboard
+          </a>
+        {% else %}
+          <a href="/auth?form=register" class="button-dark">
+            Register
+          </a>
+          <a href="#about" class="button-outline">
+            Learn More
+          </a>
+        {% endif %}
       </section>
     </section>
   </article>
@@ -126,77 +139,83 @@
   </article>
 </section>
 
-<!-- Contact Section -->
-<section
-  id="contact"
-  role="region"
-  aria-label="Contact Us"
-  class="py-20 bg-[#e7e4de]"
->
-  <article class="contact-x">
-    <h2 class="contact-title">aren't you gonna say hello?</h2>
-    <form
-      method="post"
-      action="#contact"
-      role="form"
-      aria-labelledby="contact-form-legend"
-      class="space-y-6"
-    >
-      {% csrf_token %}
-      <fieldset class="form-layout">
-        <legend id="contact-form-legend" class="sr-only">Contact Form</legend>
+{% if not user.is_authenticated %}
+  <!-- Contact Section -->
+  <section
+    id="contact"
+    role="region"
+    aria-label="Contact Us"
+    class="py-20 bg-[#e7e4de]"
+  >
+    <article class="contact-x">
+      <h2 class="contact-title">aren't you gonna say hello?</h2>
+      <form
+        method="post"
+        action="#contact"
+        role="form"
+        aria-labelledby="contact-form-legend"
+        class="space-y-6"
+      >
+        {% csrf_token %}
+        <fieldset class="form-layout">
+          <legend id="contact-form-legend" class="sr-only">Contact Form</legend>
 
-        <label for="name" class="contact-label">Name</label>
-        {{ contact_form.name }} {% if contact_form.name.errors %}
-        <p id="error-name" class="error-label" role="alert">
-          {{ contact_form.name.errors.0 }}
-        </p>
-        {% endif %}
+          <label for="name" class="contact-label">Name</label>
+          {{ contact_form.name }}
+          {% if contact_form.name.errors %}
+            <p id="error-name" class="error-label" role="alert">
+              {{ contact_form.name.errors.0 }}
+            </p>
+          {% endif %}
 
-        <label for="email" class="contact-label">Email</label>
-        {{ contact_form.email }} {% if contact_form.email.errors %}
-        <p id="error-email" class="error-label" role="alert">
-          {{ contact_form.email.errors.0 }}
-        </p>
-        {% endif %}
+          <label for="email" class="contact-label">Email</label>
+          {{ contact_form.email }}
+          {% if contact_form.email.errors %}
+            <p id="error-email" class="error-label" role="alert">
+              {{ contact_form.email.errors.0 }}
+            </p>
+          {% endif %}
 
-        <label for="subject" class="contact-label">Subject</label>
-        {{ contact_form.subject }} {% if contact_form.subject.errors %}
-        <p id="error-subject" class="error-label" role="alert">
-          {{ contact_form.subject.errors.0 }}
-        </p>
-        {% endif %}
+          <label for="subject" class="contact-label">Subject</label>
+          {{ contact_form.subject }}
+          {% if contact_form.subject.errors %}
+            <p id="error-subject" class="error-label" role="alert">
+              {{ contact_form.subject.errors.0 }}
+            </p>
+          {% endif %}
 
-        <label for="message" class="contact-label">Message</label>
-        {{ contact_form.message }} {% if contact_form.message.errors %}
-        <p id="error-message" class="error-label" role="alert">
-          {{ contact_form.message.errors.0 }}
-        </p>
-        {% endif %}
+          <label for="message" class="contact-label">Message</label>
+          {{ contact_form.message }}
+          {% if contact_form.message.errors %}
+            <p id="error-message" class="error-label" role="alert">
+              {{ contact_form.message.errors.0 }}
+            </p>
+          {% endif %}
 
-        <div class="flex">
-          <button
-            type="submit"
-            name="send-message"
-            class="contact-button ml-auto"
-          >
-            Send Message
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 ml-2"
-              fill="currentColor"
-              viewBox="0 0 16 16"
+          <div class="flex">
+            <button
+              type="submit"
+              name="send-message"
+              class="contact-button ml-auto"
             >
-              <path d="M2 2l12 6-12 6 3-6-3-6z" />
-            </svg>
-          </button>
-        </div>
-      </fieldset>
-    </form>
-  </article>
-</section>
+              Send Message
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-4 h-4 ml-2"
+                fill="currentColor"
+                viewBox="0 0 16 16"
+              >
+                <path d="M2 2l12 6-12 6 3-6-3-6z" />
+              </svg>
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </article>
+  </section>
+{% endif %}
 
-<!-- Contact notif -->
+<!-- Contact notification modal (always present) -->
 <section
   id="notification-modal"
   role="alertdialog"
@@ -255,6 +274,7 @@
     .map(link => document.getElementById(link.getAttribute('href').slice(1)))
     .filter(Boolean);
   const logoImage  = document.getElementById('logoImage');
+  const userAuth = document.querySelector('.user-authenticated');
 
   // Preload or define your two logo URLs
   const homeLogoSrc  = "{% static 'images/logo3.png' %}";
@@ -278,6 +298,11 @@
         link.classList.remove('text-[#40020F]');
         link.classList.add('text-white');
       });
+
+      {% if user.is_authenticated %}
+        userAuth.classList.remove('text-[#40020F]');
+        userAuth.classList.add('text-white');
+      {% endif %}
       logoImage.src = homeLogoSrc;
     } else {
       // Other-section styles
@@ -285,6 +310,10 @@
         link.classList.remove('text-white');
         link.classList.add('text-[#40020F]');
       });
+      {% if user.is_authenticated %}
+        userAuth.classList.remove('text-white');
+        userAuth.classList.add('text-[#40020F]');
+      {% endif %}
       logoImage.src = otherLogoSrc;
     }
 
@@ -296,6 +325,8 @@
       }
     });
   }
+
+
 
   window.addEventListener('scroll', updateNav);
   window.addEventListener('load', updateNav);

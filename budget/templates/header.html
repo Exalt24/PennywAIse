@@ -32,8 +32,25 @@
         </a>
       </li>
     </ul>
-    <span class="text-white">
-      <a href="/auth" class="button-darksm"> Login </a>
-    </span>
+    <section class="flex items-center space-x-4">
+      {% if user.is_authenticated %}
+        <span class="user-authenticated text-white">Welcome back, {{ user.first_name|default:user.username }}!</span>
+        <form
+            method="post"
+            action="{% url 'logout' %}"
+            class=""
+            role="none"
+          >
+            {% csrf_token %}
+            <button type="submit" role="menuitem" class="button-darksm">
+              Logout
+            </button>
+          </form>
+      {% else %}
+        <a href="{% url 'budget:auth' %}" class="button-darksm">
+          Login
+        </a>
+      {% endif %}
+    </section>
   </header>
 </section>
