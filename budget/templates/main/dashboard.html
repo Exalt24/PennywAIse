@@ -258,8 +258,30 @@ document.addEventListener('DOMContentLoaded', () => {
         row.style.display = ok ? '' : 'none';
       });
     }
-    
+
     [df, dt, ti, ca, mn, mx].forEach(el => el && el.addEventListener('input', applyFilters));
+  }
+
+  function fetchTable(prefix) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('prefix', prefix);
+
+    ['DateFrom','DateTo','TitleFilter','CategoryFilter','MinAmount','MaxAmount']
+      .forEach(sfx => {
+        const el = document.getElementById(prefix + sfx);
+        params.set(prefix + sfx, el.value || '');
+      });
+
+    // preserve the current tab hash
+    const url = `/entries/filter/?${params.toString()}${location.hash}`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        // swap the entire section’s inner HTML
+        const containerId = prefix === 'inc' ? 'incContainer' : 'expContainer';
+        document.getElementById(containerId).innerHTML = data.html;
+      });
   }
 
   initTableFilter({
@@ -280,6 +302,16 @@ document.addEventListener('DOMContentLoaded', () => {
     minAmt: '#expMinAmount',
     maxAmt: '#expMaxAmount',
     tableBody: '#expenseTable'
+  });
+
+
+  ['inc','exp'].forEach(prefix => {
+    ['DateFrom','DateTo','TitleFilter','CategoryFilter','MinAmount','MaxAmount']
+      .forEach(sfx => {
+        const el = document.getElementById(prefix + sfx);
+        if (!el) return;
+        el.addEventListener('input', () => fetchTable(prefix));
+      });
   });
 
   // ---- Charts ----
@@ -390,7 +422,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  function fetchReports() {
+    const params = new URLSearchParams(window.location.search);
   
+    // copy each report‐filter input
+    ['From','To','Type','Cat'].forEach(sfx => {
+      const el = document.getElementById('rep' + sfx);
+      params.set('rep' + sfx, el.value || '');
+    });
+    // keep current hash (tab)
+    const url = `/reports/filter/?${params.toString()}${location.hash}`;
+  
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('repContainer').innerHTML = data.html;
+      });
+  }
+  
+  // 2) hook inputs to fetchReports
+  ['From','To','Type','Cat'].forEach(sfx => {
+    const el = document.getElementById('rep' + sfx);
+    if (!el) return;
+    el.addEventListener('input', fetchReports);
+  });
+  
+  // 3) optional: re-fetch on page-link click inside repContainer
+  document.getElementById('repContainer').addEventListener('click', e => {
+    if (e.target.matches('#repContainer nav a')) {
+      e.preventDefault();
+      // grab the clicked page number from its href
+      const href = new URL(e.target.href);
+      window.history.replaceState(null, '', href.pathname + href.search + location.hash);
+      fetchReports();
+    }
+  });
+
   // ---- Report Table Filtering + Exporting ----
 const inputs = {
   from: document.getElementById('repFrom'),
@@ -506,6 +573,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
   btnByCat.addEventListener('click', activateByCategory);
 
   activateOverall(); // Default
+
 });
 </script>
 {% endblock %}
