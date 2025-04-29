@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.utils import timezone
 from django.contrib.auth import authenticate, login, get_user_model
 from . import forms
-from .models import Category, Entry, Budget
+from .models import Category, Entry, Budget, EmailVerificationToken, PasswordResetToken
 from django.db.models import Sum, Count, Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dateutil.relativedelta import relativedelta
@@ -16,6 +16,8 @@ from django.core.paginator import Paginator
 from django.http           import JsonResponse
 from django.template.loader import render_to_string
 from django.views import View
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 
 User = get_user_model()
 
@@ -427,9 +429,38 @@ class AuthView(TemplateView):
             context['register_form'] = register_form
 
             if register_form.is_valid():
-                user = register_form.save()
-                login(request, user)
-                return redirect('budget:dashboard')
+                # 1) create user but don’t activate yet
+                user = register_form.save(commit=False)
+                user.is_active = False
+                user.save()
+
+                # 2) create verification token
+                token = EmailVerificationToken.objects.create(user=user)
+
+                # 3) build absolute URL
+                verify_path = reverse('budget:verify_email', args=[str(token.token)])
+                verification_url = request.build_absolute_uri(verify_path)
+
+                # 4) render email
+                subject = "Verify your PennywAIse account"
+                html_body = render_to_string(
+                    'authentication/email_verification.html',
+                    {'user': user, 'verification_url': verification_url}
+                )
+                email = EmailMultiAlternatives(
+                    subject=subject,
+                    body="Please view this email in HTML format.",
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[user.email],
+                )
+                email.attach_alternative(html_body, "text/html")
+                email.send()
+
+                messages.success(
+                    request,
+                    "Thanks for signing up! Check your inbox for a verification link."
+                )
+                return redirect('budget:auth')
 
         return self.render_to_response(context)
 
@@ -443,33 +474,44 @@ class ForgotPasswordView(TemplateView):
     
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        forgot_password_form = forms.ForgotPasswordForm(request.POST)
-        context['forgot_password_form'] = forgot_password_form
-        
-        if forgot_password_form.is_valid():
-            email = forgot_password_form.cleaned_data['email']
-            user = User.objects.get(email__iexact=email)
-            
-            # Generate a unique token
-            token = secrets.token_urlsafe(32)
-            
-            # Save the token in the database
-            from .models import PasswordResetToken
-            PasswordResetToken.objects.create(
-                user=user,
-                token=token
-            )
-            
-            # Build the reset URL
-            reset_url = request.build_absolute_uri(
-                reverse('budget:reset_password', kwargs={'token': token})
-            )
-            
-            context['reset_url'] = reset_url
-            context['success'] = True
-            
-        return self.render_to_response(context)
+        form = forms.ForgotPasswordForm(request.POST)
+        context['forgot_password_form'] = form
 
+        if form.is_valid():
+            # pulled straight from the form’s clean_email
+            user = form.cleaned_data['user_obj']
+
+            # Generate & save token
+            token = secrets.token_urlsafe(32)
+            PasswordResetToken.objects.create(user=user, token=token)
+
+            # Build reset URL
+            path = reverse('budget:reset_password', kwargs={'token': token})
+            reset_url = request.build_absolute_uri(path)
+
+            # Render & send email
+            subject = "Reset your PennywAIse password"
+            html_body = render_to_string(
+                'authentication/password_reset_email.html',
+                {'user': user, 'reset_url': reset_url}
+            )
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body="Please view this email in HTML format.",
+                from_email=settings.EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=False)
+
+            # Flash a message and redirect
+            messages.success(
+                request,
+                "Check your inbox for a password reset link!"
+            )
+            return redirect('budget:auth')
+
+        return self.render_to_response(context)
 
 class ResetPasswordView(TemplateView):
     template_name = "authentication/reset_password.html"
@@ -480,16 +522,22 @@ class ResetPasswordView(TemplateView):
         context['token'] = token
         context.setdefault('reset_password_form', forms.ResetPasswordForm())
         
-        # Validate token
-        from .models import PasswordResetToken
-        token_obj = PasswordResetToken.objects.filter(
-            token=token, 
+        # 1) Expire any tokens older than 24 h
+        cutoff = timezone.now() - timezone.timedelta(hours=24)
+        PasswordResetToken.objects.filter(
+            token=token,
             expired=False,
-            created_at__gte=timezone.now() - timezone.timedelta(hours=24)
+            created_at__lt=cutoff
+        ).update(expired=True)
+
+        # 2) Now check for a “live” token
+        token_obj = PasswordResetToken.objects.filter(
+            token=token,
+            expired=False,
+            created_at__gte=cutoff
         ).first()
         
         context['valid_token'] = token_obj is not None
-        
         return context
     
     def post(self, request, *args, **kwargs):
@@ -498,7 +546,8 @@ class ResetPasswordView(TemplateView):
         context['reset_password_form'] = reset_password_form
         
         if not context['valid_token']:
-            return self.render_to_response(context)
+            messages.error(request, "That reset link is invalid or has expired. Please request a new one.")
+            return redirect('budget:forgot_password')
         
         if reset_password_form.is_valid():
             token = self.kwargs.get('token')
@@ -651,3 +700,23 @@ class ReportsAjaxView(View):
             request=request
         )
         return JsonResponse({'html': html})
+    
+class VerifyEmailView(View):
+    def get(self, request, token):
+        try:
+            tok = EmailVerificationToken.objects.get(token=token, used=False)
+        except EmailVerificationToken.DoesNotExist:
+            messages.error(request, "Invalid or expired verification link.")
+            return redirect('budget:auth')
+
+        user = tok.user
+        user.is_active = True
+        user.save()
+
+        tok.used = True
+        tok.save()
+
+        # Log in the user automatically
+        login(request, user)
+        messages.success(request, "Email verified! You can now log in.")
+        return redirect('budget:dashboard')
