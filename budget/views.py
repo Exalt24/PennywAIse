@@ -58,8 +58,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         # ─── forms & categories ────────────────────────────────────────────────────
         ctx['category_form'] = forms.CategoryForm()
-        ctx.setdefault('category_form', forms.CategoryForm(user=user))     # the inline “new” form
-        ctx.setdefault('edit_category_form', forms.CategoryForm(user=user))# modal’s form (blank)
+        ctx.setdefault('category_form', forms.CategoryForm(user=user))
+        ctx.setdefault('edit_category_form', forms.CategoryForm(user=user))
         ctx.setdefault('is_edit_category', False)
         ctx.setdefault('edit_category_id', '')
         ctx.setdefault('active_tab', 'dashboard')
@@ -125,7 +125,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             for b in budget_qs.filter(category__isnull=False)
         }
 
-        # total budget (blank category)
         total_budget_obj = budget_qs.filter(category__isnull=True).first()
         total_budget = total_budget_obj.amount if total_budget_obj else None
         total_spent = expense_total
@@ -270,7 +269,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         qs = Entry.objects.filter(user=user)
         gf = request.GET
 
-        # same filters
         if gf.get('from'):
             qs = qs.filter(date__gte=gf['from'])
         if gf.get('to'):
@@ -280,7 +278,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if gf.get('category'):
             qs = qs.filter(category_id=gf['category'])
 
-        # stream CSV
         resp = HttpResponse(content_type='text/csv')
         resp['Content-Disposition'] = 'attachment; filename="report.csv"'
         writer = csv.writer(resp)
@@ -330,7 +327,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ctx['category_form']      = form
             return self.render_to_response(ctx)
  
-        # 2) Create or update entry
         if 'add-entry' in request.POST:
             eid = request.POST.get('entry-id')
             if eid:
@@ -352,20 +348,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             ctx['edit_id']    = eid
             return self.render_to_response(ctx)
 
-        # 3) Delete entry
         if 'delete-entry' in request.POST:
             e = get_object_or_404(Entry, pk=request.POST['delete-entry'], user=user)
             tab = 'income' if e.type == Entry.INCOME else 'expenses'
             e.delete()
             return redirect(f"{base}#{tab}")
         
-         # 4) Create or update a budget
         if 'set-budget' in request.POST:
             tab = 'budgets'
             bform = forms.BudgetForm(request.POST, user=user)
             if bform.is_valid():
                 today = timezone.localdate()
-                cat   = bform.cleaned_data['category']   # maybe None for total
+                cat   = bform.cleaned_data['category']
                 month = today.replace(day=1)
                 amt   = bform.cleaned_data['amount']
 
@@ -381,14 +375,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             ctx['budget_form'] = bform
             return self.render_to_response(ctx)\
 
-        # 5) Delete
         if 'delete-category' in request.POST:
             tab = 'categories'
             cat = get_object_or_404(Category, pk=request.POST['delete-category'], user=user)
             cat.delete()
             return redirect(f"{base}#{tab}")
 
-        # fallback to GET
         return super().post(request, *args, **kwargs)
 
 class AuthView(TemplateView):
@@ -396,7 +388,6 @@ class AuthView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # ensure each render has fresh forms (unless overridden in post)
         context.setdefault('login_form', forms.LoginForm())
         context.setdefault('register_form', forms.RegisterForm())
         return context
@@ -423,25 +414,20 @@ class AuthView(TemplateView):
                     return redirect('budget:dashboard')
                 context['login_error'] = "Invalid email or password."
 
-        # --- REGISTER FLOW ---
         elif 'register-submit' in request.POST:
             register_form = forms.RegisterForm(request.POST)
             context['register_form'] = register_form
 
             if register_form.is_valid():
-                # 1) create user but don’t activate yet
                 user = register_form.save(commit=False)
                 user.is_active = False
                 user.save()
 
-                # 2) create verification token
                 token = EmailVerificationToken.objects.create(user=user)
 
-                # 3) build absolute URL
                 verify_path = reverse('budget:verify_email', args=[str(token.token)])
                 verification_url = request.build_absolute_uri(verify_path)
 
-                # 4) render email
                 subject = "Verify your PennywAIse account"
                 html_body = render_to_string(
                     'authentication/email_verification.html',
@@ -521,8 +507,7 @@ class ResetPasswordView(TemplateView):
         token = self.kwargs.get('token')
         context['token'] = token
         context.setdefault('reset_password_form', forms.ResetPasswordForm())
-        
-        # 1) Expire any tokens older than 24 h
+
         cutoff = timezone.now() - timezone.timedelta(hours=24)
         PasswordResetToken.objects.filter(
             token=token,
@@ -530,7 +515,6 @@ class ResetPasswordView(TemplateView):
             created_at__lt=cutoff
         ).update(expired=True)
 
-        # 2) Now check for a “live” token
         token_obj = PasswordResetToken.objects.filter(
             token=token,
             expired=False,
@@ -554,12 +538,10 @@ class ResetPasswordView(TemplateView):
             from .models import PasswordResetToken
             token_obj = PasswordResetToken.objects.get(token=token)
             user = token_obj.user
-            
-            # Set new password
+
             user.set_password(reset_password_form.cleaned_data['password1'])
             user.save()
             
-            # Mark token as expired
             token_obj.expired = True
             token_obj.save()
             
@@ -574,10 +556,9 @@ class ResetPasswordView(TemplateView):
 
 class EntriesAjaxView(View):
     def get(self, request, *args, **kwargs):
-        prefix = request.GET.get('prefix')  # expected 'inc' or 'exp'
+        prefix = request.GET.get('prefix')
         user = request.user
 
-        # map prefix → configuration
         if prefix == 'inc':
             entry_type    = Entry.INCOME
             page_param    = 'inc_page'
@@ -599,11 +580,8 @@ class EntriesAjaxView(View):
         else:
             return JsonResponse({'error': 'Invalid prefix'}, status=400)
 
-        # base QuerySet
         qs = Entry.objects.filter(user=user, type=entry_type)
 
-        # apply identical filters to your client-side ones
-        # date
         date_from = request.GET.get(f'{prefix}DateFrom')
         date_to   = request.GET.get(f'{prefix}DateTo')
         if date_from:
@@ -611,17 +589,14 @@ class EntriesAjaxView(View):
         if date_to:
             qs = qs.filter(date__lte=date_to)
 
-        # title
         title_q = request.GET.get(f'{prefix}TitleFilter', '').strip()
         if title_q:
             qs = qs.filter(title__icontains=title_q)
 
-        # category (values are lower-cased in your <select>)
         cat_q = request.GET.get(f'{prefix}CategoryFilter', '').strip().lower()
         if cat_q:
             qs = qs.filter(category__name__iexact=cat_q)
 
-        # amounts
         min_amt = request.GET.get(f'{prefix}MinAmount')
         max_amt = request.GET.get(f'{prefix}MaxAmount')
         if min_amt:
@@ -635,12 +610,10 @@ class EntriesAjaxView(View):
             except ValueError:
                 pass
 
-        # ordering + pagination
         qs = qs.order_by('title', '-date')
         page_num = request.GET.get(page_param) or 1
         page_obj = Paginator(qs, 10).get_page(page_num)
 
-        # render your existing entries_table.html
         html = render_to_string('main/components/tables/entries_table.html', {
             'entries':        page_obj.object_list,
             'page_obj':       page_obj,
@@ -658,10 +631,8 @@ class EntriesAjaxView(View):
 class ReportsAjaxView(View):
     def get(self, request, *args, **kwargs):
         user    = request.user
-        # base QS for reports
         qs      = Entry.objects.filter(user=user).order_by('-date')
         
-        # apply the exact same filters you do in JS:
         frm     = request.GET.get('repFrom')
         to      = request.GET.get('repTo')
         ttype   = request.GET.get('repType')
@@ -672,19 +643,16 @@ class ReportsAjaxView(View):
         if to:
             qs = qs.filter(date__lte=to)
         if ttype:
-            # JS maps 'IN'→Income, 'EX'→Expense
             typemap = {'IN': Entry.INCOME, 'EX': Entry.EXPENSE}
             if ttype in typemap:
                 qs = qs.filter(type=typemap[ttype])
         if cat:
             qs = qs.filter(category__id=cat)
 
-        # paginate
         page_num = request.GET.get('report_page') or 1
         page_obj = Paginator(qs, 10).get_page(page_num)
         entries  = page_obj.object_list
         
-        # render just the report_table fragment
         html = render_to_string(
             'main/components/tables/report_table.html',
             {

@@ -2,8 +2,6 @@
 {% block content %}
 <section id="home" role="region" aria-label="Home" class="hero-section">
 
-  
-
   <figure class="absolute inset-0" aria-hidden="true">
     <span class="circle1"></span>
     <span class="circle2"></span>
@@ -15,10 +13,14 @@
   <article class="hero-details">
     <section class="hero-layout">
       <h1 class="hero-title">PennywAIse</h1>
-      <p class="hero-description">
-        Take control of your spending and save for what matters most. Sign up
-        and start tracking your budget in seconds.
-      </p>
+      {% if user.is_authenticated %}
+        <p class="hero-description">Welcome back, {{ user.username }}!
+          Your financial journey continues here. Explore your dashboard to see how
+          you can save more and spend less.</p>
+      {% else %}
+        <p class="hero-description">Take control of your spending and save for what matters most. Sign up
+          and start tracking your budget in seconds..</p>
+      {% endif %}
       <section class="hero-button-layout">
         {% if user.is_authenticated %}
           <a href="{% url 'budget:dashboard' %}" class="button-dark">
@@ -74,67 +76,181 @@
   <article class="feature-article">
     <h2 class="feature-title">Features</h2>
     <ul class="feature-grid">
+      <!-- AI-Powered Insights -->
       <li>
         <article
           tabindex="0"
           role="region"
-          aria-label="card"
+          aria-label="AI Insights"
           class="feature-card"
         >
           <img
-            src="{% static 'images/sample.png' %}"
-            alt="Icon"
+            src="{% static 'images/ai-icon.png' %}"
+            alt="AI Icon"
             class="card-icon"
           />
           <section>
-            <h3 class="card-title">Continue editing.</h3>
+            <h3 class="card-title">AI-Powered Financial Coaching</h3>
             <p class="card-details">
-              Your new image will download as an SVG file…
+              Get intelligent suggestions on where to save, which subscriptions to trim, and personalized tips based on your spending patterns—instantly.
             </p>
           </section>
         </article>
       </li>
+
+      <!-- User Login & Registration -->
       <li>
         <article
           tabindex="0"
           role="region"
-          aria-label="card"
+          aria-label="Login & Registration"
           class="feature-card"
         >
           <img
-            src="{% static 'images/sample.png' %}"
-            alt="Icon"
+            src="{% static 'images/auth-icon.png' %}"
+            alt="Authentication Icon"
             class="card-icon"
           />
           <section>
-            <h3 class="card-title">Continue editing.</h3>
+            <h3 class="card-title">Secure Login & Registration</h3>
             <p class="card-details">
-              Your new image will download as an SVG file…
+              Sign up, log in and out with ease. Each user has their own secure account and personalized data—backed by Django’s battle-tested authentication.
             </p>
           </section>
         </article>
       </li>
+
+      <!-- CRUD Entries -->
       <li>
         <article
           tabindex="0"
           role="region"
-          aria-label="card"
+          aria-label="Add/Edit/Delete Entries"
           class="feature-card"
         >
           <img
-            src="{% static 'images/sample.png' %}"
-            alt="Icon"
+            src="{% static 'images/entries-icon.png' %}"
+            alt="Entries Icon"
             class="card-icon"
           />
           <section>
-            <h3 class="card-title">Continue editing.</h3>
+            <h3 class="card-title">Add/Edit/Delete Entries</h3>
             <p class="card-details">
-              Your new image will download as an SVG file…
+              Effortlessly record income or expenses with title, amount, date & notes—and modify or remove them anytime.
             </p>
           </section>
         </article>
       </li>
-      <!-- repeat <li><article> for cards 2 & 3 -->
+
+      <!-- Categorization -->
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="Categorization"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/categories-icon.png' %}"
+            alt="Categorization Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Smart Categorization</h3>
+            <p class="card-details">
+              Organize your spending—Food, Travel, Bills—and gain clarity. Choose from preset categories or add your own.
+            </p>
+          </section>
+        </article>
+      </li>
+
+      <!-- Monthly Visual Summary -->
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="Monthly Summary"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/charts-icon.png' %}"
+            alt="Charts Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Monthly Summary & Charts</h3>
+            <p class="card-details">
+              Pie charts of category spend & bar charts comparing income vs. expense—so you instantly see where your money goes each month.
+            </p>
+          </section>
+        </article>
+      </li>
+
+      <!-- Dashboard -->
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="Dashboard"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/dashboard-icon.png' %}"
+            alt="Dashboard Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Intuitive Dashboard</h3>
+            <p class="card-details">
+              One glance shows total income, total expenses, remaining balance, plus quick links to add entries or view history.
+            </p>
+          </section>
+        </article>
+      </li>
+
+      <!-- Stretch Goal: Budgets -->
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="Budget Alerts"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/budget-icon.png' %}"
+            alt="Budget Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Budget Setting & Alerts</h3>
+            <p class="card-details">
+              Define monthly budgets per category or overall—get notified the moment you approach or exceed your limit.
+            </p>
+          </section>
+        </article>
+      </li>
+
+      <!-- Stretch Goal: CSV Export -->
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="CSV Export"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/export-icon.png' %}"
+            alt="Export Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Export Your Data</h3>
+            <p class="card-details">
+              Download your entire history as CSV—filter by date or category—and analyze in Excel or Google Sheets.
+            </p>
+          </section>
+        </article>
+      </li>
     </ul>
   </article>
 </section>
