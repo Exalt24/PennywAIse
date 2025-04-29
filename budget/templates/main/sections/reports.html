@@ -35,7 +35,7 @@
       </form>
     </header>
 
-    {% with section_id="reports" aria_label="Report entries table" table_id="reportTable" page_obj=page_obj_report page_param="report_page" %}
+    {% with section_id="reports" aria_label="Report entries table" table_id="reportTable" page_obj=page_obj_report page_param="report_page" tbody_id="reportTable" %}
       {% include "main/components/tables/report_table.html" %}
     {% endwith %}
 </section>

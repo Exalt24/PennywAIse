@@ -3,7 +3,7 @@
 <section id="income" class="page-content hidden" role="region" aria-label="Income entries">
     <header class="flex justify-between items-center mb-5">
         <h2 class="pagetitle">Income</h2>
-        {% with prefix="inc" filter_aria_label="Filter income entries" title_input_class="px-2 py-1 border rounded" %}
+        {% with prefix="inc" filter_aria_label="Filter income entries" title_input_class="px-2 py-1 border rounded" form_id="incFilterForm" %}
           {% include "main/components/filters/entries_filter.html" %}
         {% endwith %}
     </header>

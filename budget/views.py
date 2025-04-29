@@ -13,6 +13,8 @@ import csv
 from django.contrib import messages
 import secrets
 from django.core.paginator import Paginator
+from django.http           import JsonResponse
+from django.template.loader import render_to_string
 
 User = get_user_model()
 
@@ -42,9 +44,51 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "main/dashboard.html"
 
     def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
         # CSV export if requested
         if request.GET.get('export') == 'csv':
             return self._export_csv(request)
+
+        # if this is our JS-driven filter/pagination request…
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            # decide which entries and page_obj to feed in:
+            is_income = any(k.startswith("inc_") for k in request.GET) or "inc_page" in request.GET
+            if is_income:
+                entries    = context["income_entries"]
+                page_obj   = context["page_obj_income"]
+                section_id = "income"
+                tbody_id   = "incomeTable"
+                page_param = "inc_page"
+                empty_msg  = "No income entries found."
+                amount_cls = "text-green-600"
+                amount_pre = "+"
+            else:
+                entries    = context["expense_entries"]
+                page_obj   = context["page_obj_expense"]
+                section_id = "expenses"
+                tbody_id   = "expenseTable"
+                page_param = "exp_page"
+                empty_msg  = "No expense entries found."
+                amount_cls = "text-red-600"
+                amount_pre = "-"
+
+            html = render_to_string(
+                "main/components/tables/entries_table.html",
+                {
+                  # everything base_table.html needs:
+                  "section_id":   section_id,
+                  "aria_label":   f"{section_id.capitalize()} entries",
+                  "tbody_id":     tbody_id,
+                  "page_obj":     page_obj,
+                  "page_param":   page_param,
+                  "empty_message":empty_msg,
+                  "amount_class": amount_cls,
+                  "amount_prefix":amount_pre,
+                  "entries":      entries,
+                },
+                request=request
+            )
+            return JsonResponse({"html": html})
 
         return super().get(request, *args, **kwargs)
 
@@ -223,18 +267,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['chart_cat_expense'] = [ float(r['expense'] or 0) for r in summary ]
 
         qs = Entry.objects.filter(user=user)
-        gf = self.request.GET
-
-        if gf.get('from'):
-            qs = qs.filter(date__gte=gf['from'])
-        if gf.get('to'):
-            qs = qs.filter(date__lte=gf['to'])
-        if gf.get('type'):
-            qs = qs.filter(type=gf['type'])
-        if gf.get('category'):
-            qs = qs.filter(category_id=gf['category'])
-
-        ctx['report_entries'] = qs.order_by('-date')
 
         inc_qs = ctx['income_entries']
         inc_page = Paginator(inc_qs,10).get_page(self.request.GET.get('inc_page'))
@@ -253,6 +285,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         full_qs = Entry.objects.filter(user=user).order_by('-date')
         ctx['report_entries_all'] = full_qs
+
+        ctx['report_entries'] = qs.order_by('-date')
 
         rep_qs = ctx['report_entries']
         rep_page = Paginator(rep_qs,10).get_page(self.request.GET.get('report_page'))

@@ -15,7 +15,7 @@
   {% for e in report_entries %}
     <tr>
       <td class="px-3 py-2" role="cell">{{ e.title }}</td>
-      <td class="px-3 py-2" role="cell">{{ e.category.name }}</td>
+      <td class="px-3 py-2" role="cell" data-cat-id="{{ e.category.id }}">{{ e.category.name }}</td>
       <td class="px-3 py-2 text-right" role="cell">₱{{ e.amount|floatformat:2 }}</td>
       <td class="px-3 py-2" role="cell">{{ e.date|date:"Y-m-d" }}</td>
       <td class="px-3 py-2" role="cell">{{ e.get_type_display }}</td>
@@ -27,7 +27,10 @@
       </td>
     </tr>
   {% endfor %}
+{% endblock %}
 
+{% block extra_content %}
+  <!-- Hidden table for full data export -->
   <table id="fullReportTable" class="hidden">
     <thead>
       <tr>
@@ -42,7 +45,7 @@
       {% for e in report_entries_all %}
         <tr>
           <td>{{ e.title }}</td>
-          <td>{{ e.category.name }}</td>
+          <td data-cat-id="{{ e.category.id }}">{{ e.category.name }}</td>
           <td>{{ e.amount|floatformat:2 }}</td>
           <td>{{ e.date|date:"Y-m-d" }}</td>
           <td>{{ e.get_type_display }}</td>
