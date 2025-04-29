@@ -1,176 +1,253 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block title %}Home{% endblock %}
-
+{% extends "base.html" %} {% load static %} {% block title %}Home{% endblock %}
 {% block content %}
-  <section id="home"
-           role="region"
-           aria-label="Home"
-           class="relative overflow-hidden min-h-screen flex items-center bg-gradient-to-b from-[#BD132D] to-[#642828]">
+<section id="home" role="region" aria-label="Home" class="hero-section">
+  <figure class="absolute inset-0" aria-hidden="true">
+    <span class="circle1"></span>
+    <span class="circle2"></span>
+    <span class="circle3"></span>
+    <span class="circle4"></span>
+    <span class="circle5"></span>
+  </figure>
 
-    <figure class="absolute inset-0" aria-hidden="true">
-      <span class="absolute bg-[#1B1F1E] opacity-60 w-64 h-64 rounded-full top-10 left-10 filter pointer-events-none"></span>
-      <span class="absolute bg-[#BD132D] opacity-50 w-48 h-48 rounded-full top-1/3 left-1/4 filter pointer-events-none"></span>
-      <span class="absolute bg-[#BD132D] opacity-40 w-40 h-40 rounded-full top-1/2 left-2/3 filter pointer-events-none"></span>
-      <span class="absolute bg-[#1B1F1E] opacity-30 w-56 h-56 rounded-full bottom-20 left-1/3 filter pointer-events-none"></span>
-      <span class="absolute bg-[#1B1F1E] opacity-35 w-32 h-32 rounded-full bottom-10 right-20 filter pointer-events-none"></span>
-    </figure>
-
-    <article class="relative z-10 container max-w-7xl mx-auto px-6 flex flex-col-reverse lg:flex-row items-center py-24">
-      <section class="w-full lg:w-1/2 text-center lg:text-left mb-12 lg:mb-0">
-        <h1 class="text-6xl font-extrabold text-[#e7e4de] mb-4 leading-tight">PennywAIse</h1>
-        <p class="text-lg text-[#e7e4de] mb-8 max-w-md mx-auto lg:mx-0">
-          Take control of your spending and save for what matters most.
-          Sign up and start tracking your budget in seconds.
-        </p>
-        <section class="flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4">
-          <a href="/auth?form=register"
-             class="inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 shadow-lg transition">
-            Register
-          </a>
-          <a href="#about"
-             class="inline-block bg-transparent hover:bg-white hover:text-[#1B1F1E] text-white font-semibold rounded-full px-6 py-3 border border-white transition">
-            Learn More
-          </a>
-        </section>
-      </section>
-    </article>
-  </section>
-
-  <!-- About Section -->
-  <section id="about"
-           role="region"
-           aria-label="About PennywAise"
-           class="py-20 bg-[#e7e4de] h-screen flex items-center">
-    <article class="container mx-auto px-6 max-w-4xl text-center">
-      <h2 class="text-3xl font-bold mb-10 text-[#40020F]">About PennywAise</h2>
-      <p class="text-[#262F2A] text-justify leading-relaxed tracking-normal">
-        PennywAise is your all-in-one personal finance assistant. From the moment you link your accounts, it automatically categorizes every transaction—so you can see exactly where your money is going without lifting a finger. Set custom budgets for groceries, bills, entertainment or anything else, and get real-time alerts whenever you're approaching your limits. Want to save for a vacation, a new gadget, or an emergency fund? PennywAise's goal-tracker breaks down your target into manageable milestones, sends friendly reminders, and even suggests small adjustments you can make this week to stay on pace. Thousands of happy users have already taken control of their finances—reducing overspend by up to 30%, hitting savings targets months early, and finally feeling confident about their money. Ready to join them? Let PennywAise guide you to better spending, smarter saving, and greater financial peace of mind.
+  <article class="hero-details">
+    <section class="hero-layout">
+      <h1 class="hero-title">PennywAIse</h1>
+      <p class="hero-description">
+        Take control of your spending and save for what matters most. Sign up
+        and start tracking your budget in seconds.
       </p>
-    </article>
-  </section>
+      <section class="hero-button-layout">
+        <a href="/auth?form=register" class="button-dark"> Register </a>
+        <a href="#about" class="button-outline"> Learn More </a>
+      </section>
+    </section>
+  </article>
+</section>
 
-  <!-- Features Section -->
-  <section id="features"
-           role="region"
-           aria-label="Key Features"
-           class="py-20 bg-[#deded9] h-screen">
-    <article class="container mx-auto px-6 max-w-6xl">
-      <h2 class="text-3xl font-bold text-center mb-12 text-[#40020F]">Features</h2>
-      <ul class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <li>
-          <article tabindex="0"
-                   role="region"
-                   aria-label="Feature: Continue editing"
-                   class="bg-[#e7e4de] rounded-lg p-6 shadow flex space-x-4 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#40020F]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700"
-                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            </svg>
-            <section>
-              <h3 class="text-xl font-semibold mb-2 text-[#40020F]">Continue editing.</h3>
-              <p class="text-[#262F2A] text-sm">
-                Your new image will download as an SVG file…
-              </p>
-            </section>
-          </article>
-        </li>
-        <!-- repeat <li><article> for cards 2 & 3 -->
-      </ul>
-    </article>
-  </section>
+<!-- About Section -->
+<section
+  id="about"
+  role="region"
+  aria-label="About PennywAise"
+  class="about-section"
+>
+  <article class="about-article">
+    <h2 class="about-title">About PennywAise</h2>
+    <p class="about-details">
+      PennywAise is your all-in-one personal finance assistant. From the moment
+      you link your accounts, it automatically categorizes every transaction—so
+      you can see exactly where your money is going without lifting a finger.
+      Set custom budgets for groceries, bills, entertainment or anything else,
+      and get real-time alerts whenever you're approaching your limits. Want to
+      save for a vacation, a new gadget, or an emergency fund? PennywAise's
+      goal-tracker breaks down your target into manageable milestones, sends
+      friendly reminders, and even suggests small adjustments you can make this
+      week to stay on pace. Thousands of happy users have already taken control
+      of their finances—reducing overspend by up to 30%, hitting savings targets
+      months early, and finally feeling confident about their money. Ready to
+      join them? Let PennywAise guide you to better spending, smarter saving,
+      and greater financial peace of mind.
+    </p>
+  </article>
+</section>
 
-  <!-- Contact Section -->
-  <section id="contact"
-           role="region"
-           aria-label="Contact Us"
-           class="py-20 bg-[#e7e4de]">
-    <article class="container mx-auto px-6 max-w-4xl">
-      <h2 class="text-3xl font-bold uppercase tracking-wide mb-8 text-[#40020F] text-center">
-        aren't you gonna say hello?
-      </h2>
-      <form method="post"
-            action="#contact"
-            role="form"
-            aria-labelledby="contact-form-legend"
-            class="space-y-6">
-        {% csrf_token %}
-        <fieldset class="max-w-md mx-auto space-y-6">
-          <legend id="contact-form-legend" class="sr-only">Contact Form</legend>
-
-          <label for="name" class="block text-xs font-medium text-[#050704] uppercase mb-1">Name</label>
-          {{ contact_form.name }}
-          {% if contact_form.name.errors %}
-            <p id="error-name" class="text-red-600 text-xs mt-1" role="alert">
-              {{ contact_form.name.errors.0 }}
+<!-- Features Section -->
+<section
+  id="features"
+  role="region"
+  aria-label="Key Features"
+  class="feature-section"
+>
+  <article class="feature-article">
+    <h2 class="feature-title">Features</h2>
+    <ul class="feature-grid">
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="card"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/sample.png' %}"
+            alt="Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Continue editing.</h3>
+            <p class="card-details">
+              Your new image will download as an SVG file…
             </p>
-          {% endif %}
-
-          <label for="email" class="block text-xs font-medium text-[#050704] uppercase mb-1">Email</label>
-          {{ contact_form.email }}
-          {% if contact_form.email.errors %}
-            <p id="error-email" class="text-red-600 text-xs mt-1" role="alert">
-              {{ contact_form.email.errors.0 }}
+          </section>
+        </article>
+      </li>
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="card"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/sample.png' %}"
+            alt="Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Continue editing.</h3>
+            <p class="card-details">
+              Your new image will download as an SVG file…
             </p>
-          {% endif %}
-
-          <label for="subject" class="block text-xs font-medium text-[#050704] uppercase mb-1">Subject</label>
-          {{ contact_form.subject }}
-          {% if contact_form.subject.errors %}
-            <p id="error-subject" class="text-red-600 text-xs mt-1" role="alert">
-              {{ contact_form.subject.errors.0 }}
+          </section>
+        </article>
+      </li>
+      <li>
+        <article
+          tabindex="0"
+          role="region"
+          aria-label="card"
+          class="feature-card"
+        >
+          <img
+            src="{% static 'images/sample.png' %}"
+            alt="Icon"
+            class="card-icon"
+          />
+          <section>
+            <h3 class="card-title">Continue editing.</h3>
+            <p class="card-details">
+              Your new image will download as an SVG file…
             </p>
-          {% endif %}
+          </section>
+        </article>
+      </li>
+      <!-- repeat <li><article> for cards 2 & 3 -->
+    </ul>
+  </article>
+</section>
 
-          <label for="message" class="block text-xs font-medium text-[#050704] uppercase mb-1">Message</label>
-          {{ contact_form.message }}
-          {% if contact_form.message.errors %}
-            <p id="error-message" class="text-red-600 text-xs mt-1" role="alert">
-              {{ contact_form.message.errors.0 }}
-            </p>
-          {% endif %}
+<!-- Contact Section -->
+<section
+  id="contact"
+  role="region"
+  aria-label="Contact Us"
+  class="py-20 bg-[#e7e4de]"
+>
+  <article class="contact-x">
+    <h2 class="contact-title">aren't you gonna say hello?</h2>
+    <form
+      method="post"
+      action="#contact"
+      role="form"
+      aria-labelledby="contact-form-legend"
+      class="space-y-6"
+    >
+      {% csrf_token %}
+      <fieldset class="form-layout">
+        <legend id="contact-form-legend" class="sr-only">Contact Form</legend>
 
-          <button type="submit"
-                  name="send-message"
-                  class="inline-flex items-center border-2 border-[#c3002d] text-[#c3002d] uppercase text-sm tracking-wide px-6 py-2 rounded-full hover:bg-red-50 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c3002d]">
+        <label for="name" class="contact-label">Name</label>
+        {{ contact_form.name }} {% if contact_form.name.errors %}
+        <p id="error-name" class="error-label" role="alert">
+          {{ contact_form.name.errors.0 }}
+        </p>
+        {% endif %}
+
+        <label for="email" class="contact-label">Email</label>
+        {{ contact_form.email }} {% if contact_form.email.errors %}
+        <p id="error-email" class="error-label" role="alert">
+          {{ contact_form.email.errors.0 }}
+        </p>
+        {% endif %}
+
+        <label for="subject" class="contact-label">Subject</label>
+        {{ contact_form.subject }} {% if contact_form.subject.errors %}
+        <p id="error-subject" class="error-label" role="alert">
+          {{ contact_form.subject.errors.0 }}
+        </p>
+        {% endif %}
+
+        <label for="message" class="contact-label">Message</label>
+        {{ contact_form.message }} {% if contact_form.message.errors %}
+        <p id="error-message" class="error-label" role="alert">
+          {{ contact_form.message.errors.0 }}
+        </p>
+        {% endif %}
+
+        <div class="flex">
+          <button
+            type="submit"
+            name="send-message"
+            class="contact-button ml-auto"
+          >
             Send Message
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M2 2l12 6-12 6 3-6-3-6z"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4 ml-2"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path d="M2 2l12 6-12 6 3-6-3-6z" />
             </svg>
           </button>
-        </fieldset>
-      </form>
-    </article>
-  </section>
+        </div>
+      </fieldset>
+    </form>
+  </article>
+</section>
 
-  <section id="notification-modal"
-          role="alertdialog"
-          aria-modal="true"
-          aria-describedby="modal-message"
-          aria-hidden="true"
-          class="fixed inset-0 flex items-center justify-center z-50 hidden">
-    <article class="bg-white rounded-lg shadow-lg p-4 max-w-xs w-full mx-4 relative border-l-4 border-green-500">
-      <button id="close-modal"
-              class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              aria-label="Close notification">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-      <figure class="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
-        <p id="modal-message" class="text-sm font-medium text-gray-700">
-          Your message has been sent! We'll get back to you soon.
-        </p>
-      </figure>
-    </article>
-  </section>
-{% endblock %}
-
-
-{% block extra_js %}
+<!-- Contact notif -->
+<section
+  id="notification-modal"
+  role="alertdialog"
+  aria-modal="true"
+  aria-describedby="modal-message"
+  aria-hidden="true"
+  class="fixed inset-0 flex items-start mt-6 justify-center z-50 hidden"
+>
+  <article class="notif-container">
+    <button
+      id="close-modal"
+      class="notif-close"
+      aria-label="Close notification"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+    <figure class="flex items-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6 mr-3 text-[#642828]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 13l4 4L19 7"
+        />
+      </svg>
+      <p id="modal-message" class="notif-message">
+        Your message has been sent! We'll get back to you soon.
+      </p>
+    </figure>
+  </article>
+</section>
+{% endblock %} {% block extra_js %}
 
 <script>
   const navLinks = Array.from(document.querySelectorAll('.nav-link'));
@@ -249,6 +326,5 @@
     });
   });
 </script>
-
 
 {% endblock %}

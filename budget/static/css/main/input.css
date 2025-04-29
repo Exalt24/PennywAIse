@@ -60,13 +60,59 @@ header {
 .menu {
   @apply block px-4 py-2 hover:bg-gray-100;
 }
-
+.hero-section {
+  @apply relative overflow-hidden min-h-screen flex items-center bg-gradient-to-b from-[#BD132D] to-[#642828]
+}
+.circle1 {
+  @apply absolute bg-[#1B1F1E] opacity-60 w-64 h-64 rounded-full top-10 left-10 filter pointer-events-none
+}
+.circle2 {
+  @apply absolute bg-[#BD132D] opacity-50 w-48 h-48 rounded-full top-1/3 left-1/4 filter pointer-events-none
+}
+.circle3 {
+  @apply absolute bg-[#BD132D] opacity-40 w-40 h-40 rounded-full top-1/2 left-2/3 filter pointer-events-none
+}
+.circle4 {
+  @apply absolute bg-[#1B1F1E] opacity-30 w-56 h-56 rounded-full bottom-20 left-1/3 filter pointer-events-none
+}
+.circle5 {
+  @apply absolute bg-[#1B1F1E] opacity-35 w-32 h-32 rounded-full bottom-10 right-20 filter pointer-events-none
+}
+.hero-details {
+  @apply relative z-10 container max-w-7xl mx-auto px-6 flex flex-col-reverse lg:flex-row items-center py-24
+}
+.hero-layout {
+  @apply w-full lg:w-1/2 text-center lg:text-left mb-12 lg:mb-0
+}
+.hero-title {
+  @apply text-6xl font-extrabold text-[#e7e4de] mb-4 leading-tight
+}
+.hero-description {
+  @apply text-lg text-[#e7e4de] mb-8 max-w-md mx-auto lg:mx-0
+}
+.hero-button-layout {
+  @apply flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4
+}
+.button-dark {
+  @apply inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 shadow-lg transition
+}
+.button-outline {
+  @apply inline-block bg-transparent hover:bg-white hover:text-[#1B1F1E] text-white font-semibold rounded-full px-6 py-3 border border-white transition
+}
 .pagetitle {
   @apply text-2xl font-bold text-[#40020F];
 }
-
 .overview {
   @apply grid gap-4 mb-5 grid-cols-[repeat(auto-fit,minmax(200px,1fr))];
+}
+.about-section {
+  @apply py-20 bg-[#e7e4de] h-screen flex items-center
+}
+.about-article {
+  @apply container mx-auto px-6 max-w-4xl text-center
+}
+.about-details {
+  @apply text-[#262F2A] text-justify leading-relaxed tracking-normal
 }
 .card {
   @apply bg-[#fdfdfb] rounded-xl p-4 shadow-md;
@@ -74,13 +120,63 @@ header {
 .card .title {
   @apply text-sm text-[#666] mb-2;
 }
+.card-details {
+  @apply text-[#262F2A] text-sm
+}
 .card .value {
   @apply text-xl font-bold mb-2;
 }
 .card .meta {
   @apply text-xs text-[#666];
 }
-
+.feature-card {
+  @apply bg-[#e7e4de] rounded-xl p-6 flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover:scale-102 hover:shadow-lg
+}
+.card-title {
+  @apply text-xl font-semibold mb-2 text-[#40020F]
+}
+.card-icon {
+  @apply w-6 h-6 object-contain
+}
+.feature-article {
+  @apply mx-auto px-6 max-w-6xl
+}
+.feature-title, .about-title {
+  @apply text-3xl font-bold text-center mb-12 text-[#40020F]
+}
+.feature-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-8
+}
+.feature-section {
+  @apply py-20 bg-[#deded9] h-screen
+}
+.contact-title {
+  @apply text-3xl font-bold uppercase tracking-wide mb-8 text-[#40020F] text-center
+}
+.contact-label {
+  @apply block text-xs font-medium text-[#050704] uppercase mb-1
+}
+.contact-button {
+  @apply inline-flex items-center border-2 border-[#c3002d] text-[#c3002d] hover:text-[#000000] hover:shadow-md uppercase text-sm tracking-wide px-6 py-2 rounded-full hover:bg-white hover:border-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c3002d]
+}
+.contact-x {
+  @apply mx-auto px-6 max-w-4xl
+}
+.form-layout {
+  @apply max-w-md mx-auto space-y-6
+}
+.notif-container {
+  @apply bg-white rounded-lg shadow-lg p-6 max-w-xs w-full mx-4 relative border-l-4 border-[#642828]
+}
+.error-label {
+  @apply text-red-600 text-xs mt-1
+}
+.notif-close {
+  @apply absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2
+}
+.notif-message {
+  @apply text-sm font-medium text-gray-700
+}
 .content {
   @apply flex flex-wrap gap-8 mb-5;
 }
