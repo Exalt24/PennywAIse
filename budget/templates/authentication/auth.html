@@ -9,6 +9,26 @@
   <section role="region" aria-label="Authentication page" class="grid grid-cols-1 md:grid-cols-2">
     <!-- Hero / Left Panel -->
     <section role="region" aria-label="Hero section" class="h-screen bg-gradient-to-b from-[#BD132D] to-[#642828] relative flex flex-col justify-center px-12 text-white">
+      <!-- Back button -->
+      <a
+        href="/"
+        aria-label="Go back"
+        class="
+          absolute top-4 left-4 z-50
+          inline-flex flex-row items-center justify-center
+          space-x-2 whitespace-nowrap
+          px-5 py-2
+          bg-black text-white rounded-full hover:bg-gray-800
+        "
+      >
+        <img
+          src="{% static 'images/back-arrow.png' %}"
+          alt="Back"
+          class="w-8 h-8 flex-shrink-0"
+        />
+        Back
+      </a>
+
       <h1 class="text-5xl font-bold mb-4">PennywAIse</h1>
       <p class="text-lg mb-8">Join our community of users and take control of your financial future.</p>
       <figure aria-hidden="true" class="absolute">
@@ -25,7 +45,7 @@
           id="register-card"
           role="region"
           aria-labelledby="register-heading"
-          class="h-135 absolute inset-0 bg-[#dcdcdc] rounded-lg shadow-lg pt-10 p-6 transform transition-all duration-500 ease-in-out z-10 translate-x-8 translate-y-8 overflow-auto"
+          class="h-135 absolute inset-0 bg-[#dcdcdc] rounded-lg shadow-lg pt-10 p-6 transform transition-all duration-500 ease-in-out z-10 translate-x-8 translate-y-8 overflow-hidden"
         >
           <h2 id="register-heading" class="text-3xl font-bold mb-4 text-[#642828] text-center">Register</h2>
           <form method="post" role="form" aria-describedby="register-errors" class="space-y-4">
@@ -170,7 +190,7 @@
           id="login-card"
           role="region"
           aria-labelledby="login-heading"
-          class="h-135 absolute inset-0 bg-[#e7e4de] rounded-lg shadow-lg pt-15 p-6 transform transition-all duration-500 ease-in-out z-20 translate-x-0 translate-y-0 overflow-auto"
+          class="h-135 absolute inset-0 bg-[#e7e4de] rounded-lg shadow-lg pt-15 p-6 transform transition-all duration-500 ease-in-out z-20 translate-x-0 translate-y-0 overflow-hidden"
         >
           <h2 id="login-heading" class="text-3xl font-bold mb-4 jus text-[#642828] text-center">Login</h2>
           {% if login_error %}
@@ -352,6 +372,34 @@
         this.style.opacity = '0.7';
         this.style.cursor = 'not-allowed';
       });
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('#register-card, #login-card');
+      const authContainer = document.querySelector('section[aria-label="Authentication container"]');
+  
+      const hasErrors = Boolean(
+        document.querySelector('#register-errors, #login-errors, p[role="alert"]')
+      );
+  
+      if (hasErrors) {
+        cards.forEach(card => {
+          if (card.classList.contains('h-135')) {
+            card.classList.replace('h-135', 'h-150');
+          } else {
+            card.classList.add('h-150');
+          }
+        });
+  
+        if (authContainer) {
+          if (authContainer.classList.contains('mt-20')) {
+            authContainer.classList.replace('mt-20', 'mt-10');
+          } else {
+            authContainer.classList.add('mt-10');
+          }
+        }
+      }
     });
   </script>
 {% endblock %}
