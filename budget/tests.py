@@ -7,11 +7,11 @@ from .models import Category, Entry
 from .forms import EntryForm, CategoryForm, LoginForm, RegisterForm
 
 # Import all tests from modularized test files
-from .tests.test_models import CategoryModelTest, EntryModelTest
-from .tests.test_forms import CategoryFormTest, EntryFormTest, LoginFormTest, RegisterFormTest
-from .tests.test_views import IndexViewTest, AuthViewTest, DashboardViewTest
-from .tests.test_security import SecurityTest
-from .tests.test_integration import BudgetTrackerIntegrationTest, MultipleUserIntegrationTest
+from .tests_suite.test_models import CategoryModelTest, EntryModelTest
+from .tests_suite.test_forms import CategoryFormTest, EntryFormTest, LoginFormTest, RegisterFormTest
+from .tests_suite.test_views import IndexViewTest, AuthViewTest, DashboardViewTest
+from .tests_suite.test_security import SecurityTest
+from .tests_suite.test_integration import BudgetTrackerIntegrationTest, MultipleUserIntegrationTest
 
 User = get_user_model()
 
