@@ -2,55 +2,115 @@
 
 <section aria-label="Header" class="hero-header">
   <header class="header-layout">
+    <!-- Logo -->
     <a href="/" aria-label="Go to homepage">
-      <img id="logoImage" alt="PennywAise logo" class="h-12 w-auto mr-2" />
+      <img
+        id="logoImage"
+        src="{% static 'images/logo3.png' %}"
+        alt="PennywAIse logo"
+        class="h-12 w-auto mr-2"
+      />
     </a>
+
+    <!-- Nav links -->
     <ul class="header-nav">
       <li>
         <a
           href="#about"
           class="nav-link text-white hover:text-[#8E8178] transition px-2 pb-1"
-          aria-current="page"
+          >About</a
         >
-          About
-        </a>
       </li>
       <li>
         <a
           href="#features"
           class="nav-link text-white hover:text-[#8E8178] transition px-2 pb-1"
+          >Features</a
         >
-          Features
-        </a>
       </li>
       <li>
         <a
           href="#contact"
           class="nav-link text-white hover:text-[#8E8178] transition px-2 pb-1"
+          >Contact</a
         >
-          Contact
-        </a>
       </li>
     </ul>
-    <section class="flex items-center space-x-4">
+
+    <!-- Auth dropdown -->
+    <section class="flex items-center">
       {% if user.is_authenticated %}
-        <span class="user-authenticated text-white">Welcome back, {{ user.first_name|default:user.username }}!</span>
-        <form
-            method="post"
-            action="{% url 'logout' %}"
-            class=""
-            role="none"
-          >
+      <details class="relative">
+        <summary class="profile-dropdown">
+          <span id="userGreeting" class="text-white">
+            Welcome back, {{ user.first_name|default:user.username }}!
+          </span>
+          <img
+            id="dropdownIcon"
+            src="{% static 'images/dropdown.png' %}"
+            alt="▾"
+            class="dropdown-icon"
+          />
+        </summary>
+        <div class="dropdown-modal">
+          <form method="post" action="{% url 'logout' %}" role="none">
             {% csrf_token %}
-            <button type="submit" role="menuitem" class="button-darksm">
-              Logout
-            </button>
+            <button type="submit" class="dropdown-button">Logout</button>
           </form>
+        </div>
+      </details>
       {% else %}
-        <a href="{% url 'budget:auth' %}" class="button-darksm">
-          Login
-        </a>
+      <a href="{% url 'budget:auth' %}" class="button-darksm">Login</a>
       {% endif %}
     </section>
   </header>
 </section>
+
+<script>
+  const navLinks = Array.from(document.querySelectorAll(".nav-link"));
+  const logoImage = document.getElementById("logoImage");
+  const dropdownIcon = document.getElementById("dropdownIcon");
+  const userGreeting = document.getElementById("userGreeting");
+
+  const homeLogoSrc = "{% static 'images/logo3.png' %}";
+  const otherLogoSrc = "{% static 'images/logo9.png' %}";
+
+  function updateHeader() {
+    let current = "";
+    navLinks.forEach((link) => {
+      const id = link.getAttribute("href").slice(1);
+      const sec = document.getElementById(id);
+      if (sec && window.pageYOffset >= sec.offsetTop - 80) {
+        current = id;
+      }
+    });
+    const isHome = !current || current === "home";
+
+    // 1) Swap logo
+    logoImage.src = isHome ? homeLogoSrc : otherLogoSrc;
+
+    // 2) Only touch the dropdown icon if it exists
+    if (dropdownIcon) {
+      dropdownIcon.classList.toggle("inverted", isHome);
+    }
+
+    // 3) Nav-link color & underline
+    navLinks.forEach((link) => {
+      link.classList.toggle("text-white", isHome);
+      link.classList.toggle("text-[#40020F]", !isHome);
+
+      const active = link.getAttribute("href") === `#${current}`;
+      link.classList.toggle("border-b-2", active);
+      link.classList.toggle("border-[#c3002d]", active);
+    });
+
+    // 4) Greeting color (already guarded)
+    if (userGreeting) {
+      userGreeting.classList.toggle("text-white", isHome);
+      userGreeting.classList.toggle("text-[#40020F]", !isHome);
+    }
+  }
+
+  window.addEventListener("scroll", updateHeader);
+  window.addEventListener("load", updateHeader);
+</script>

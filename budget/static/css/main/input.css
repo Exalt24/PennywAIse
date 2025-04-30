@@ -19,7 +19,7 @@
   line-height: var(--tw-leading, var(--text-2xl--line-height));
   --tw-font-weight: var(--font-weight-bold);
   font-weight: var(--font-weight-bold);
-  color: #40020F;
+  color: #40020f;
 }
 .create {
   @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-8;
@@ -75,7 +75,7 @@ header {
   @apply flex justify-between items-center;
 }
 .header-m {
-  @apply mb-5 mt-6
+  @apply mb-5 mt-6;
 }
 .header-layout {
   @apply max-w-7xl mx-auto px-6 py-4 flex justify-between items-center;
@@ -287,4 +287,31 @@ th.sortable.sort-asc::after {
 th.sortable.sort-desc::after {
   content: "▼";
   opacity: 1;
+}
+
+details summary img {
+  transition: transform 0.2s ease-in-out;
+}
+details[open] summary img {
+  transform: rotate(180deg);
+}
+
+#dropdownIcon {
+  transition: filter 0.2s ease-in-out;
+}
+
+#dropdownIcon.inverted {
+  filter: invert(1);
+}
+.profile-dropdown {
+  @apply flex items-center cursor-pointer px-4 py-2 rounded focus:outline-none;
+}
+.dropdown-icon {
+  @apply w-4 h-4 ml-2 transition-transform duration-200;
+}
+.dropdown-modal {
+  @apply absolute right-0 mt-2 w-40 bg-white text-gray-800 rounded-md shadow-lg z-10;
+}
+.dropdown-button {
+  @apply block w-full text-left px-4 py-2 text-sm rounded-md hover:bg-gray-300;
 }
