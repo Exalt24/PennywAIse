@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const isCurrentlyVisible = !page.classList.contains('hidden');
 
       if (isCurrentlyVisible && !willBeVisible) {
-        // the moment we're hiding it, reset its data:
         const prefix = page.dataset.prefix;
         if (prefix) resetSection(prefix);
         clearPanel(page);
