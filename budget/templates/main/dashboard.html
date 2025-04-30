@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.non-field-error').forEach(el => el.remove());
       const newHash = target !== 'dashboard' ? `#${target}` : '';
       history.replaceState(null, '', window.location.pathname + newHash);
+      bindNotesRows();
     });
     
   });
@@ -597,6 +598,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
 
 });
 
+
 document.addEventListener('DOMContentLoaded', () => {
   const aiForm = document.getElementById('aiForm');
   const aiPrompt = document.getElementById('aiPrompt');
@@ -618,5 +620,43 @@ document.addEventListener('DOMContentLoaded', () => {
     aiResponse.innerHTML = `<p>${data.answer}</p>`;
   });
 });
+
+const viewNotesModal = document.getElementById('viewNotesModal');
+const notesContent   = document.getElementById('notesContent');
+const closeViewNotes = document.getElementById('closeViewNotes');
+
+// show/hide helpers
+function showNotesModal(notes) {
+  notesContent.textContent = notes || '(No notes)';
+  viewNotesModal.classList.remove('hidden');
+}
+function hideNotesModal() {
+  viewNotesModal.classList.add('hidden');
+}
+
+// 1) listen for clicks on any tr[data-notes]
+document.querySelectorAll('tr[data-notes]').forEach(tr => {
+  tr.addEventListener('click', () => {
+    showNotesModal(tr.dataset.notes);
+  });
+});
+
+// 2) close modal on ✕ or backdrop click
+closeViewNotes.addEventListener('click', hideNotesModal);
+viewNotesModal.addEventListener('click', e => {
+  if (e.target === viewNotesModal) hideNotesModal();
+});
+
+function bindNotesRows() {
+  document.querySelectorAll('tr[data-notes]').forEach(tr => {
+    tr.onclick = () => {
+      const notes = tr.dataset.notes;
+      showNotesModal(notes);
+    };
+  });
+}
+
+// …after you do `innerHTML = data.html` or after showTab(…)…
+
 </script>
 {% endblock %}

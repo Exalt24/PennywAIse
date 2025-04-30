@@ -12,7 +12,10 @@
 
 {% block table_body %}
   {% for entry in entries %}
-    <tr>
+    <tr
+    class="cursor-pointer hover:bg-gray-50"
+    data-notes="{{ entry.notes }}"
+    >
       <td class="px-3 py-2">{{ entry.title }}</td>
       <td class="px-3 py-2">{{ entry.category.name }}</td>
       <td class="px-3 py-2 {{ amount_class }}">{{ amount_prefix }} ₱{{ entry.amount }}</td>
@@ -20,13 +23,15 @@
       <td class="px-3 py-2 whitespace-nowrap">
         <a href="?edit={{ entry.pk }}#{{ section_id }}"
            class="text-blue-600 hover:underline focus:ring-2 focus:ring-offset-1 focus:ring-blue-400"
-           aria-label="Edit entry {{ entry.title }}">Edit</a>
+           aria-label="Edit entry {{ entry.title }}"
+           onclick="event.stopPropagation()"
+           >Edit</a>
         <span class="px-1" aria-hidden="true">|</span>
         <form method="post" class="inline" role="presentation">
           {% csrf_token %}
           <button type="submit" name="delete-entry" value="{{ entry.pk }}"
                   class="text-red-600 hover:underline focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
-                  onclick="return confirm('Delete this entry?');"
+                  onclick="event.stopPropagation(); return confirm('Delete this entry?');"
                   aria-label="Delete entry {{ entry.title }}">Delete</button>
         </form>
       </td>

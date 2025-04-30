@@ -124,7 +124,7 @@
     </section>
 
 
-    {% with section_id="recent" aria_label="Recent Transactions table" table_id="dashboardTable" entries=recent_transactions empty_message="No transactions yet." title="Recent Transactions" title_id="recent-heading" page_obj=page_obj_recent page_param="recent_page" %}
+    {% with section_id="recent" aria_label="Recent Transactions table" table_id="dashboardTable" entries=recent_transactions empty_message="No transactions yet." title="Recent Transactions (latest 10 entries)" title_id="recent-heading" page_obj=page_obj_recent page_param="recent_page" %}
       {% include "main/components/tables/recent_transactions_table.html" %}
     {% endwith %}
 

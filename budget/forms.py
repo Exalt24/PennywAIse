@@ -284,12 +284,11 @@ class BudgetForm(forms.ModelForm):
         fields = ['category', 'amount']
         widgets = {
             'category': forms.Select(attrs={
-                'class': 'mt-1 block w-full border-gray-300 rounded-md shadow-sm '
-                         'focus:ring-indigo-500 focus:border-indigo-500',
+                'class': 'border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-48',
             }),
             'amount': forms.NumberInput(attrs={
                 'step':'0.01',
-                'class':'mt-1 block w-full',
+                'class':'border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-48',
                 'placeholder':'e.g. 15000.00'
             }),
         }

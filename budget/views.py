@@ -246,11 +246,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['page_obj_expense']   = exp_page
         ctx['expense_entries']     = exp_page.object_list
 
-        recent_qs = Entry.objects.filter(user=user).order_by('-date')
-        recent_page = Paginator(recent_qs,10).get_page(self.request.GET.get('recent_page'))
-        ctx['page_obj_recent']       = recent_page
-        ctx['recent_transactions']   = recent_page.object_list
-
         full_qs = Entry.objects.filter(user=user).order_by('-date')
         ctx['report_entries_all'] = full_qs
 
