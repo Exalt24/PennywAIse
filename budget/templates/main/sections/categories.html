@@ -3,7 +3,7 @@
 <section id="categories" class="page-content hidden" role="region" aria-label="Category management">
 
   <!-- HEADER: align title & form at the top -->
-  <header class="flex items-start justify-between mb-5 mt-6">
+  <header class="flex items-start justify-between header-m">
     <h2 class="pagetitle self-start">Categories</h2>
 
     <form
@@ -13,8 +13,8 @@
       aria-labelledby="add-category-heading"
     >
       {% csrf_token %}
-      <!-- Column 1: label + input stacked -->
-      <div class="flex flex-col space-y-2">
+
+      <section class="flex flex-col space-y-2">
         <label for="id_name" class="text-lg font-medium text-[#1B1F1E]">
           New category:
         </label>
@@ -28,15 +28,14 @@
           aria-required="true"
         />
         {% if category_form.name.errors %}
-          <div role="alert" class="text-sm text-red-600">
+          <span role="alert" class="text-sm text-red-600">
             {% for err in category_form.name.errors %}
               <p>{{ err }}</p>
             {% endfor %}
-          </div>
+          </span>
         {% endif %}
-      </div>
+      </section>
 
-      <!-- Column 2: button stays at top -->
       <button
         type="submit"
         name="add-category"
@@ -66,11 +65,6 @@
         button.classList.remove('mb-[28px]');
       }
     }
-
-    // Run on load (for server-rendered errors)
     updateButtonMargin();
-
-    // If you ever inject errors via JS, re-run:
-    // e.g. after AJAX, call updateButtonMargin() again
   });
 </script>
