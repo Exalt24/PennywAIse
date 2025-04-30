@@ -60,6 +60,7 @@ PennywAIse is a Django‑powered budgeting dashboard designed to help you take c
    DEBUG=True                # False in production
    GMAIL_ADDRESS=<your-gmail>@gmail.com
    GMAIL_APP_PASS=<your-16-char-app-password>
+   GENAI_API_KEY=<your-gemini-api-key>
    ```
 
 3. **Install dependencies**
