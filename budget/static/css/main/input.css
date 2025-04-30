@@ -26,13 +26,37 @@
   @apply font-semibold text-white mb-2;
 }
 
-nav a {
+.nav-footer {
   @apply hover:bg-transparent mb-2 flex;
 }
 
-nav a.active,
-nav a:hover,
-nav a.svg {
+/* Base nav link */
+.nav-sidebar {
+  @apply flex items-center space-x-3 py-2 px-4 rounded-full m-2;
+}
+
+/* Make the PNG white by default */
+.nav-sidebar img {
+  @apply filter invert transition duration-150;
+}
+
+/* Hover, Active (class), or aria-current="page" */
+.nav-sidebar:hover,
+.nav-sidebar.active,
+.nav-sidebar[aria-current="page"] {
+  @apply bg-[#e7e4de] text-black;
+}
+
+/* Remove the invert on the image in those same states */
+.nav-sidebar:hover img,
+.nav-sidebar.active img,
+.nav-sidebar[aria-current="page"] img {
+  @apply invert-0;
+}
+
+.nav-footer.active,
+.nav-footer:hover,
+.nav-footer.png {
   @apply text-[#C2544F];
 }
 
@@ -61,10 +85,10 @@ header {
 }
 
 .usermenu {
-  @apply absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50;
+  @apply absolute right-0 mt-2 w-40 bg-white rounded-md shadow-xl z-50;
 }
 .menu {
-  @apply block px-4 py-2 hover:bg-gray-100;
+  @apply block px-4 py-2 hover:bg-gray-100 rounded-md;
 }
 .hero-section {
   @apply relative overflow-hidden min-h-screen flex items-center bg-gradient-to-b from-[#BD132D] to-[#642828];
