@@ -20,15 +20,13 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.http import JsonResponse
 import json
-# Comment these out temporarily to allow migrations to run
-#from google import genai
-#from google.genai import types
-#from google.genai.errors import ClientError
+from google import genai
+from google.genai import types
+from google.genai.errors import ClientError
 
-# Comment out Gemini client initialization
-#gemini_client = genai.Client(
-#    api_key=settings.GEMINI_API_KEY,
-#)
+gemini_client = genai.Client(
+    api_key=settings.GEMINI_API_KEY,
+)
 
 User = get_user_model()
 
@@ -89,7 +87,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         else:
             ctx['is_edit'] = False
 
-        # ─── "this month" window ──────────────────────────────────────────────────
+        # ─── “this month” window ──────────────────────────────────────────────────
         today       = timezone.localdate()
         month_start = today.replace(day=1)
 
@@ -113,7 +111,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'transaction_count': Entry.objects.filter(user=user, date__gte=month_start).count(),
         })
 
-        # ─── per-category aggregates ────────────────────────────────────────────────
+        # ─── per‐category aggregates ────────────────────────────────────────────────
         exp_qs = (
             Entry.objects
                  .filter(user=user, type=Entry.EXPENSE, date__gte=month_start)
@@ -482,7 +480,7 @@ class ForgotPasswordView(TemplateView):
         context['forgot_password_form'] = form
 
         if form.is_valid():
-            # pulled straight from the form's clean_email
+            # pulled straight from the form’s clean_email
             user = form.cleaned_data['user_obj']
 
             # Generate & save token
@@ -708,13 +706,6 @@ class VerifyEmailView(View):
     
 class AIQueryView(LoginRequiredMixin, View):
     def post(self, request):
-        # Return a temporary error response since Gemini client is not configured
-        return JsonResponse({
-            'error': 'AI service is temporarily unavailable. Please configure the GENAI_API_KEY in your .env file.'
-        }, status=503)
-        
-        # Original code commented out
-        '''
         # 1) parse & validate JSON
         try:
             data = json.loads(request.body)
@@ -763,4 +754,3 @@ Always be polite, accurate, and to the point.
 
         full_answer = "".join(answer_fragments).strip()
         return JsonResponse({'answer': full_answer})
-        '''
