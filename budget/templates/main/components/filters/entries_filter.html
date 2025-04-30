@@ -2,90 +2,106 @@
   id="{{ form_id }}"
   role="search"
   aria-label="{{ filter_aria_label }}"
-  class="filters flex flex-wrap gap-2 items-end mb-4"
+  class="filters grid self grid-cols-1 sm:grid-cols-3 gap-4 mb-4 w-full"
 >
-  <label for="{{ prefix }}DateFrom" class="text-sm">From:</label>
-  <section class="flex flex-col">
-    <input
-      type="date"
-      id="{{ prefix }}DateFrom"
-      class="px-2 py-1 border rounded"
-      name="{{ prefix }}DateFrom"
-      aria-label="Filter from date"
-      data-clear-on-hide
-    />
+  <!-- Column 1: Date range -->
+  <section class="space-y-2">
+    <!-- From -->
+    <section class="flex flex-col space-y-1">
+      <label for="{{ prefix }}DateFrom" class="text-sm font-semibold">From:</label>
+      <input
+        type="date"
+        id="{{ prefix }}DateFrom"
+        name="{{ prefix }}DateFrom"
+        aria-label="Filter from date"
+        data-clear-on-hide
+        class="px-2 py-1 border rounded"
+      />
+    </section>
+    <!-- To -->
+    <section class="flex flex-col space-y-1">
+      <label for="{{ prefix }}DateTo" class="text-sm font-semibold">To:</label>
+      <input
+        type="date"
+        id="{{ prefix }}DateTo"
+        name="{{ prefix }}DateTo"
+        aria-label="Filter to date"
+        data-clear-on-hide
+        class="px-2 py-1 border rounded"
+      />
+      <p
+        id="{{ prefix }}DateError"
+        class="text-xs text-red-600 hidden"
+        role="alert"
+        aria-live="assertive"
+      >
+        “To” must be on or after “From”
+      </p>
+    </section>
   </section>
 
-  <label for="{{ prefix }}DateTo" class="text-sm">To:</label>
-  <section class="flex flex-col">
-    <p
-      id="{{ prefix }}DateError"
-      class="text-xs text-red-600 mb-1 hidden"
-      role="alert"
-      aria-live="assertive"
-    >
-      “To” must be on or after “From”
-    </p>
-    <input
-      type="date"
-      id="{{ prefix }}DateTo"
-      class="px-2 py-1 border rounded"
-      name="{{ prefix }}DateTo"
-      aria-label="Filter to date"
-      data-clear-on-hide
-    />
+  <!-- Column 2: Title & Category (stacked similarly) -->
+  <section class="space-y-2">
+    <section class="flex flex-col space-y-1">
+      <label for="{{ prefix }}TitleFilter" class="text-sm font-semibold">Title:</label>
+      <input
+        type="text"
+        id="{{ prefix }}TitleFilter"
+        name="{{ prefix }}TitleFilter"
+        placeholder="Title contains…"
+        aria-label="Filter by title"
+        class="{{ title_input_class }} w-full"
+      />
+    </section>
+    <section class="flex flex-col space-y-1">
+      <label for="{{ prefix }}CategoryFilter" class="text-sm font-semibold">Category:</label>
+      <select
+        id="{{ prefix }}CategoryFilter"
+        name="{{ prefix }}CategoryFilter"
+        aria-label="Filter by category"
+        class="px-2 py-1 border rounded w-full"
+      >
+        <option value="">All categories</option>
+        {% for cat in user_categories %}
+          <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </section>
   </section>
 
-  <input
-    type="text"
-    id="{{ prefix }}TitleFilter"
-    placeholder="Title contains…"
-    class="{{ title_input_class }}"
-    name="{{ prefix }}TitleFilter"
-    aria-label="Filter by title"
-  />
-
-  <select
-    id="{{ prefix }}CategoryFilter"
-    class="px-2 py-1 border rounded"
-    name="{{ prefix }}CategoryFilter"
-    aria-label="Filter by category"
-  >
-    <option value="">All categories</option>
-    {% for cat in user_categories %}
-      <option value="{{ cat.name|lower }}">{{ cat.name }}</option>
-    {% endfor %}
-  </select>
-
-  <section class="flex flex-col">
-    <input
-      type="number"
-      name="{{ prefix }}MinAmount"
-      step="0.01"
-      id="{{ prefix }}MinAmount"
-      placeholder="Min ₱"
-      class="px-2 py-1 border rounded w-20"
-      aria-label="Minimum amount filter"
-    />
-  </section>
-
-  <section class="flex flex-col">
-    <p
-      id="{{ prefix }}AmountError"
-      class="text-xs text-red-600 mb-1 hidden"
-      role="alert"
-      aria-live="assertive"
-    >
-      “Max” must be ≥ “Min”
-    </p>
-    <input
-      type="number"
-      name="{{ prefix }}MaxAmount"
-      step="0.01"
-      id="{{ prefix }}MaxAmount"
-      placeholder="Max ₱"
-      class="px-2 py-1 border rounded w-20"
-      aria-label="Maximum amount filter"
-    />
+  <!-- Column 3: Min/Max Amount -->
+  <section class="space-y-2">
+    <section class="flex flex-col space-y-1">
+      <label for="{{ prefix }}MinAmount" class="text-sm font-semibold">Min ₱:</label>
+      <input
+        type="number"
+        id="{{ prefix }}MinAmount"
+        name="{{ prefix }}MinAmount"
+        placeholder="Min ₱"
+        step="0.01"
+        aria-label="Minimum amount filter"
+        class="px-2 py-1 border rounded w-full"
+      />
+    </section>
+    <section class="flex flex-col space-y-1">
+      <label for="{{ prefix }}MaxAmount" class="text-sm font-semibold">Max ₱:</label>
+      <input
+        type="number"
+        id="{{ prefix }}MaxAmount"
+        name="{{ prefix }}MaxAmount"
+        placeholder="Max ₱"
+        step="0.01"
+        aria-label="Maximum amount filter"
+        class="px-2 py-1 border rounded w-full"
+      />
+      <p
+        id="{{ prefix }}AmountError"
+        class="text-xs text-red-600 hidden"
+        role="alert"
+        aria-live="assertive"
+      >
+        “Max” must be ≥ “Min”
+      </p>
+    </section>
   </section>
 </form>
