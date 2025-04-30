@@ -26,6 +26,8 @@
         
       {% include "main/sections/reports.html" %}
 
+      {% include "main/sections/ai.html" %}
+
       {% include "main/modals.html" %}
 
     </main>
@@ -43,14 +45,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const links = Array.from(document.querySelectorAll('aside.sidebar nav a'));
   const pages = Array.from(document.querySelectorAll('.page-content'));
 
+   function clearPanel(panel) {
+    panel.querySelectorAll('form').forEach(f => f.reset());
+    panel.querySelectorAll('[data-clear-on-hide]').forEach(el => el.innerHTML = '');
+  }
+
+
   function showTab(tabId) {
+    pages.forEach(page => {
+      const willBeVisible = page.id === tabId;
+      const isCurrentlyVisible = !page.classList.contains('hidden');
+
+      if (isCurrentlyVisible && !willBeVisible) {
+        // the moment we're hiding it, reset its data:
+        const prefix = page.dataset.prefix;
+        if (prefix) resetSection(prefix);
+        clearPanel(page);
+      }
+
+      page.classList.toggle('hidden', !willBeVisible);
+    });
+
     links.forEach(link => {
       link.classList.toggle('active', link.getAttribute('href') === `#${tabId}`);
     });
-    pages.forEach(page => {
-      page.classList.toggle('hidden', page.id !== tabId);
-    });
+
+    const newHash = tabId !== 'dashboard' ? `#${tabId}` : '';
+    history.replaceState(null, '', window.location.pathname + newHash);
   }
+
 
   links.forEach(link => {
     link.addEventListener('click', e => {
@@ -61,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const newHash = target !== 'dashboard' ? `#${target}` : '';
       history.replaceState(null, '', window.location.pathname + newHash);
     });
+    
   });
 
   {% if active_tab != 'dashboard' %}
@@ -71,9 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const valid = pages.map(p => p.id);
     if (hash && valid.includes(hash)) {
       showTab(hash);
+      
     } else {
       showTab('dashboard');
       history.replaceState(null, '', window.location.pathname);
+      
     }
   {% endif %}
 
@@ -425,12 +451,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function fetchReports() {
     const params = new URLSearchParams(window.location.search);
   
-    // copy each report‐filter input
     ['From','To','Type','Cat'].forEach(sfx => {
       const el = document.getElementById('rep' + sfx);
       params.set('rep' + sfx, el.value || '');
     });
-    // keep current hash (tab)
+
     const url = `/reports/filter/?${params.toString()}${location.hash}`;
   
     fetch(url)
@@ -440,18 +465,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
   
-  // 2) hook inputs to fetchReports
   ['From','To','Type','Cat'].forEach(sfx => {
     const el = document.getElementById('rep' + sfx);
     if (!el) return;
     el.addEventListener('input', fetchReports);
   });
   
-  // 3) optional: re-fetch on page-link click inside repContainer
+
   document.getElementById('repContainer').addEventListener('click', e => {
     if (e.target.matches('#repContainer nav a')) {
       e.preventDefault();
-      // grab the clicked page number from its href
       const href = new URL(e.target.href);
       window.history.replaceState(null, '', href.pathname + href.search + location.hash);
       fetchReports();
@@ -474,7 +497,6 @@ function applyReportFilter() {
   const typeVal = inputs.type.value;
   const catVal = inputs.cat.value;
   
-  // Check if any filter is applied
   const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
   filterApplied.value = isFilterActive ? 'true' : 'false';
 
@@ -574,6 +596,28 @@ document.getElementById('exportCsv').addEventListener('click', () => {
 
   activateOverall(); // Default
 
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const aiForm = document.getElementById('aiForm');
+  const aiPrompt = document.getElementById('aiPrompt');
+  const aiResponse = document.getElementById('aiResponse');
+
+  aiForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const question = aiPrompt.value.trim();
+    if (!question) return;
+
+    aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+
+    const resp = await fetch('{% url "budget:ai-query" %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+      body: JSON.stringify({ prompt: question }),
+    });
+    const data = await resp.json();
+    aiResponse.innerHTML = `<p>${data.answer}</p>`;
+  });
 });
 </script>
 {% endblock %}

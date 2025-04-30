@@ -10,9 +10,6 @@ urlpatterns = [
     path('reset-password/<str:token>/', views.ResetPasswordView.as_view(), name='reset_password'),
     path('entries/filter/', views.EntriesAjaxView.as_view(), name='entries-filter'),
     path('reports/filter/', views.ReportsAjaxView.as_view(), name='reports-filter'),
-    path(
-        'verify-email/<uuid:token>/',
-        views.VerifyEmailView.as_view(),
-        name='verify_email'
-    ),
+    path('verify-email/<uuid:token>/', views.VerifyEmailView.as_view(), name='verify_email'),
+    path('ai-query/', views.AIQueryView.as_view(), name='ai-query'),
 ]
