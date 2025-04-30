@@ -18,6 +18,15 @@ from django.template.loader import render_to_string
 from django.views import View
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.http import JsonResponse
+import json
+from google import genai
+from google.genai import types
+from google.genai.errors import ClientError
+
+gemini_client = genai.Client(
+    api_key=settings.GEMINI_API_KEY,
+)
 
 User = get_user_model()
 
@@ -687,3 +696,57 @@ class VerifyEmailView(View):
         login(request, user)
         messages.success(request, "Your email has been verified. Welcome to PennywAIse!")
         return redirect('budget:dashboard')
+    
+class AIQueryView(LoginRequiredMixin, View):
+    def post(self, request):
+        # 1) parse & validate JSON
+        try:
+            data = json.loads(request.body)
+            prompt = data.get('prompt', '').strip()
+            if not prompt:
+                return JsonResponse({'error': 'Prompt cannot be empty.'}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+
+        # 2) fool-proof system instruction under the "model" role
+        system_instruction = """
+You are PennywAise, a friendly personal finance assistant.
+
+1. If a user asks about **their own data** (transactions, budgets, categories, or reports in PennywAise), answer by referencing exactly those records.
+2. If a user asks a **general finance question**—e.g. budgeting best practices, saving strategies, how credit cards work—provide a clear, concise, and actionable answer.
+3. You **do not** answer non-finance questions (sports, weather, trivia). If asked anything outside personal finance, reply:
+   "I'm sorry, but I can only answer questions about personal finance."
+
+Always be polite, accurate, and to the point.
+""".strip()
+
+        # 3) assemble the conversation
+        contents = [
+            types.Content(role="model",
+                          parts=[types.Part.from_text(text=system_instruction)]),
+            types.Content(role="user",
+                          parts=[types.Part.from_text(text=prompt)]),
+        ]
+        config = types.GenerateContentConfig(response_mime_type="text/plain")
+
+        # 4) call the experimental Gemini model and guard against quota errors
+        answer_fragments = []
+        try:
+            for chunk in gemini_client.models.generate_content_stream(
+                model="gemini-2.5-pro-exp-03-25",
+                contents=contents,
+                config=config,
+            ):
+                # chunk.text may be None, so coerce to empty string
+                answer_fragments.append(chunk.text or "")
+        except ClientError as e:
+            if e.status_code == 429:
+                messages.error(request, "AI service is temporarily unavailable due to quota limits. Please try again in a minute.")
+                return JsonResponse({
+                    'error': 'AI service is temporarily unavailable due to quota limits. Please try again in a minute.'
+                }, status=503)
+            # re-raise other errors so you can see them in your logs
+            raise
+
+        full_answer = "".join(answer_fragments).strip()
+        return JsonResponse({'answer': full_answer})

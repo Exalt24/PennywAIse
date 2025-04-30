@@ -1,0 +1,92 @@
+{% load static %}
+
+<section id="ai" class="page-content hidden" role="region" aria-label="AI Assistant">
+  <header class="flex justify-between items-center mb-5">
+    <h2 class="pagetitle">AI Assistant</h2>
+  </header>
+
+  <article class="bg-[#fdfdfb] rounded-xl p-6 shadow-md">
+    <h3 class="text-lg font-semibold mb-4">Ask PennywAIse</h3>
+    <form id="aiForm" class="space-y-4">
+      <label for="aiPrompt" class="block text-sm font-medium text-[#1B1F1E]">Your question</label>
+      <textarea
+        id="aiPrompt"
+        rows="4"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2"
+        placeholder="e.g. How much did I spend on groceries last quarter?"
+        required
+      ></textarea>
+
+      <button
+        type="submit"
+        class="px-5 py-2 bg-[#BD132D] text-white rounded-full hover:bg-[#642828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#BD132D]"
+      >
+        Get Answer
+      </button>
+    </form>
+
+    <nav id="aiResponse" data-clear-on-hide class="mt-6 prose max-w-none text-[#333]" style="white-space: pre-wrap;">
+      <!-- AI response will appear here -->
+    </nav>
+  </article>
+</section>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const aiForm     = document.getElementById('aiForm');
+  const aiPrompt   = document.getElementById('aiPrompt');
+  const aiResponse = document.getElementById('aiResponse');
+  const btn        = aiForm.querySelector('button[type="submit"]');
+
+  function updateButtonState() {
+    if (aiPrompt.value.trim() === "") {
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  }
+  aiPrompt.addEventListener('input', updateButtonState);
+  updateButtonState();
+
+  aiForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const question = aiPrompt.value.trim();
+    if (!question) return;
+
+    btn.dataset.clicked = 'true';
+    btn.innerHTML = 'Processing…';
+
+    aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+
+    try {
+      const resp = await fetch("{% url 'budget:ai-query' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ prompt: question }),
+      });
+      const data = await resp.json();
+
+      if (resp.ok) {
+        aiResponse.innerHTML = `<p>${data.answer}</p>`;
+        aiPrompt.value = "";
+        updateButtonState();
+      } else {
+        aiResponse.innerHTML = `<p class="text-red-600">${data.error || 'Something went wrong.'}</p>`;
+      }
+    } catch (err) {
+      aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
+    } finally {
+      delete btn.dataset.clicked;
+      btn.innerHTML = 'Get Answer';
+    }
+  });
+});
+</script>
+{% endblock %}
+

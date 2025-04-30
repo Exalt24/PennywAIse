@@ -34,6 +34,9 @@
     {% block scripts %}
       <script>
         document.querySelectorAll('button[type="submit"]').forEach(button => {
+
+          if (button.closest('#aiForm')) return;
+
           button.addEventListener('click', function(e) {
             const form = this.closest('form');
             if (!form) return;
@@ -99,6 +102,22 @@
             }
           });
         });
+
+        function resetSection(prefix) {
+
+          const form = document.getElementById(prefix + 'FilterForm');
+          if (form) form.reset();
+        
+          const containerId = prefix === 'rep' ? 'repContainer' : prefix + 'Container';
+          const url         = `/entries/filter/?prefix=${prefix}` +
+                              (location.hash || '');
+          const endpoint = prefix === 'rep' ? '/reports/filter/' : '/entries/filter/';
+          fetch(endpoint + '?' + new URLSearchParams({ prefix }))
+            .then(r => r.json())
+            .then(data => {
+              document.getElementById(containerId).innerHTML = data.html;
+            });
+        }
       </script>
     {% endblock %}
 
