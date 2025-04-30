@@ -3,3 +3,4 @@ __pycache__/
 output.css
 /db.sqlite3
 .env
+**/__pycache__/
