@@ -324,6 +324,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 cat = form.save(commit=False)
                 cat.user = user
                 cat.save()
+                if cat_id:
+                    messages.success(request, "Category updated successfully.")
+                else:
+                    messages.success(request, "Category added successfully.")
                 return redirect(f"{base}#{tab}")
 
             ctx = self.get_context_data(**kwargs)
@@ -349,6 +353,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 e.user = user
                 e.save()
                 tab = 'income' if e.type == Entry.INCOME else 'expenses'
+                if eid:
+                    messages.success(request, "Entry updated successfully.")
+                else:
+                    messages.success(request, "Entry added successfully.")
                 return redirect(f"{base}#{tab}")
 
             ctx = self.get_context_data(**kwargs)
@@ -361,6 +369,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             e = get_object_or_404(Entry, pk=request.POST['delete-entry'], user=user)
             tab = 'income' if e.type == Entry.INCOME else 'expenses'
             e.delete()
+            messages.success(request, "Entry deleted successfully.")
             return redirect(f"{base}#{tab}")
         
         if 'set-budget' in request.POST:
@@ -378,6 +387,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     month=month,
                     defaults={'amount': amt}
                 )
+                messages.success(request, "Budget set successfully.")
                 return redirect(f"{base}#{tab}")
 
             ctx = self.get_context_data(**kwargs)
@@ -388,6 +398,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             tab = 'categories'
             cat = get_object_or_404(Category, pk=request.POST['delete-category'], user=user)
             cat.delete()
+            messages.success(request, "Category deleted successfully.")
             return redirect(f"{base}#{tab}")
 
         return super().post(request, *args, **kwargs)
@@ -420,6 +431,7 @@ class AuthView(TemplateView):
 
                 if user:
                     login(request, user)
+                    messages.success(request, "Welcome back to PennywAIse, " + user.username + "!")
                     return redirect('budget:dashboard')
                 context['login_error'] = "Invalid email or password."
 
@@ -729,7 +741,6 @@ Always be polite, accurate, and to the point.
         ]
         config = types.GenerateContentConfig(response_mime_type="text/plain")
 
-        # 4) call the experimental Gemini model and guard against quota errors
         answer_fragments = []
         try:
             for chunk in gemini_client.models.generate_content_stream(
@@ -737,7 +748,6 @@ Always be polite, accurate, and to the point.
                 contents=contents,
                 config=config,
             ):
-                # chunk.text may be None, so coerce to empty string
                 answer_fragments.append(chunk.text or "")
         except ClientError as e:
             if e.status_code == 429:
@@ -745,7 +755,6 @@ Always be polite, accurate, and to the point.
                 return JsonResponse({
                     'error': 'AI service is temporarily unavailable due to quota limits. Please try again in a minute.'
                 }, status=503)
-            # re-raise other errors so you can see them in your logs
             raise
 
         full_answer = "".join(answer_fragments).strip()
