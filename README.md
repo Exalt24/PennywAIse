@@ -54,7 +54,6 @@ PennywAIse is a Django‑powered budgeting dashboard designed to help you take c
 
 2. **Environment variables**
    Create a `.env` file in the project root:
-
    ```dotenv
    SECRET_KEY=<your-secret-key>
    DEBUG=True                # False in production
@@ -62,6 +61,18 @@ PennywAIse is a Django‑powered budgeting dashboard designed to help you take c
    GMAIL_APP_PASS=<your-16-char-app-password>
    GENAI_API_KEY=<your-gemini-api-key>
    ```
+   #### Generate Your Secret Key
+   Run this command in your terminal to generate a secure random key:
+   ```bash
+   python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(50))"
+   ```
+
+   Copy the output (everything after `SECRET_KEY=`) and paste it as the value for `SECRET_KEY` in your `.env` file.
+
+   #### Complete Your Configuration
+   - Replace `youremail@gmail.com` with your actual Gmail address
+   - For `GMAIL_APP_PASS`, create an app password in your Google Account settings
+   - Get a Gemini API key from Google AI Studio for the `GENAI_API_KEY`
 
 3. **Install dependencies**
 
