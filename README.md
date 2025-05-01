@@ -80,8 +80,8 @@ PennywAIse is a Django‑powered budgeting dashboard designed to help you take c
 5. **Create a test user**
 
    ```bash
-   # Built‑in helper to create a user for development/testing
-   python manage.py create_test_user --username testuser --email test@example.com --password Passw0rd!
+   # Built‑in helper to create a user for development/testing (email: test@example.com, password: password123)
+   python manage.py create_test_user
    ```
 
 6. **Run in development mode**
