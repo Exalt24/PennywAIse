@@ -279,15 +279,15 @@ header {
 }
 
 .content {
-  @apply flex flex-wrap gap-8 mb-5;
+  @apply gap-4 mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3;
 }
 
 .project-summary {
-  @apply flex-[2] bg-[#fdfdfb] rounded-xl p-4 shadow-md mb-5 overflow-hidden;
+  @apply bg-[#fdfdfb] rounded-xl p-4 shadow-md mb-5 overflow-hidden;
 }
 
 .progress {
-  @apply flex-[1] bg-[#fdfdfb] rounded-xl p-4 shadow-md flex flex-col items-center;
+  @apply bg-[#fdfdfb] rounded-xl p-4 shadow-md flex flex-col items-center;
 }
 
 table {
