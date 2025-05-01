@@ -295,7 +295,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             qs = qs.filter(category_id=gf['category'])
 
         resp = HttpResponse(content_type='text/csv')
-        resp['Content-Disposition'] = 'attachment; filename="report.csv"'
+        resp['Content-Disposition'] = 'attachment; filename="{user}_transactions.csv"'.format(user=user.username)
         writer = csv.writer(resp)
         writer.writerow(['Date','Title','Category','Type','Amount'])
         for e in qs.order_by('-date'):
