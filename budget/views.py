@@ -750,6 +750,9 @@ Always be polite, accurate, and to the point.
                 return JsonResponse({
                     'error': 'AI service is temporarily unavailable due to quota limits. Please try again in a minute.'
                 }, status=503)
+            else:
+                messages.error(request, "An error occurred while processing your request. Please try again later.")
+                return JsonResponse({'error': 'An error occurred while processing your request. Please try again later.'}, status=500)
             raise
 
         full_answer = "".join(answer_fragments).strip()
