@@ -119,18 +119,18 @@ All tests live under the `budget` app. You can run:
 - **Specific module**:
 
   ```bash
-  python manage.py test budget.test_models
-  python manage.py test budget.test_forms
-  python manage.py test budget.test_views
-  python manage.py test budget.test_security
-  python manage.py test budget.test_integration
+  python manage.py test budget.tests_suite.test_models
+  python manage.py test budget.tests_suite.test_forms
+  python manage.py test budget.tests_suite.test_views
+  python manage.py test budget.tests_suite.test_security
+  python manage.py test budget.tests_suite.test_integration
   ```
 
 - **Specific class or method**:
 
   ```bash
-  python manage.py test budget.test_models.CategoryModelTest
-  python manage.py test budget.test_models.CategoryModelTest.test_category_creation
+  python manage.py test budget.tests_suite.test_models.CategoryModelTest
+  python manage.py test budget.tests_suite.test_models.CategoryModelTest.test_category_creation
   ```
 
 ### Coverage Report
