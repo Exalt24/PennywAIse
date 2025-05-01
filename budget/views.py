@@ -177,7 +177,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['category_summary'] = summary
 
         # ─── tables & recent transactions ─────────────────────────────────────────
-        ctx['income_entries']      = Entry.objects.filter(user=user, type=Entry.INCOME).order_by('title', '-date')
+        ctx['income_entries']      = Entry.objects.filter(user=user, type=Entry.INCOME).order_by('-date')
         ctx['expense_entries']     = Entry.objects.filter(user=user, type=Entry.EXPENSE).order_by('title', '-date')
         ctx['recent_transactions'] = Entry.objects.filter(user=user).order_by('-date')[:10]
 
@@ -199,16 +199,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                         entry_count = Count('entry'),
                         total_inc   = Sum('entry__amount', filter=Q(entry__type=Entry.INCOME)),
                         total_exp   = Sum('entry__amount', filter=Q(entry__type=Entry.EXPENSE)),
-                    )
+                    ).order_by('name')
         )
 
+        category_stats = []
         for c in cats:
             c.total_inc = c.total_inc or 0
             c.total_exp = c.total_exp or 0
             c.net       = c.total_inc - c.total_exp
             c.net_abs   = abs(c.net)
+            category_stats.append(c)
 
-        ctx['category_stats'] = cats
+        ctx['category_stats'] = category_stats
 
         labels = []
         inc_vals = []
@@ -636,7 +638,7 @@ class EntriesAjaxView(View):
             except ValueError:
                 pass
 
-        qs = qs.order_by('title', '-date')
+        qs = qs.order_by('-date')
         page_num = request.GET.get(page_param) or 1
         page_obj = Paginator(qs, 10).get_page(page_num)
 

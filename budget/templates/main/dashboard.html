@@ -81,6 +81,62 @@ document.addEventListener('DOMContentLoaded', () => {
     history.replaceState(null, '', window.location.pathname + newHash);
   }
 
+  function initSorting() {
+    // strip old listeners
+    document.querySelectorAll('th.sortable').forEach(th => {
+      th.replaceWith(th.cloneNode(true));
+    });
+  
+    document.querySelectorAll('th.sortable').forEach(th => {
+      // figure out initial direction from the class
+      // if it has sort-desc, we're currently descending, so next we want ascending first
+      let direction = th.classList.contains('sort-desc') ? 'desc' : 'asc';
+  
+      th.addEventListener('click', () => {
+        const table = th.closest('table');
+        const body  = table.querySelector('tbody');
+        const idx   = Array.from(th.parentNode.children).indexOf(th);
+  
+        // toggle direction
+        direction = direction === 'asc' ? 'desc' : 'asc';
+  
+        // clear arrow classes on all headers
+        table.querySelectorAll('th.sortable')
+             .forEach(h => h.classList.remove('sort-asc','sort-desc'));
+  
+        // perform the sort
+        const rows = Array.from(body.querySelectorAll('tr'));
+        rows.sort((a, b) => {
+          const rawA = a.children[idx].dataset.value ?? a.children[idx].textContent.trim();
+          const rawB = b.children[idx].dataset.value ?? b.children[idx].textContent.trim();
+          let cmp;
+  
+          // detect data‐type or fallback to string
+          const type = th.dataset.type;
+          if (type === 'date') {
+            cmp = new Date(rawA) - new Date(rawB);
+          } else if (type === 'number') {
+            cmp = parseFloat(rawA.replace(/[^0-9.\-]/g,'')) 
+                - parseFloat(rawB.replace(/[^0-9.\-]/g,''));
+          } else {
+            cmp = rawA.localeCompare(rawB, undefined, {numeric: true});
+          }
+  
+          // if descending, invert the compare result
+          return direction === 'desc' ? -cmp : cmp;
+        });
+        // re‐append in sorted order
+        rows.forEach(r => body.appendChild(r));
+  
+        // add the correct arrow class
+        th.classList.add(direction === 'desc' ? 'sort-desc' : 'sort-asc');
+        th.setAttribute('aria-sort', direction === 'desc' ? 'descending' : 'ascending');
+      });
+    });
+  }
+  
+  
+
 
   links.forEach(link => {
     link.addEventListener('click', e => {
@@ -92,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       history.replaceState(null, '', window.location.pathname + newHash);
       bindNotesRows();
       hideIfEmpty();
+      initSorting();
     });
     
   });
@@ -123,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleIcon.classList.toggle('rotate-180');
   });
 
+  initSorting();
   // ---- User menu toggle ----
   const userBtn = document.getElementById('userBtn');
   const userMenu = document.getElementById('userMenu');
@@ -131,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userMenu.classList.toggle('hidden');
   });
   document.addEventListener('click', () => userMenu.classList.add('hidden'));
-
   // ---- Modal controls ----
   const addEntryBtn = document.getElementById('addEntryBtn');
   const addEntryModal = document.getElementById('addEntryModal');
@@ -327,6 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // swap the entire section’s inner HTML
         const containerId = prefix === 'inc' ? 'incContainer' : 'expContainer';
         document.getElementById(containerId).innerHTML = data.html;
+        initSorting();
+        bindNotesRows();
       });
   }
 
@@ -445,29 +504,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   {% endif %}
 
-  // ---- Sorting Tables ----
-  document.querySelectorAll('th.sortable').forEach(th => {
-    let asc = false;
-    th.addEventListener('click', () => {
-      const table = th.closest('table');
-      const body = table.querySelector('tbody');
-      const idx = Array.from(th.parentNode.children).indexOf(th);
-
-      table.querySelectorAll('th.sortable').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
-
-      Array.from(body.querySelectorAll('tr')).sort((a, b) => {
-        const aText = a.children[idx].textContent.trim();
-        const bText = b.children[idx].textContent.trim();
-        return asc
-          ? aText.localeCompare(bText, undefined, { numeric: true })
-          : bText.localeCompare(aText, undefined, { numeric: true });
-      }).forEach(tr => body.appendChild(tr));
-
-      th.classList.add(asc ? 'sort-asc' : 'sort-desc');
-      asc = !asc;
-    });
-  });
-
   function fetchReports() {
     const params = new URLSearchParams(window.location.search);
   
@@ -482,6 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(r => r.json())
       .then(data => {
         document.getElementById('repContainer').innerHTML = data.html;
+        initSorting();
       });
   }
   
@@ -727,6 +764,7 @@ function bindNotesRows() {
     };
   });
 }
+
 
 </script>
 {% endblock %}
