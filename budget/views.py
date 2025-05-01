@@ -266,6 +266,16 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['page_obj_budget']   = budg_page
         ctx['budget_rows']       = budg_page.object_list
 
+        ctx['nav_items'] = [
+            {'href': '#dashboard',  'icon': 'images/dashboard.png',   'label': 'Dashboard'},
+            {'href': '#categories', 'icon': 'images/categories.png',  'label': 'Categories'},
+            {'href': '#income',     'icon': 'images/income.png',      'label': 'Income'},
+            {'href': '#expenses',   'icon': 'images/expense.png',     'label': 'Expenses'},
+            {'href': '#budgets',    'icon': 'images/budget.png',      'label': 'Budgets'},
+            {'href': '#reports',    'icon': 'images/reports.png',     'label': 'Reports'},
+            {'href': '#ai',         'icon': 'images/convo.png',       'label': 'AI Assistant'},
+        ]
+
         return ctx
 
     def _export_csv(self, request):
