@@ -27,11 +27,11 @@
 }
 
 .create {
-  @apply bg-[#1B1F1E] hover: bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-8;
+  @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-8;
 }
 
 .footer-layout {
-  @apply text-gray-300 max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md: grid-cols-3 gap-8;
+  @apply text-gray-300 max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-8;
 }
 
 .quick-link {
@@ -39,7 +39,7 @@
 }
 
 .nav-footer {
-  @apply hover: bg-transparent mb-2 flex;
+  @apply hover:bg-transparent mb-2 flex;
 }
 
 /* Base nav link */
@@ -90,11 +90,11 @@ header {
 }
 
 .header-nav {
-  @apply hidden md: flex space-x-8 uppercase;
+  @apply hidden md:flex space-x-8 uppercase;
 }
 
 .search input {
-  @apply w-full sm: w-72 px-4 py-2 border border-gray-300 rounded-lg;
+  @apply w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg;
 }
 
 .user {
@@ -102,7 +102,7 @@ header {
 }
 
 .button {
-  @apply flex items-center space-x-1 focus: outline-none;
+  @apply flex items-center space-x-1 focus:outline-none;
 }
 
 .usermenu {
@@ -110,7 +110,7 @@ header {
 }
 
 .menu {
-  @apply block px-4 py-2 hover: bg-gray-100 rounded-md;
+  @apply block px-4 py-2 hover:bg-gray-100 rounded-md;
 }
 
 .hero-section {
@@ -138,11 +138,11 @@ header {
 }
 
 .hero-details {
-  @apply relative z-10 container max-w-7xl mx-auto px-6 flex flex-col-reverse lg: flex-row items-center py-24;
+  @apply relative z-10 container max-w-7xl mx-auto px-6 flex flex-col-reverse lg:flex-row items-center py-24;
 }
 
 .hero-layout {
-  @apply w-full lg: w-1/2 text-center lg:text-left mb-12 lg:mb-0;
+  @apply w-full lg:w-1/2 text-center lg:text-left mb-12 lg:mb-0;
 }
 
 .hero-header {
@@ -154,23 +154,23 @@ header {
 }
 
 .hero-description {
-  @apply text-lg text-[#e7e4de] mb-8 max-w-md mx-auto lg: mx-0;
+  @apply text-lg text-[#e7e4de] mb-8 max-w-md mx-auto lg:mx-0;
 }
 
 .hero-button-layout {
-  @apply flex flex-col sm: flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4;
+  @apply flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4;
 }
 
 .button-dark {
-  @apply inline-block bg-[#1B1F1E] hover: bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 shadow-lg transition;
+  @apply inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white font-semibold rounded-full px-6 py-3 shadow-lg transition;
 }
 
 .button-darksm {
-  @apply hidden md: inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white px-4 py-2 rounded-full transition;
+  @apply hidden md:inline-block bg-[#1B1F1E] hover:bg-[#3f3a36] text-white px-4 py-2 rounded-full transition;
 }
 
 .button-outline {
-  @apply inline-block bg-transparent hover: bg-white hover:text-[#1B1F1E] text-white font-semibold rounded-full px-6 py-3 border border-white transition;
+  @apply inline-block bg-transparent hover:bg-white hover:text-[#1B1F1E] text-white font-semibold rounded-full px-6 py-3 border border-white transition;
 }
 
 .tletle {
@@ -178,7 +178,7 @@ header {
 }
 
 .overview {
-  @apply grid gap-4 mb-5 grid-cols-[repeat(auto-fit, minmax(200px, 1fr))];
+  @apply grid gap-4 mb-5 grid-cols-[repeat(auto-fit,minmax(200px,1fr))];
 }
 
 .about-section {
@@ -214,7 +214,7 @@ header {
 }
 
 .feature-card {
-  @apply bg-[#e7e4de] rounded-xl p-6 flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover: scale-102 hover:shadow-lg;
+  @apply bg-[#e7e4de] rounded-xl p-6 flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover:scale-102 hover:shadow-lg;
 }
 
 .card-title {
@@ -235,7 +235,7 @@ header {
 }
 
 .feature-grid {
-  @apply grid grid-cols-1 md: grid-cols-3 gap-8;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-8;
 }
 
 .feature-section {
@@ -251,7 +251,7 @@ header {
 }
 
 .contact-button {
-  @apply inline-flex items-center border-2 border-[#c3002d] text-[#c3002d] hover: text-[#000000] hover:shadow-md uppercase text-sm tracking-wide px-6 py-2 rounded-full hover:bg-white hover:border-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c3002d];
+  @apply inline-flex items-center border-2 border-[#c3002d] text-[#c3002d] hover:text-[#000000] hover:shadow-md uppercase text-sm tracking-wide px-6 py-2 rounded-full hover:bg-white hover:border-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c3002d];
 }
 
 .contact-x {
@@ -271,7 +271,7 @@ header {
 }
 
 .notif-close {
-  @apply absolute top-2 right-2 text-gray-500 hover: text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2;
 }
 
 .notif-message {
@@ -304,7 +304,7 @@ th {
 }
 
 .bottom {
-  @apply grid grid-cols-1 md: grid-cols-2 gap-8;
+  @apply grid grid-cols-1 md:grid-cols-2 gap-8;
 }
 
 .tasks,
@@ -373,7 +373,7 @@ details[open] summary img {
 }
 
 .profile-dropdown {
-  @apply flex items-center cursor-pointer px-4 py-2 rounded focus: outline-none;
+  @apply flex items-center cursor-pointer px-4 py-2 rounded focus:outline-none;
 }
 
 .dropdown-icon {
@@ -385,5 +385,5 @@ details[open] summary img {
 }
 
 .dropdown-button {
-  @apply block w-full text-left px-4 py-2 text-sm rounded-md hover: bg-gray-300;
+  @apply block w-full text-left px-4 py-2 text-sm rounded-md hover:bg-gray-300;
 }
