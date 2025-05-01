@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @layer base {
-
   html,
   body {
     margin: 0;
@@ -18,11 +17,7 @@
 }
 
 .pagetitle {
-  font-size: var(--text-2xl);
-  line-height: var(--tw-leading, var(--text-2xl--line-height));
-  --tw-font-weight: var(--font-weight-bold);
-  font-weight: var(--font-weight-bold);
-  color: #40020f;
+  @apply text-2xl leading-8 font-bold text-[#40020F];
 }
 
 .create {
