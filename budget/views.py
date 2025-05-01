@@ -745,7 +745,7 @@ Always be polite, accurate, and to the point.
             ):
                 answer_fragments.append(chunk.text or "")
         except ClientError as e:
-            if e.status_code == 429:
+            if "429" in str(e):
                 messages.error(request, "AI service is temporarily unavailable due to quota limits. Please try again in a minute.")
                 return JsonResponse({
                     'error': 'AI service is temporarily unavailable due to quota limits. Please try again in a minute.'

@@ -44,12 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Sidebar tab switching ----
   const links = Array.from(document.querySelectorAll('aside.sidebar nav a'));
   const pages = Array.from(document.querySelectorAll('.page-content'));
+  const aiResponse = document.getElementById('aiResponse');
 
    function clearPanel(panel) {
     panel.querySelectorAll('form').forEach(f => f.reset());
     panel.querySelectorAll('[data-clear-on-hide]').forEach(el => el.innerHTML = '');
   }
 
+  function hideIfEmpty() {
+    if (aiResponse.innerHTML.trim() === '') {
+      aiResponse.classList.add('hidden');
+    } else {
+      aiResponse.classList.remove('hidden');
+    }
+  }
 
   function showTab(tabId) {
     pages.forEach(page => {
@@ -83,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const newHash = target !== 'dashboard' ? `#${target}` : '';
       history.replaceState(null, '', window.location.pathname + newHash);
       bindNotesRows();
+      hideIfEmpty();
     });
     
   });
@@ -603,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const aiForm = document.getElementById('aiForm');
   const aiPrompt = document.getElementById('aiPrompt');
   const aiResponse = document.getElementById('aiResponse');
+  const btn        = aiForm.querySelector('button[type="submit"]');
 
   aiForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -619,13 +629,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await resp.json();
     aiResponse.innerHTML = `<p>${data.answer}</p>`;
   });
+
+  function updateButtonState() {
+    if (aiPrompt.value.trim() === "") {
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  }
+  aiPrompt.addEventListener('input', updateButtonState);
+  updateButtonState();
+
+  aiForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const question = aiPrompt.value.trim();
+    if (!question) return;
+
+    btn.dataset.clicked = 'true';
+    btn.innerHTML = 'Processing…';
+
+    aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+
+    try {
+      const resp = await fetch("{% url 'budget:ai-query' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ prompt: question }),
+      });
+      const data = await resp.json();
+
+      if (resp.ok) {
+        aiResponse.innerHTML = `<p>${data.answer}</p>`;
+        aiPrompt.value = "";
+        updateButtonState();
+      } else {
+        aiResponse.innerHTML = `<p class="text-red-600">${data.error || 'Something went wrong.'}</p>`;
+      }
+    } catch (err) {
+      aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
+    } finally {
+      delete btn.dataset.clicked;
+      btn.innerHTML = 'Get Answer';
+    }
+
+    if (aiResponse.innerHTML.trim() === '') {
+      aiResponse.classList.add('hidden');
+    } else {
+      aiResponse.classList.remove('hidden');
+    }
+  });
 });
 
 const viewNotesModal = document.getElementById('viewNotesModal');
 const notesContent   = document.getElementById('notesContent');
 const closeViewNotes = document.getElementById('closeViewNotes');
 
-// show/hide helpers
 function showNotesModal(notes) {
   notesContent.textContent = notes || '(No notes)';
   viewNotesModal.classList.remove('hidden');
@@ -634,14 +697,12 @@ function hideNotesModal() {
   viewNotesModal.classList.add('hidden');
 }
 
-// 1) listen for clicks on any tr[data-notes]
 document.querySelectorAll('tr[data-notes]').forEach(tr => {
   tr.addEventListener('click', () => {
     showNotesModal(tr.dataset.notes);
   });
 });
 
-// 2) close modal on ✕ or backdrop click
 closeViewNotes.addEventListener('click', hideNotesModal);
 viewNotesModal.addEventListener('click', e => {
   if (e.target === viewNotesModal) hideNotesModal();
@@ -655,8 +716,6 @@ function bindNotesRows() {
     };
   });
 }
-
-// …after you do `innerHTML = data.html` or after showTab(…)…
 
 </script>
 {% endblock %}
