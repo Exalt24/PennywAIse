@@ -118,6 +118,14 @@
               document.getElementById(containerId).innerHTML = data.html;
             });
         }
+
+        document.addEventListener('click', e => {
+          const th = e.target.closest('th.sortable');
+          if (!th) return;
+        
+          let asc = th.classList.contains('sort-asc');
+          // ...same sort logic as above (find table, sort rows, toggle classes)...
+        });
       </script>
     {% endblock %}
 

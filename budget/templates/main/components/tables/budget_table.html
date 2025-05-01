@@ -16,7 +16,7 @@
       {% if total_budget is not None %}
         ₱{{ total_budget|floatformat:2 }}
       {% else %}
-        &mdash;
+        <span class="text-gray-400">&mdash;</span>
       {% endif %}
     </td>
     <td class="px-3 py-2 text-red-600" role="cell">
@@ -28,7 +28,7 @@
       {% if total_remaining is not None %}
         {% if total_remaining >= 0 %}+{% else %}–{% endif %}₱{{ total_remaining_abs|floatformat:2 }}
       {% else %}
-        &mdash;
+        <span class="text-gray-400">&mdash;</span>
       {% endif %}
     </td>
   </tr>
@@ -40,7 +40,7 @@
         {% if row.budget is not None %}
           ₱{{ row.budget|floatformat:2 }}
         {% else %}
-          &mdash;
+          <span class="text-gray-400">&mdash;</span>
         {% endif %}
       </td>
       <td class="px-3 py-2 text-red-600" role="cell">
@@ -52,7 +52,7 @@
         {% if row.remaining is not None %}
           {% if row.remaining >= 0 %}+{% else %}–{% endif %}₱{{ row.remaining_abs|floatformat:2 }}
         {% else %}
-          &mdash;
+          <span class="text-gray-400">&mdash;</span>
         {% endif %}
       </td>
     </tr>

@@ -213,7 +213,7 @@ header {
 }
 
 .feature-card {
-  @apply bg-[#e7e4de] rounded-xl p-6 flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover:scale-102 hover:shadow-lg;
+  @apply bg-[#e7e4de] rounded-xl p-6 min-h-full flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover:scale-102 hover:shadow-lg;
 }
 
 .card-title {
@@ -327,48 +327,37 @@ th {
   @apply ml-auto text-xs text-[#666];
 }
 
-th.sortable {
-  position: relative;
-  padding-right: 1.5rem;
-  /* room for arrow */
-  cursor: pointer;
+.sortable {
+  @apply relative pr-6 cursor-pointer;
 }
 
-th.sortable::after {
+.sortable::after {
   content: "";
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.75em;
-  opacity: 0.3;
-  transition: opacity 0.2s;
+  @apply absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-30 transition-opacity duration-200;
 }
 
-th.sortable.sort-asc::after {
+.sort-asc::after {
   content: "▲";
-  opacity: 1;
+  @apply opacity-100;
 }
 
-th.sortable.sort-desc::after {
+.sort-desc::after {
   content: "▼";
-  opacity: 1;
+  @apply opacity-100;
 }
 
 details summary img {
-  transition: transform 0.2s ease-in-out;
+  @apply transition-transform duration-200 ease-in-out;
 }
-
 details[open] summary img {
-  transform: rotate(180deg);
+  @apply rotate-180;
 }
 
 #dropdownIcon {
-  transition: filter 0.2s ease-in-out;
+  @apply filter transition duration-200 ease-in-out;
 }
-
 #dropdownIcon.inverted {
-  filter: invert(1);
+  @apply invert;
 }
 
 .profile-dropdown {
@@ -389,7 +378,7 @@ details[open] summary img {
 
 
 #sidebar.collapsed {
-  @apply w-16 px-2 py-2;      /* small when collapsed */
+  @apply w-16 px-2 py-2;
 }
 
 #sidebar.collapsed .logo-text,

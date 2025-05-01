@@ -28,25 +28,25 @@
   {# ——— pagination controls ——— #}
   {% if page_obj %}
     {% with param=page_param|default:'page' %}
-      <nav id="{{ section_id }}Pagination" aria-label="Page navigation" class="mt-4">
+      <nav id="{{ section_id }}Pagination" aria-label="Page navigation" class="mt-4 flex justify-center">
         <ul class="inline-flex items-center space-x-2">
           {% if page_obj.has_previous %}
             <li>
               <a
                 href="?{{ param }}={{ page_obj.previous_page_number }}#{{ section_id }}"
-                class="px-3 py-1 border rounded hover:bg-gray-100"
-              >&laquo; Previous</a>
+                class="px-3 py-1 hover:border-b-2"
+              >&laquo; </a>
             </li>
           {% endif %}
 
           {% for num in page_obj.paginator.page_range %}
             <li>
               {% if page_obj.number == num %}
-                <span class="px-3 py-1 border bg-gray-200 rounded">{{ num }}</span>
+                <span class="px-3 py-1 border-b-2">{{ num }}</span>
               {% else %}
                 <a
                   href="?{{ param }}={{ num }}#{{ section_id }}"
-                  class="px-3 py-1 border rounded hover:bg-gray-100"
+                  class="px-3 py-1 hover:border-b-2"
                 >{{ num }}</a>
               {% endif %}
             </li>
@@ -56,8 +56,8 @@
             <li>
               <a
                 href="?{{ param }}={{ page_obj.next_page_number }}#{{ section_id }}"
-                class="px-3 py-1 border rounded hover:bg-gray-100"
-              >Next &raquo;</a>
+                class="px-3 py-1 hover:border-b-2"
+              > &raquo;</a>
             </li>
           {% endif %}
         </ul>
