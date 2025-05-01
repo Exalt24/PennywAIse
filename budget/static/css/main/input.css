@@ -9,9 +9,8 @@
   }
 }
 
-/* Sidebar */
-.sidebar {
-  @apply w-60 bg-gradient-to-b from-[#BD132D] to-[#642828] text-white p-5 flex flex-col;
+#sidebar {
+  @apply w-60 px-5 py-4 bg-gradient-to-b from-[#BD132D] to-[#642828] text-white flex flex-col;      /* large when expanded */
 }
 
 .logo {
@@ -386,4 +385,23 @@ details[open] summary img {
 
 .dropdown-button {
   @apply block w-full text-left px-4 py-2 text-sm rounded-md hover:bg-gray-300;
+}
+
+
+#sidebar.collapsed {
+  @apply w-16 px-2 py-2;      /* small when collapsed */
+}
+
+#sidebar.collapsed .logo-text,
+#sidebar.collapsed .btn-text,
+#sidebar.collapsed .link-text,
+#sidebar.collapsed .create{
+  @apply hidden;
+}
+
+#sidebar.collapsed .nav-sidebar {
+  @apply m-1 px-1 justify-center;
+}
+#sidebar.collapsed .nav-sidebar img {
+  @apply mx-auto;
 }

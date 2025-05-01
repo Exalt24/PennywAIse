@@ -112,6 +112,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   {% endif %}
 
+  const sidebar     = document.getElementById('sidebar');
+  const toggleBtn   = document.getElementById('sidebarToggle');
+  const toggleIcon  = toggleBtn.querySelector('svg');
+
+  toggleBtn.addEventListener('click', () => {
+    // collapse/expand the sidebar
+    sidebar.classList.toggle('collapsed');
+    // rotate the arrow
+    toggleIcon.classList.toggle('rotate-180');
+  });
+
   // ---- User menu toggle ----
   const userBtn = document.getElementById('userBtn');
   const userMenu = document.getElementById('userMenu');

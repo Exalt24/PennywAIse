@@ -1,100 +1,43 @@
 {% load static %}
 
-<aside class="sidebar">
-    <a href="{% url 'budget:index' %}" class="logo block mb-6">
-        <img
-        src="{% static 'images/logo3.png' %}"
-        alt="PennywAIse logo"
-        class="h-12 w-auto"
-        />
+<aside
+  id="sidebar"
+  class="sidebar bg-[#8B0F13] text-white transition-all duration-300 ease-in-out w-64 flex flex-col"
+>
+      <div class="flex items-center justify-between px-4 py-3">
+    <a href="{% url 'budget:index' %}" class="flex items-center space-x-2">
+      <img src="{% static 'images/logo3.png' %}"
+           alt="PennywAIse logo"
+           class="h-8 w-auto" />
     </a>
-    <button id="addEntryBtn" class="create">+ Add Entry</button>
-    <nav>
-        <a
-          href="#dashboard"
-          aria-current="page"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/dashboard.png' %}"
-            alt="Dashboard"
-            class="w-6 h-6"
-          />
-          <span>Dashboard</span>
+    <button id="sidebarToggle" class="focus:outline-none">
+      <!-- arrow pointing left -->
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-6 w-6 transform transition-transform duration-300"
+           fill="none"
+           viewBox="0 0 24 24"
+           stroke="currentColor">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+  </div>
+  <button id="addEntryBtn" class="create mx-4 my-2 flex items-center justify-center space-x-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    <span class="btn-text">Add Entry</span>
+  </button>
+    <nav class="mt-4 flex-1 space-y-1">
+      {% for item in nav_items %}
+        <a href="{{ item.href }}" class="nav-sidebar flex items-center px-4 py-2 space-x-2">
+          <img src="{% static item.icon %}" class="w-6 h-6" alt="{{ item.label }}"/>
+          <span class="link-text">{{ item.label }}</span>
         </a>
-      
-        <a
-          href="#categories"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/categories.png' %}"
-            alt="Categories"
-            class="w-6 h-6"
-          />
-          <span>Categories</span>
-        </a>
-      
-        <a
-          href="#income"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/income.png' %}"
-            alt="Income"
-            class="w-6 h-6"
-          />
-          <span>Income</span>
-        </a>
-      
-        <a
-          href="#expenses"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/expense.png' %}"
-            alt="Expenses"
-            class="w-6 h-6"
-          />
-          <span>Expenses</span>
-        </a>
-      
-        <a
-          href="#budgets"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/budget.png' %}"
-            alt="Budgets"
-            class="w-6 h-6"
-          />
-          <span>Budgets</span>
-        </a>
-      
-        <a
-          href="#reports"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/reports.png' %}"
-            alt="Reports"
-            class="w-6 h-6"
-          />
-          <span>Reports</span>
-        </a>
-      
-        <a
-          href="#ai"
-          class="nav-sidebar"
-        >
-          <img
-            src="{% static 'images/convo.png' %}"
-            alt="AI Assistant"
-            class="w-6 h-6"
-          />
-          <span>AI Assistant</span>
-        </a>
-      </nav>      
+      {% endfor %}
+    </nav>
 </aside>
 
 <script>
