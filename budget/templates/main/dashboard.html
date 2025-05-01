@@ -375,13 +375,11 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set(prefix + sfx, el.value || '');
       });
 
-    // preserve the current tab hash
     const url = `/entries/filter/?${params.toString()}${location.hash}`;
 
     fetch(url)
       .then(r => r.json())
       .then(data => {
-        // swap the entire section’s inner HTML
         const containerId = prefix === 'inc' ? 'incContainer' : 'expContainer';
         document.getElementById(containerId).innerHTML = data.html;
         initSorting();
@@ -588,7 +586,7 @@ applyReportFilter();
 
 document.getElementById('exportCsv').addEventListener('click', () => {
   const isFiltered = filterApplied.value === 'true';
-  
+  const exportFilename = '{{ request.user.username }}_transactions_{% now "Y-m-d" %}.csv';
   // Determine which table to use
   const tableToExport = isFiltered 
     ? document.getElementById('reportTable')
@@ -611,7 +609,7 @@ document.getElementById('exportCsv').addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'report.csv';
+  a.download = exportFilename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

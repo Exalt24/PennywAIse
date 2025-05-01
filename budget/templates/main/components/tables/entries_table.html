@@ -20,7 +20,7 @@
       class="px-3 py-2"
       data-value="{{ entry.date|date:'Y-m-d' }}"
     >
-      {{ entry.date|date:"M d, Y" }}
+      {{ entry.date|date:'Y-m-d' }}
     </td>
       <td class="px-3 py-2">{{ entry.title }}</td>
       <td class="px-3 py-2">{{ entry.category.name }}</td>
