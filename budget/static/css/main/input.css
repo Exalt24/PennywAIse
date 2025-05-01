@@ -213,7 +213,7 @@ header {
 }
 
 .feature-card {
-  @apply bg-[#e7e4de] rounded-xl p-6 flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover:scale-102 hover:shadow-lg;
+  @apply bg-[#e7e4de] rounded-xl p-6 min-h-full flex space-x-4 transform transition-transform duration-200 ease-out shadow-md hover:scale-102 hover:shadow-lg;
 }
 
 .card-title {
