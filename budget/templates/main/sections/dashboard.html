@@ -52,80 +52,73 @@
       </article>
     </section>
   
-    <section id="charts" class="content grid grid-cols-1 md:grid-cols-3 gap-4 mb-8" role="region" aria-label="Charts">
-      <!-- Monthly Trend -->
-      <section class="progress" role="region" aria-label="Monthly Trend chart">
-        <h2 class="text-lg mb-2">Monthly Trend</h2>
-        <canvas id="trendChart" width="300" height="200"></canvas>
-      </section>
-  
-      <section id="budgetCard" class="progress" role="region" aria-label="Budget Utilization chart">
-        <h2 id="budgetCardTitle" class="text-lg mb-2">Budget Utilization</h2>
-
-        <nav aria-label="Budget view toggles" class="flex space-x-2 mb-4">
-          <button id="showOverall" class="px-3 py-1 rounded bg-indigo-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400">
-            Overall
-          </button>
-          <button id="showByCategory" class="px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400">
-            By Category
-          </button>
-        </nav>
-  
-        <section id="overallNoData" class="p-4 text-center text-gray-500 hidden" role="status">
-          No budget data to display.
-        </section>
-        <canvas id="budgetChart" class="hidden" aria-label="Overall budget utilization chart"></canvas>
-  
-        <section id="catNoData" class="p-4 text-center text-gray-500 hidden" role="status">
-          No category data to display.
-        </section>
-        <canvas id="catBudgetDonut" class="hidden" aria-label="By-category budget utilization chart"></canvas>
-      </section>
-  
-      <!-- Category Breakdown (chart + table) -->
-      <section class="progress" role="region" aria-label="Category Breakdown">
-        <h2 class="text-lg mb-2">Category Breakdown</h2>
-        <canvas id="categoryChart" width="300" height="200" aria-label="Category breakdown chart"></canvas>
-  
-        {% if category_summary %}
-          <button
-            class="mt-3 text-sm text-indigo-600 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
-            onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
-            aria-expanded="false"
-            aria-controls="categoryTable"
-          >
-            Toggle detailed numbers
-          </button>
-  
-          <section id="categoryTable" class="hidden overflow-x-auto mt-2" role="region" aria-label="Category detailed table">
-            <table class="table-fixed w-full">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="px-3 py-2 text-left">Category</th>
-                  <th class="px-3 py-2 text-left">Income</th>
-                  <th class="px-3 py-2 text-left">Expense</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in category_summary %}
-                  <tr>
-                    <td class="px-3 py-2">{{ row.name }}</td>
-                    <td class="px-3 py-2 text-green-600">₱{{ row.income|floatformat:2 }}</td>
-                    <td class="px-3 py-2 text-red-600">₱{{ row.expense|floatformat:2 }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+    <section id="charts" class="content" role="region" aria-label="Charts">
+        <!-- Monthly Trend -->
+          <section class="progress" role="region" aria-label="Monthly Trend chart">
+            <h2 class="text-lg mb-2">Monthly Trend</h2>
+            <canvas class="w-full h-56 md:h-48 lg:h-64" id="trendChart"></canvas>
           </section>
-        {% else %}
-          <p class="mt-3 text-center text-gray-500">No categories to display.</p>
-        {% endif %}
-      </section>
+        <!-- Budget Utilization -->
+          <section id="budgetCard" class="progress" role="region" aria-label="Budget Utilization chart">
+            <h2 id="budgetCardTitle" class="text-lg mb-2">Budget Utilization</h2>
+            <nav aria-label="Budget view toggles" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-4">
+              <button id="showOverall" class="px-3 py-1 rounded bg-indigo-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400">
+                Overall
+              </button>
+              <button id="showByCategory" class="px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400">
+                By Category
+              </button>
+            </nav>
+            <section id="overallNoData" class="p-4 text-center text-gray-500 hidden" role="status">
+              No budget data to display.
+            </section>
+            <canvas id="budgetChart" class="hidden w-full h-56 md:h-48 lg:h-64" aria-label="Overall budget utilization chart"></canvas>
+      
+            <section id="catNoData" class="p-4 text-center text-gray-500 hidden" role="status">
+              No category data to display.
+            </section>
+            <canvas id="catBudgetDonut" class="hidden h-56 md:h-48 lg:h-64" aria-label="By-category budget utilization chart"></canvas>
+          </section>
+    
+        <!-- Category Breakdown (chart + table) -->
+          <section class="progress" role="region" aria-label="Category Breakdown">
+            <h2 class="text-lg mb-2">Category Breakdown</h2>
+            <canvas id="categoryChart" class="w-full h-56 md:h-48 lg:h-64" height="200" aria-label="Category breakdown chart"></canvas>
+            {% if category_summary %}
+              <button
+                class="mt-3 text-sm text-indigo-600 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
+                onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
+                aria-expanded="false"
+                aria-controls="categoryTable"
+              >
+                Toggle detailed numbers
+              </button>
+              <section id="categoryTable" class="hidden overflow-x-auto mt-2" role="region" aria-label="Category detailed table">
+                <table class="table-fixed w-full">
+                  <thead class="bg-gray-100">
+                    <tr>
+                      <th class="px-3 py-2 text-left">Category</th>
+                      <th class="px-3 py-2 text-left">Income</th>
+                      <th class="px-3 py-2 text-left">Expense</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in category_summary %}
+                      <tr>
+                        <td class="px-3 py-2">{{ row.name }}</td>
+                        <td class="px-3 py-2 text-green-600">₱{{ row.income|floatformat:2 }}</td>
+                        <td class="px-3 py-2 text-red-600">₱{{ row.expense|floatformat:2 }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </section>
+            {% else %}
+              <p class="mt-3 text-center text-gray-500">No categories to display.</p>
+            {% endif %}
+          </section>
     </section>
-
-
     {% with section_id="recent" aria_label="Recent Transactions table" table_id="dashboardTable" entries=recent_transactions empty_message="No transactions yet." title="Recent Transactions (latest 10 entries)" title_id="recent-heading" page_obj=page_obj_recent page_param="recent_page" %}
       {% include "main/components/tables/recent_transactions_table.html" %}
     {% endwith %}
-
 </section>
