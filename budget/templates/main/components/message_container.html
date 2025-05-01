@@ -1,12 +1,12 @@
 {% load static %}
 
 {% if messages %}
-    <nav id="toast-container" class="fixed top-0 right-0 z-50 flex flex-col gap-2 p-4">
+    <nav id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-50 gap-2 p-4">
         {% for message in messages %}
             <nav
             class="toast px-4 py-2 rounded shadow-md text-white
                 {% if message.tags == 'error' %} bg-red-600
-                {% elif message.tags == 'success' %} bg-green-600
+                {% elif message.tags == 'success' %} bg-black
                 {% else %} bg-blue-600 {% endif %}"
             >
             {{ message }}
