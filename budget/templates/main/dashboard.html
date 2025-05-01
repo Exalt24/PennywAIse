@@ -598,7 +598,6 @@ document.getElementById('exportCsv').addEventListener('click', () => {
     .map(r => {
       return Array.from(r.children).map((td, idx) => {
         let cell = td.textContent.trim();
-        // For amount column, strip currency symbols etc.
         if (idx === 2) cell = cell.replace(/[^\d\.-]/g, '');
         return cell;
       });
