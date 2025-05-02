@@ -76,7 +76,7 @@ header {
 }
 
 .header-m {
-  @apply mb-5 mt-6;
+  @apply mb-5;
 }
 
 .header-layout {
@@ -356,7 +356,7 @@ details[open] summary img {
 }
 
 .profile-dropdown {
-  @apply flex items-center cursor-pointer px-4 py-2 rounded focus:outline-none;
+  @apply flex items-center space-x-2 cursor-pointer px-4 py-2 rounded focus:outline-none;
 }
 
 .dropdown-icon {
