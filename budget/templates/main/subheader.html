@@ -13,14 +13,12 @@
           aria-expanded="false"
           class="relative">
           <summary class="profile-dropdown">
-            <a href="/">
-              <img
-                id="logoImage"
-                src="{% static 'images/profile.png' %}"
-                alt="PennywAise logo"
-                class="h-8 w-auto rounded-full"
-              />
-            </a>
+            <img
+              id="logoImage"
+              src="{% static 'images/profile.png' %}"
+              alt="PennywAise logo"
+              class="h-8 w-auto rounded-full"
+            />
             <span id="userGreeting" class="text-black">
               Hi, {{ user.first_name|default:user.username }}!
             </span>
@@ -68,3 +66,26 @@
       </nav>
   </section>
 </section>
+
+{% block more_extra_scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      document
+      .querySelectorAll('nav[aria-label="User menu"]')
+      .forEach(nav => {
+        const summary = nav.querySelector('summary.profile-dropdown');
+        const menu    = nav.querySelector('ul.usermenu');
+        summary.addEventListener('click', e => {
+          e.stopPropagation();
+          menu.classList.toggle('hidden');
+        });
+      });
+    
+      document.addEventListener('click', () => {
+        document.querySelectorAll('ul.usermenu').forEach(m => m.classList.add('hidden'));
+        document.querySelectorAll('nav[aria-label="User menu"] details').forEach(d => d.open = false);
+      });
+    });
+  </script>
+{% endblock %}

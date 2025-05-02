@@ -6,7 +6,6 @@
 >
     <section class="flex items-center justify-between px-4 py-3 mt-4">
       <a href="{% url 'budget:index' %}" class="flex items-center space-x-2">
-        <!-- default logo -->
         <img
           src="{% static 'images/logo3.png' %}"
           alt="PennywAIse logo"
@@ -14,7 +13,6 @@
         />
       </a>
     <button id="sidebarToggle" class="focus:outline-none">
-      <!-- arrow pointing left -->
       <svg xmlns="http://www.w3.org/2000/svg"
            class="h-6 w-6 transform transition-transform duration-300"
            fill="none"
@@ -49,33 +47,15 @@
     </nav>
 </aside>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const links = document.querySelectorAll('.nav-sidebar');
-  
-      function updateActive() {
-        const hash = window.location.hash || '#dashboard';
-        links.forEach(link => {
-          if (link.getAttribute('href') === hash) {
-            link.setAttribute('aria-current', 'page');
-          } else {
-            link.removeAttribute('aria-current');
-          }
-        });
-      }
-  
-      // Run on load...
-      updateActive();
-      // ...and whenever the hash in the URL changes
-      window.addEventListener('hashchange', updateActive);
-      
-      // (Optional) If you want clicks to update immediately without waiting for the hashchange:
-      links.forEach(link => {
-        link.addEventListener('click', () => {
-          // small timeout so the browser updates location.hash first
-          setTimeout(updateActive, 0);
-        });
-      });
+{% block more_extra_scripts %}
+  <script> 
+    const sidebar     = document.getElementById('sidebar');
+    const toggleBtn   = document.getElementById('sidebarToggle');
+    const toggleIcon  = toggleBtn.querySelector('svg');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      toggleIcon.classList.toggle('rotate-180');
     });
   </script>
-  
+{% endblock %}
