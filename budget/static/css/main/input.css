@@ -21,7 +21,7 @@
 }
 
 .create {
-  @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-8;
+  @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-6;
 }
 
 .footer-layout {
@@ -387,4 +387,13 @@ details[open] summary img {
 }
 #sidebar.collapsed .nav-sidebar img {
   @apply mx-auto;
+}
+#sidebar .logo-collapsed {
+  @apply hidden;
+}
+#sidebar.collapsed .logo-full {
+  @apply hidden;
+}
+#sidebar.collapsed .logo-collapsed {
+  @apply block mx-auto;
 }
