@@ -2,13 +2,16 @@
 
 <section id="categories" class="page-content hidden" role="region" aria-label="Category management">
 
-  <!-- HEADER: align title & form at the top -->
-  <header class="flex items-start justify-between header-m">
-    <h2 class="pagetitle self-start">Categories</h2>
+  
+  {% with section_title="Categories"%}
+    {% include "main/subheader.html" %}
+  {% endwith %}
+
+  <section class="flex items-start justify-between header-m">
 
     <form
       method="post"
-      class="grid grid-cols-1 sm:grid-cols-[1fr_auto] items-start gap-4"
+      class="flex gap-4"
       role="form"
       aria-labelledby="add-category-heading"
     >
@@ -44,9 +47,9 @@
         Add
       </button>
     </form>
-  </header>
+  </section>
 
-  {% with section_id="categories" aria_label="Category overview table" title="Overview" title_id="overview-heading" tbody_id="categoryTable" page_obj=page_obj_category page_param="cat_page" %}
+  {% with section_id="categories" aria_label="Category overview table" title_id="overview-heading" tbody_id="categoryTable" page_obj=page_obj_category page_param="cat_page" %}
       {% include "main/components/tables/category_table.html" %}
   {% endwith %}
   </section>

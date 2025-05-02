@@ -1,12 +1,16 @@
 {% load static %}
 
 <section id="expenses" class="page-content hidden" role="region" aria-label="Expense entries" data-prefix="exp">
-    <header class="flex flex-wrap items-end gap-2 header-m">
-      <h2 class="pagetitle mb-4">Expenses</h2>
+
+    {% with section_title="Expenses" %}
+        {% include "main/subheader.html" %}
+    {% endwith %}
+
+    <section class="flex flex-wrap items-end gap-2 header-m">
       {% with prefix="exp" filter_aria_label="Filter expense entries" title_input_class="px-2 py-1 border rounded flex-1 min-w-[120px]" form_id="expFilterForm" %}
         {% include "main/components/filters/entries_filter.html" %}
       {% endwith %}
-    </header>
+    </section>
     <section id="expContainer">
       {% with section_id="expenses" aria_label="Expense entries" tbody_id="expenseTable" amount_prefix="-" amount_class="text-red-600" empty_message="No expense entries found." page_obj=page_obj_expense page_param="exp_page" %}
         {% include "main/components/tables/entries_table.html" with entries=expense_entries %}

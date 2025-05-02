@@ -1,9 +1,11 @@
 {% load static %}
 
 <section id="dashboard" class="page-content" role="main" aria-label="Dashboard">
-    <header class="header-m">
-      <h2 class="pagetitle">Dashboard</h2>
-    </header>
+
+
+  {% with section_title="Dashboard"%}
+    {% include "main/subheader.html" %}
+  {% endwith %}
   
     <section id="overview" class="overview" role="region" aria-label="Overview cards">
       <article class="card" role="region" aria-label="Total Income: ₱{{ income_total|floatformat:2 }} this month">

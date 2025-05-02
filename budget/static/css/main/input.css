@@ -75,10 +75,6 @@ header {
   @apply flex justify-between items-center;
 }
 
-.header-m {
-  @apply mb-5;
-}
-
 .header-layout {
   @apply max-w-7xl mx-auto px-6 py-4 flex justify-between items-center;
 }
@@ -92,7 +88,7 @@ header {
 }
 
 .user {
-  @apply cursor-pointer flex justify-end items-center;
+  @apply cursor-pointer flex justify-end items-center mb-3;
 }
 
 .button {
