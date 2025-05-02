@@ -376,12 +376,15 @@ details[open] summary img {
   @apply w-16 px-2 py-2;
 }
 
-#sidebar.collapsed .logo-text,
 #sidebar.collapsed .btn-text,
-#sidebar.collapsed .link-text,
-#sidebar.collapsed .create{
+#sidebar.collapsed .link-text{
   @apply hidden;
 }
+
+#sidebar.collapsed .create {
+  @apply mx-auto py-4
+}
+
 
 #sidebar.collapsed .nav-sidebar {
   @apply m-1 px-1 justify-center;
