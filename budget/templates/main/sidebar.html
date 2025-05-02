@@ -4,11 +4,11 @@
   id="sidebar"
   class="sidebar bg-[#8B0F13] text-white transition-all duration-300 ease-in-out w-64 flex flex-col"
 >
-      <div class="flex items-center justify-between px-4 py-3">
+      <section class="flex items-center justify-between px-4 py-3">
     <a href="{% url 'budget:index' %}" class="flex items-center space-x-2">
       <img src="{% static 'images/logo3.png' %}"
            alt="PennywAIse logo"
-           class="h-8 w-auto" />
+           class="h-8 w-auto logo-image" />
     </a>
     <button id="sidebarToggle" class="focus:outline-none">
       <!-- arrow pointing left -->
@@ -23,12 +23,10 @@
               d="M15 19l-7-7 7-7" />
       </svg>
     </button>
-  </div>
-  <button id="addEntryBtn" class="create mx-4 my-2 flex items-center justify-center space-x-2">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-    </svg>
-    <span class="btn-text">Add Entry</span>
+  </section>
+  <button id="addEntryBtn" class="create mx-4 my-2 flex items-center justify-center">
+    <img src="{% static 'images/plus.png' %}" class="w-4 h-4 btn-image" alt="Add Entry Icon"/>
+    <span class="btn-text ml-2">Add Entry</span>
   </button>
     <nav class="mt-4 flex-1 space-y-1">
       {% for item in nav_items %}
