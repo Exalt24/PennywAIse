@@ -42,8 +42,16 @@
       {% if user.is_authenticated %}
       <details class="relative">
         <summary class="profile-dropdown">
-          <span id="userGreeting" class="text-white">
-            Welcome back, {{ user.first_name|default:user.username }}!
+          <a href="/">
+            <img
+              id="logoImage"
+              src="{% static 'images/profile.png' %}"
+              alt="PennywAise logo"
+              class="h-8 w-auto rounded-full"
+            />
+          </a>
+          <span id="userGreeting" class="text-black">
+            {{ user.first_name|default:user.username }}!
           </span>
           <img
             id="dropdownIcon"
@@ -52,12 +60,13 @@
             class="dropdown-icon"
           />
         </summary>
-        <div class="dropdown-modal">
+        <section class="dropdown-modal">
+          <a href="{% url 'budget:dashboard' %}" class="dropdown-button">Dashboard</a>
           <form method="post" action="{% url 'logout' %}" role="none">
             {% csrf_token %}
             <button type="submit" class="dropdown-button">Logout</button>
           </form>
-        </div>
+        </section>
       </details>
       {% else %}
       <a href="{% url 'budget:auth' %}" class="button-darksm">Login</a>

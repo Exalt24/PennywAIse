@@ -180,12 +180,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initSorting();
   // ---- User menu toggle ----
-  const userBtn = document.getElementById('userBtn');
-  const userMenu = document.getElementById('userMenu');
-  userBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    userMenu.classList.toggle('hidden');
+// Attach a click‐handler to every <nav aria-label="User menu"> on the page
+  document
+  .querySelectorAll('nav[aria-label="User menu"]')
+  .forEach(nav => {
+    const summary = nav.querySelector('summary.profile-dropdown');
+    const menu    = nav.querySelector('ul.usermenu');
+    summary.addEventListener('click', e => {
+      e.stopPropagation();
+      menu.classList.toggle('hidden');
+    });
   });
+
+// Clicking anywhere else should close *all* open menus
+document.addEventListener('click', () => {
+  document.querySelectorAll('ul.usermenu').forEach(m => m.classList.add('hidden'));
+});
+
   document.addEventListener('click', () => userMenu.classList.add('hidden'));
   // ---- Modal controls ----
   const addEntryBtn = document.getElementById('addEntryBtn');
