@@ -2,11 +2,11 @@
 
 {% block table_head %}
   <tr>
-    <th scope="col" class="px-3 py-2 text-left sortable sort-asc" aria-sort="ascending">Title</th>
-    <th scope="col" class="px-3 py-2 text-left sortable" aria-sort="none">Category</th>
-    <th scope="col" class="px-3 py-2 text-right sortable" aria-sort="none">Amount</th>
-    <th scope="col" class="px-3 py-2 text-left sortable" aria-sort="none">Date</th>
-    <th scope="col" class="px-3 py-2 text-left sortable" aria-sort="none">Type</th>
+    <th scope="col" class="px-3 py-2 text-left sortable sort-desc" aria-sort="descending" data-type="date">Date</th>
+    <th scope="col" class="px-3 py-2 text-left sortable" aria-sort="none" data-type="string">Title</th>
+    <th scope="col" class="px-3 py-2 text-left sortable" aria-sort="none" data-type="string">Category</th>
+    <th scope="col" class="px-3 py-2 text-right sortable" aria-sort="none" data-type="number">Amount</th>
+    <th scope="col" class="px-3 py-2 text-left sortable" aria-sort="none" data-type="string">Type</th>
   </tr>
 {% endblock %}
 
@@ -14,10 +14,10 @@
   <input type="hidden" id="filterApplied" value="false">
   {% for e in report_entries %}
     <tr>
+      <td class="px-3 py-2" role="cell" data-value="{{ e.date|date:'Y-m-d' }}">{{ e.date|date:"Y-m-d" }}</td>
       <td class="px-3 py-2" role="cell">{{ e.title }}</td>
       <td class="px-3 py-2" role="cell" data-cat-id="{{ e.category.id }}">{{ e.category.name }}</td>
-      <td class="px-3 py-2 text-right" role="cell">₱{{ e.amount|floatformat:2 }}</td>
-      <td class="px-3 py-2" role="cell">{{ e.date|date:"Y-m-d" }}</td>
+      <td class="px-3 py-2 text-right" role="cell" data-value="{{ e.amount }}">₱{{ e.amount|floatformat:2 }}</td>
       <td class="px-3 py-2" role="cell">{{ e.get_type_display }}</td>
     </tr>
   {% empty %}
@@ -34,20 +34,20 @@
   <table id="fullReportTable" class="hidden">
     <thead>
       <tr>
+        <th>Date</th>
         <th>Title</th>
         <th>Category</th>
         <th>Amount</th>
-        <th>Date</th>
         <th>Type</th>
       </tr>
     </thead>
     <tbody>
       {% for e in report_entries_all %}
         <tr>
+          <td>{{ e.date|date:"Y-m-d" }}</td>
           <td>{{ e.title }}</td>
           <td data-cat-id="{{ e.category.id }}">{{ e.category.name }}</td>
           <td>{{ e.amount|floatformat:2 }}</td>
-          <td>{{ e.date|date:"Y-m-d" }}</td>
           <td>{{ e.get_type_display }}</td>
         </tr>
       {% endfor %}
