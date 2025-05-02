@@ -1,7 +1,10 @@
 <section id="budgets" class="page-content" role="region" aria-label="Budgets">
-  <header class="flex items-start justify-between header-m">
-    <h2 class="pagetitle self-start">Budgets</h2>
 
+  {% with section_title="Budgets" %}
+    {% include "main/subheader.html" %}
+  {% endwith %}
+
+  <section class="flex items-start justify-between header-m">
     <form
       method="post"
       class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] items-start gap-4"
@@ -59,7 +62,7 @@
         Save
       </button>
     </form>
-  </header>
+  </section>
 
   {% with section_id="budgets" aria_label="Budget overview table" category_summary=category_summary total_budget=total_budget total_spent=total_spent total_remaining=total_remaining total_remaining_abs=total_remaining_abs page_obj=page_obj_budget page_param="budget_page" %}
     {% include "main/components/tables/budget_table.html" %}

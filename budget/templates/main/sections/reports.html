@@ -1,16 +1,25 @@
 {% load static %}
 
 <section id="reports" class="page-content hidden" role="region" aria-label="Reports" data-prefix="rep" >
-    <header class="flex flex-wrap items-end gap-2 header-m">
-      <form role="search" aria-label="Filter report entries" class="filters relative grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 w-full space-y-2">
-        <h2 class="pagetitle mb-4">Reports</h2>
-        <button id="exportCsv" aria-label="Export CSV" class=" col-span-1 sm:col-start-2 justify-self-end px-10 py-2 bg-[#1B1F1E] hover:bg-[#3f3a36] text-white rounded-full transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3f3a36]">
-        Export CSV
-        </button>
+
+  {% with section_title="Reports" %}
+    {% include "main/subheader.html" %}
+  {% endwith %}
+
+    <section class="flex flex-wrap items-end gap-2 header-m">
+      <form role="search" aria-label="Filter report entries" class="filters relative grid grid-cols-1 gap-4 mb-4 w-full space-y-2">
+        
         <section class="bg-[#fdfdfb] p-4 shadow-sm rounded-xl col-span-1 sm:col-span-2">
-        <h2 class="col-span-full text-lg font-semibold mb-4">
-          Filters
-        </h2>
+          <section class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Filters</h2>
+            <button
+              id="exportCsv"
+              aria-label="Export CSV"
+              class="px-6 py-2 bg-[#1B1F1E] hover:bg-[#3f3a36] text-white rounded-full transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3f3a36]"
+            >
+              Export CSV
+            </button>
+          </section>
         <section class="grid grid-cols-1 md:grid-cols-2 gap-2 space-x-2">
         <section class="flex flex-col space-y-1">
           <label for="repFrom" class="text-sm font-semibold">From</label>
@@ -40,7 +49,7 @@
       </section>
       </section>
       </form>
-    </header>
+    </section>
 
     <section id="repContainer">
       {% with section_id="reports" aria_label="Report entries table" table_id="reportTable" page_obj=page_obj_report page_param="report_page" tbody_id="reportTable" %}

@@ -1,9 +1,10 @@
 {% load static %}
 
 <section id="ai" class="page-content hidden" role="region" aria-label="AI Assistant">
-  <header class="flex justify-between items-center header-m">
-    <h2 class="pagetitle">AI Assistant</h2>
-  </header>
+  
+  {% with section_title="AI Assistant"%}
+        {% include "main/subheader.html" %}
+    {% endwith %}
 
   <article class="bg-[#fdfdfb] rounded-xl p-6 shadow-md">
     <h3 class="text-lg font-semibold mb-4">Ask PennywAIse</h3>
