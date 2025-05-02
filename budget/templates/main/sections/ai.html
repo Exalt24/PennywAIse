@@ -3,8 +3,8 @@
 <section id="ai" class="page-content hidden" role="region" aria-label="AI Assistant">
   
   {% with section_title="AI Assistant"%}
-        {% include "main/subheader.html" %}
-    {% endwith %}
+      {% include "main/subheader.html" %}
+  {% endwith %}
 
   <article class="bg-[#fdfdfb] rounded-xl p-6 shadow-md">
     <h3 class="text-lg font-semibold mb-4">Ask PennywAIse</h3>
@@ -30,3 +30,81 @@
   </article>
 </section>
 
+{% block more_extra_scripts %}
+  <script>
+    const aiResponse = document.getElementById('aiResponse');
+    const aiForm = document.getElementById('aiForm');
+    const aiPrompt = document.getElementById('aiPrompt');
+    const btn        = aiForm.querySelector('button[type="submit"]');
+
+    aiForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const question = aiPrompt.value.trim();
+      if (!question) return;
+
+      aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+
+      const resp = await fetch('{% url "budget:ai-query" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify({ prompt: question }),
+      });
+      const data = await resp.json();
+      aiResponse.innerHTML = `<p>${data.answer}</p>`;
+    });
+
+    function updateButtonState() {
+      if (aiPrompt.value.trim() === "") {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+    aiPrompt.addEventListener('input', updateButtonState);
+    updateButtonState();
+
+    aiForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const question = aiPrompt.value.trim();
+      if (!question) return;
+
+      btn.dataset.clicked = 'true';
+      btn.innerHTML = 'Processing…';
+
+      aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+
+      try {
+        const resp = await fetch("{% url 'budget:ai-query' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ prompt: question }),
+        });
+        const data = await resp.json();
+
+        if (resp.ok) {
+          aiResponse.innerHTML = `<p>${data.answer}</p>`;
+          aiPrompt.value = "";
+          updateButtonState();
+        } else {
+          aiResponse.innerHTML = `<p class="text-red-600">${data.error || 'Something went wrong.'}</p>`;
+        }
+      } catch (err) {
+        aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
+      } finally {
+        delete btn.dataset.clicked;
+        btn.innerHTML = 'Get Answer';
+      }
+
+      if (aiResponse.innerHTML.trim() === '') {
+        aiResponse.classList.add('hidden');
+      } else {
+        aiResponse.classList.remove('hidden');
+      }
+    });
+  </script>
+{% endblock %}

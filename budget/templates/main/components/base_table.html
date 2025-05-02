@@ -25,7 +25,6 @@
     </tbody>
   </table>
 
-  {# ——— pagination controls ——— #}
   {% if page_obj %}
     {% with param=page_param|default:'page' %}
       <nav id="{{ section_id }}Pagination" aria-label="Page navigation" class="mt-4 flex justify-center">
@@ -66,4 +65,120 @@
   {% endif %}
 </section>
 
-{% block extra_content %}{% endblock %}
+{% block more_extra_scripts %}
+  <script>
+    function initTableFilter(opts) {
+      const { dateFrom, dateTo, title, category, minAmt, maxAmt, tableBody } = opts;
+      const df = document.querySelector(dateFrom);
+      const dt = document.querySelector(dateTo);
+      const ti = document.querySelector(title);
+      const ca = document.querySelector(category);
+      const mn = document.querySelector(minAmt);
+      const mx = document.querySelector(maxAmt);
+      const rows = Array.from(document.querySelectorAll(tableBody + ' tr'));
+      const dateError = document.getElementById(dateFrom === '#incDateFrom' ? 'incDateError' : 'expDateError');
+      const amtError = document.getElementById(minAmt === '#incMinAmount' ? 'incAmountError' : 'expAmountError');
+
+      function applyFilters() {
+        const fromDate = df.valueAsDate;
+        const toDate = dt.valueAsDate;
+        const titleQ = ti.value.trim().toLowerCase();
+        const catQ = ca.value.trim().toLowerCase();
+        const minA = parseFloat(mn.value) || -Infinity;
+        const maxA = parseFloat(mx.value) || Infinity;
+
+        let valid = true;
+        if (fromDate && toDate && fromDate > toDate) {
+          valid = false;
+          dateError.classList.remove('hidden');
+        } else {
+          dateError.classList.add('hidden');
+        }
+        if (minA && maxA && minA > maxA) {
+          valid = false;
+          amtError.classList.remove('hidden');
+        } else {
+          amtError.classList.add('hidden');
+        }
+
+        if (!valid) return;
+
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          let ok = true;
+
+          if ((fromDate || toDate) && cells[3]) {
+            const d = new Date(cells[3].textContent);
+            if (fromDate && d < fromDate) ok = false;
+            if (toDate && d > toDate) ok = false;
+          }
+
+          if (titleQ && cells[0] && !cells[0].textContent.toLowerCase().includes(titleQ)) ok = false;
+          if (catQ && cells[1] && !cells[1].textContent.toLowerCase().includes(catQ)) ok = false;
+
+          if (cells[2]) {
+            const raw = cells[2].textContent.replace(/[^0-9.]/g, '');
+            const amt = parseFloat(raw) || 0;
+            if (amt < minA || amt > maxA) ok = false;
+          }
+
+          row.style.display = ok ? '' : 'none';
+        });
+      }
+
+      [df, dt, ti, ca, mn, mx].forEach(el => el && el.addEventListener('input', applyFilters));
+    }
+
+    function fetchTable(prefix) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('prefix', prefix);
+
+      ['DateFrom','DateTo','TitleFilter','CategoryFilter','MinAmount','MaxAmount']
+        .forEach(sfx => {
+          const el = document.getElementById(prefix + sfx);
+          params.set(prefix + sfx, el.value || '');
+        });
+
+      const url = `/entries/filter/?${params.toString()}${location.hash}`;
+
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          const containerId = prefix === 'inc' ? 'incContainer' : 'expContainer';
+          document.getElementById(containerId).innerHTML = data.html;
+          initSorting();
+          bindNotesRows();
+        });
+    }
+
+    initTableFilter({
+      dateFrom: '#incDateFrom',
+      dateTo: '#incDateTo',
+      title: '#incTitleFilter',
+      category: '#incCategoryFilter',
+      minAmt: '#incMinAmount',
+      maxAmt: '#incMaxAmount',
+      tableBody: '#incomeTable'
+    });
+
+    initTableFilter({
+      dateFrom: '#expDateFrom',
+      dateTo: '#expDateTo',
+      title: '#expTitleFilter',
+      category: '#expCategoryFilter',
+      minAmt: '#expMinAmount',
+      maxAmt: '#expMaxAmount',
+      tableBody: '#expenseTable'
+    });
+
+
+    ['inc','exp'].forEach(prefix => {
+      ['DateFrom','DateTo','TitleFilter','CategoryFilter','MinAmount','MaxAmount']
+        .forEach(sfx => {
+          const el = document.getElementById(prefix + sfx);
+          if (!el) return;
+          el.addEventListener('input', () => fetchTable(prefix));
+        });
+    });
+  </script>
+{% endblock %}

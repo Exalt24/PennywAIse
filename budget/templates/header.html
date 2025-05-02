@@ -42,14 +42,12 @@
       {% if user.is_authenticated %}
       <details class="relative">
         <summary class="profile-dropdown">
-          <a href="/">
-            <img
-              id="logoImage"
-              src="{% static 'images/profile.png' %}"
-              alt="PennywAise logo"
-              class="h-8 w-auto rounded-full"
-            />
-          </a>
+          <img
+            id="logoImage"
+            src="{% static 'images/profile.png' %}"
+            alt="PennywAise logo"
+            class="h-8 w-auto rounded-full"
+          />
           <span id="userGreeting" class="text-black">
             {{ user.first_name|default:user.username }}!
           </span>
@@ -95,15 +93,12 @@
     });
     const isHome = !current || current === "home";
 
-    // 1) Swap logo
     logoImage.src = isHome ? homeLogoSrc : otherLogoSrc;
 
-    // 2) Only touch the dropdown icon if it exists
     if (dropdownIcon) {
       dropdownIcon.classList.toggle("inverted", isHome);
     }
 
-    // 3) Nav-link color & underline
     navLinks.forEach((link) => {
       link.classList.toggle("text-white", isHome);
       link.classList.toggle("text-[#40020F]", !isHome);
@@ -113,7 +108,6 @@
       link.classList.toggle("border-[#c3002d]", active);
     });
 
-    // 4) Greeting color (already guarded)
     if (userGreeting) {
       userGreeting.classList.toggle("text-white", isHome);
       userGreeting.classList.toggle("text-[#40020F]", !isHome);

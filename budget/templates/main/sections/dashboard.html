@@ -53,14 +53,91 @@
         <p class="meta">Entries this month</p>
       </article>
     </section>
-  
+
+    <section id="insights" class="overview mt-6" role="region" aria-label="Quick Insights">
+      <article class="card">
+        <h3 class="title">Income vs Last Month</h3>
+        <p class="value">₱{{ income_total|floatformat:2 }}</p>
+        {% if income_pct_change %}
+          <p class="meta {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ income_pct_change|floatformat:1 }}%
+          </p>
+        {% else %}
+          <p class="meta text-gray-500">N/A</p>
+        {% endif %}
+      </article>
+    
+      <article class="card">
+        <h3 class="title">Expenses vs Last Month</h3>
+        <p class="value">₱{{ expense_total|floatformat:2 }}</p>
+        {% if expense_pct_change %}
+          <p class="meta {% if expense_pct_change < 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ expense_pct_change|floatformat:1 }}%
+          </p>
+        {% else %}
+          <p class="meta text-gray-500">N/A</p>
+        {% endif %}
+      </article>
+    
+      <article class="card">
+        <h3 class="title">Average Txn</h3>
+        <p class="value">₱{{ avg_transaction|floatformat:2 }}</p>
+        <p class="meta">per entry</p>
+      </article>
+    
+      <article class="card">
+        <h3 class="title">Largest Expense</h3>
+        {% if largest_expense %}
+          <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
+          <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
+        {% else %}
+          <p class="value text-gray-500">—</p>
+        {% endif %}
+      </article>
+    </section>
+    
+    <section id="top‐cats" class="overview mt-6" role="region" aria-label="Top Spending Categories">
+      <article class="card">
+        <h3 class="title">Top 3 Categories</h3>
+        <ul class="space-y-1">
+          {% for cat in top_categories_summary %}
+            <li class="flex justify-between">
+              <span>{{ cat.name }}</span>
+              <span class="text-red-600">₱{{ cat.expense|floatformat:2 }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </article>
+    
+      <article class="card">
+        <h3 class="title">Projected Month-End Balance</h3>
+        <p class="value {% if projected_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
+          ₱{{ projected_balance|floatformat:2 }}
+        </p>
+        <p class="meta">based on avg ₱{{ avg_daily_spent|floatformat:2 }}/day</p>
+      </article>
+    </section>
+    
     <section id="charts" class="content" role="region" aria-label="Charts">
-        <!-- Monthly Trend -->
-          <section class="progress" role="region" aria-label="Monthly Trend chart">
+        <section class="progress" role="region" aria-label="Monthly Trend chart">
             <h2 class="text-lg mb-2">Monthly Trend</h2>
-            <canvas class="w-full h-56 md:h-48 lg:h-64" id="trendChart"></canvas>
-          </section>
-        <!-- Budget Utilization -->
+            <nav aria-label="Trend view toggles" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-4">
+              <button
+                id="trendBarBtn"
+                class="px-3 py-1 rounded bg-indigo-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
+              >
+                Bar
+              </button>
+              <button
+                id="trendLineBtn"
+                class="px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+              >
+                Line
+              </button>
+
+            </nav>            
+          <canvas id="trendChart" class="w-full h-56 md:h-48 lg:h-64"></canvas>
+        </section>        
           <section id="budgetCard" class="progress" role="region" aria-label="Budget Utilization chart">
             <h2 id="budgetCardTitle" class="text-lg mb-2">Budget Utilization</h2>
             <nav aria-label="Budget view toggles" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-4">
@@ -82,16 +159,16 @@
             <canvas id="catBudgetDonut" class="hidden h-56 md:h-48 lg:h-64" aria-label="By-category budget utilization chart"></canvas>
           </section>
     
-        <!-- Category Breakdown (chart + table) -->
           <section class="progress" role="region" aria-label="Category Breakdown">
             <h2 class="text-lg mb-2">Category Breakdown</h2>
             <canvas id="categoryChart" class="w-full h-56 md:h-48 lg:h-64" height="200" aria-label="Category breakdown chart"></canvas>
             {% if category_summary %}
               <button
-                class="mt-3 text-sm text-indigo-600 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
+                class="mt-4 px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
                 onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
                 aria-expanded="false"
                 aria-controls="categoryTable"
+                id="toggleCategoryChartTable"
               >
                 Toggle detailed numbers
               </button>
@@ -119,8 +196,163 @@
               <p class="mt-3 text-center text-gray-500">No categories to display.</p>
             {% endif %}
           </section>
+     
     </section>
     {% with section_id="recent" aria_label="Recent Transactions table" table_id="dashboardTable" entries=recent_transactions empty_message="No transactions yet." title="Recent Transactions (latest 10 entries)" title_id="recent-heading" page_obj=page_obj_recent page_param="recent_page" %}
       {% include "main/components/tables/recent_transactions_table.html" %}
     {% endwith %}
 </section>
+
+{% block more_extra_scripts %}
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+      const ctxTrend = document.getElementById('trendChart').getContext('2d');
+      const trendChart = new Chart(ctxTrend, {
+        type: 'bar',                
+        data: { 
+          labels: {{ chart_trend_labels|safe }},
+          datasets: [{
+            label: 'Income',
+            data: {{ chart_trend_income|safe }},
+            backgroundColor: 'rgba(16,185,129,0.5)',
+          },{
+            label: 'Expenses',
+            data: {{ chart_trend_expense|safe }},
+            backgroundColor: 'rgba(239,68,68,0.5)',
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+      
+      document.getElementById('trendBarBtn').addEventListener('click', () => {
+        trendChart.config.type = 'bar';
+        trendChart.update();
+        document.getElementById('trendBarBtn').classList.replace('bg-gray-200','bg-indigo-600');
+        document.getElementById('trendBarBtn').classList.replace('text-gray-700', 'text-white');
+        document.getElementById('trendLineBtn').classList.replace('bg-indigo-600','bg-gray-200');
+        document.getElementById('trendLineBtn').classList.replace('text-white', 'text-gray-700');
+      });
+    
+      document.getElementById('trendLineBtn').addEventListener('click', () => {
+        trendChart.config.type = 'line';
+        trendChart.update();
+        document.getElementById('trendLineBtn').classList.replace('bg-gray-200','bg-indigo-600');
+        document.getElementById('trendLineBtn').classList.replace('text-gray-700', 'text-white');
+        document.getElementById('trendBarBtn').classList.replace('bg-indigo-600','bg-gray-200');
+        document.getElementById('trendBarBtn').classList.replace('text-white', 'text-gray-700');
+      });
+      
+      const toggleBtns = document.getElementById('toggleCategoryChartTable');
+      toggleBtns.addEventListener('click', () => {
+        if (toggleBtns.classList.contains('bg-gray-200')) {
+          toggleBtns.classList.replace('bg-gray-200', 'bg-indigo-600');
+          toggleBtns.classList.replace('text-gray-700', 'text-white');
+          document.getElementById('categoryTable').classList.remove('hidden');
+        } else {
+          toggleBtns.classList.replace('bg-indigo-600', 'bg-gray-200');
+          toggleBtns.classList.replace('text-white', 'text-gray-700');
+          document.getElementById('categoryTable').classList.add('hidden');
+        }
+      });
+      
+      (() => {
+        const data = {{ chart_budget_data|default:"[]"|safe }};
+        const canvas = document.getElementById('budgetChart');
+        const noData = document.getElementById('overallNoData');
+        const hasData = Array.isArray(data) && data.length > 0 && !data.every(v => v === 0);
+    
+        canvas.classList.toggle('hidden', !hasData);
+        noData.classList.toggle('hidden', hasData);
+    
+        if (hasData) {
+          new Chart(
+            document.getElementById('budgetChart').getContext('2d'),
+            {
+              type: 'polarArea',
+              data: {
+                labels: ['Spent','Remaining'],
+                datasets: [{
+                  data: {{ chart_budget_data|safe }},
+                  backgroundColor: ['rgba(239,68,68,0.5)','rgba(16,185,129,0.5)'],
+                }]
+              },
+              options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            }
+          );
+          
+        }
+      })();
+      
+      (() => {
+        const labels = {{ chart_cat_labels|default:"[]"|safe }};
+        const budg = {{ chart_cat_budget|default:"[]"|safe }};
+        const spent = {{ chart_cat_expense|default:"[]"|safe }};
+        const canvas = document.getElementById('catBudgetDonut');
+        const noData = document.getElementById('catNoData');
+        const hasData = labels.length > 0 && !(budg.every(v => v === 0) && spent.every(v => v === 0));
+    
+        canvas.classList.toggle('hidden', !hasData);
+        noData.classList.toggle('hidden', hasData);
+    
+        if (hasData) {
+          new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels, datasets: [{ label: 'Budget', data: budg }, { label: 'Spent', data: spent }] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+          });
+        }
+      })();
+      
+      {% if chart_cat_labels and chart_cat_expense and chart_cat_income %}
+        new Chart(
+          document.getElementById('categoryChart').getContext('2d'),
+          {
+            type: 'pie',
+            data: {
+              labels: {{ chart_cat_labels|safe }},
+              datasets: [{
+                data: {{ chart_cat_expense|safe }},     // show expense distribution
+                backgroundColor: {{ chart_cat_colors|safe }}, 
+              }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+          }
+        );
+      {% endif %}
+    });
+
+    const btnOverall = document.getElementById('showOverall');
+    const btnByCat = document.getElementById('showByCategory');
+    const chartOverall = document.getElementById('budgetChart');
+    const chartByCat = document.getElementById('catBudgetDonut');
+    const noOverall = document.getElementById('overallNoData');
+    const noByCat = document.getElementById('catNoData');
+  
+    function activateOverall() {
+      btnOverall.classList.replace('bg-gray-200', 'bg-indigo-600');
+      btnOverall.classList.replace('text-gray-700', 'text-white');
+      btnByCat.classList.replace('bg-indigo-600', 'bg-gray-200');
+      btnByCat.classList.replace('text-white', 'text-gray-700');
+      chartOverall.hidden = false;
+      chartByCat.hidden = true;
+      noByCat.classList.add('hidden');
+      noOverall.classList.toggle('hidden', !chartOverall.classList.contains('hidden'));
+    }
+  
+    function activateByCategory() {
+      btnByCat.classList.replace('bg-gray-200', 'bg-indigo-600');
+      btnByCat.classList.replace('text-gray-700', 'text-white');
+      btnOverall.classList.replace('bg-indigo-600', 'bg-gray-200');
+      btnOverall.classList.replace('text-white', 'text-gray-700');
+      noOverall.classList.add('hidden');
+      noByCat.classList.toggle('hidden', !chartByCat.classList.contains('hidden'));
+      chartOverall.hidden = true;
+      chartByCat.hidden = false;
+    }
+  
+    btnOverall.addEventListener('click', activateOverall);
+    btnByCat.addEventListener('click', activateByCategory);
+  
+    activateOverall();
+  </script>
+{% endblock %}

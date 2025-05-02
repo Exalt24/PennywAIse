@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.contrib.auth import authenticate, login, get_user_model
 from . import forms
 from .models import Category, Entry, Budget, EmailVerificationToken, PasswordResetToken
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, Avg
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dateutil.relativedelta import relativedelta
 from django.http import HttpResponse
@@ -23,6 +23,8 @@ import json
 from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
+import random
+
 
 gemini_client = genai.Client(
     api_key=settings.GEMINI_API_KEY,
@@ -62,223 +64,209 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        ctx  = super().get_context_data(**kwargs)
+        ctx = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # ─── forms & categories ────────────────────────────────────────────────────
-        ctx['category_form'] = forms.CategoryForm()
-        ctx.setdefault('category_form', forms.CategoryForm(user=user))
-        ctx.setdefault('edit_category_form', forms.CategoryForm(user=user))
-        ctx.setdefault('is_edit_category', False)
-        ctx.setdefault('edit_category_id', '')
-        ctx.setdefault('active_tab', 'dashboard')
-        ctx.setdefault('category_form', forms.CategoryForm(user=user))
-        ctx['budget_form'] = forms.BudgetForm(initial={ 'month': timezone.localdate().replace(day=1) }, user=user)
+        # Forms and initial context
+        ctx['category_form'] = forms.CategoryForm(user=user)
+        ctx['edit_category_form'] = forms.CategoryForm(user=user)
+        ctx['is_edit_category'] = False
+        ctx['edit_category_id'] = ''
+        ctx['active_tab'] = 'dashboard'
+        ctx['budget_form'] = forms.BudgetForm(
+            initial={'month': timezone.localdate().replace(day=1)},
+            user=user
+        )
+        ctx['entry_form'] = forms.EntryForm(user=user)
         ctx['user_categories'] = Category.objects.filter(user=user)
 
-        # ─── entry form (or edit form) ─────────────────────────────────────────────
-        ctx['entry_form'] = forms.EntryForm(user=user)
         edit_id = self.request.GET.get('edit')
         if edit_id:
             entry = get_object_or_404(Entry, pk=edit_id, user=user)
             ctx['entry_form'] = forms.EntryForm(instance=entry, user=user)
-            ctx['is_edit']    = True
-            ctx['edit_id']    = entry.pk
+            ctx['is_edit'] = True
+            ctx['edit_id'] = entry.pk
         else:
             ctx['is_edit'] = False
 
-        # ─── “this month” window ──────────────────────────────────────────────────
-        today       = timezone.localdate()
+        today = timezone.localdate()
         month_start = today.replace(day=1)
 
-        # ─── totals for overview cards ─────────────────────────────────────────────
-        income_agg = Entry.objects.filter(
-            user=user, type=Entry.INCOME, date__gte=month_start
-        ).aggregate(total=Sum('amount'))
-        expense_agg = Entry.objects.filter(
-            user=user, type=Entry.EXPENSE, date__gte=month_start
-        ).aggregate(total=Sum('amount'))
-
-        income_total  = income_agg['total']  or 0
-        expense_total = expense_agg['total'] or 0
-        net_balance   = income_total - expense_total
-
+        # Overview totals
+        month_qs = Entry.objects.filter(user=user, date__gte=month_start)
+        income_total = (month_qs.filter(type=Entry.INCOME)
+                        .aggregate(total=Sum('amount'))['total'] or 0)
+        expense_total = (month_qs.filter(type=Entry.EXPENSE)
+                        .aggregate(total=Sum('amount'))['total'] or 0)
+        net_balance = income_total - expense_total
         ctx.update({
-            'income_total':      income_total,
-            'expense_total':     expense_total,
-            'net_balance':       net_balance,
-            'net_balance_abs':   abs(net_balance),
-            'transaction_count': Entry.objects.filter(user=user, date__gte=month_start).count(),
+            'income_total': income_total,
+            'expense_total': expense_total,
+            'net_balance': net_balance,
+            'net_balance_abs': abs(net_balance),
+            'transaction_count': month_qs.count(),
         })
 
-        # ─── per‐category aggregates ────────────────────────────────────────────────
-        exp_qs = (
-            Entry.objects
-                 .filter(user=user, type=Entry.EXPENSE, date__gte=month_start)
-                 .values('category__name')
-                 .annotate(total=Sum('amount'))
-        )
-        inc_qs = (
-            Entry.objects
-                 .filter(user=user, type=Entry.INCOME, date__gte=month_start)
-                 .values('category__name')
-                 .annotate(total=Sum('amount'))
-        )
-        exp_map = { e['category__name'] or '—': e['total'] for e in exp_qs }
-        inc_map = { i['category__name'] or '—': i['total'] for i in inc_qs }
+        # Month-over-month comparison
+        last_start = month_start - relativedelta(months=1)
+        last_end = month_start - relativedelta(days=1)
+        last_inc = (Entry.objects.filter(user=user, type=Entry.INCOME,
+                    date__gte=last_start, date__lte=last_end)
+                    .aggregate(total=Sum('amount'))['total'] or 0)
+        last_exp = (Entry.objects.filter(user=user, type=Entry.EXPENSE,
+                    date__gte=last_start, date__lte=last_end)
+                    .aggregate(total=Sum('amount'))['total'] or 0)
+        def pct_change(curr, prev):
+            return (curr - prev) / prev * 100 if prev else None
+        ctx.update({
+            'last_income_total': last_inc,
+            'last_expense_total': last_exp,
+            'income_pct_change': pct_change(income_total, last_inc),
+            'expense_pct_change': pct_change(expense_total, last_exp),
+        })
 
-        # ─── budgets for this month ────────────────────────────────────────────────
+        # Averages and extremes
+        avg_txn = (month_qs.aggregate(avg=Avg('amount'))['avg'] or 0)
+        largest = (Entry.objects.filter(user=user, type=Entry.EXPENSE, date__gte=month_start)
+                .order_by('-amount').first())
+        ctx.update({
+            'avg_transaction': avg_txn,
+            'largest_expense': largest,
+        })
+
+        # Cash-flow forecast
+        days_passed = today.day
+        days_in_month = (month_start + relativedelta(months=1) - relativedelta(days=1)).day
+        avg_daily_spent = expense_total / days_passed if days_passed else 0
+        projected_balance = income_total - (avg_daily_spent * days_in_month)
+        ctx.update({
+            'avg_daily_spent': avg_daily_spent,
+            'projected_balance': projected_balance,
+        })
+
+        # Per-category aggregates
+        exp_map = {e['category__name'] or '—': e['total'] for e in
+                Entry.objects.filter(user=user, type=Entry.EXPENSE, date__gte=month_start)
+                        .values('category__name').annotate(total=Sum('amount'))}
+        inc_map = {i['category__name'] or '—': i['total'] for i in
+                Entry.objects.filter(user=user, type=Entry.INCOME, date__gte=month_start)
+                        .values('category__name').annotate(total=Sum('amount'))}
         budget_qs = Budget.objects.filter(user=user, month=month_start)
-        cat_budget_map = {
-            b.category.name: b.amount
-            for b in budget_qs.filter(category__isnull=False)
-        }
-
+        cat_budget_map = {b.category.name: b.amount for b in budget_qs.filter(category__isnull=False)}
         total_budget_obj = budget_qs.filter(category__isnull=True).first()
         total_budget = total_budget_obj.amount if total_budget_obj else None
         total_spent = expense_total
-
-        if total_budget is not None:
-            total_remaining = total_budget - total_spent
-            over_budget = total_remaining < 0
-        else:
-            total_remaining = None
-            over_budget = False
-
+        total_remaining = (total_budget - total_spent) if total_budget is not None else None
         ctx.update({
-            'total_budget':         total_budget,
-            'total_spent':          total_spent,
-            'total_remaining':      total_remaining,
-            'total_remaining_abs':  abs(total_remaining) if total_remaining is not None else None,
-            'over_budget':          over_budget,
+            'total_budget': total_budget,
+            'total_spent': total_spent,
+            'total_remaining': total_remaining,
+            'total_remaining_abs': abs(total_remaining) if total_remaining is not None else None,
+            'over_budget': (total_remaining < 0) if total_remaining is not None else False,
         })
 
-        user_cats = Category.objects.filter(user=user)
-        # ─── build unified category summary ────────────────────────────────────────
         summary = []
-        for cat in user_cats:
-            name_str = cat.name                  
-            inc_amt   = inc_map.get(name_str, 0)
-            exp_amt   = exp_map.get(name_str, 0)
-            budg      = cat_budget_map.get(name_str)
-            rem       = (budg - exp_amt) if budg is not None else None
-            over      = rem < 0 if rem is not None else False
-            
+        for cat in ctx['user_categories']:
+            name = cat.name
+            inc_amt = inc_map.get(name, 0)
+            exp_amt = exp_map.get(name, 0)
+            budg = cat_budget_map.get(name)
+            rem = (budg - exp_amt) if budg is not None else None
             summary.append({
-                'name':      name_str,
-                'income':    inc_amt,
-                'expense':   exp_amt,
-                'budget':    budg,
+                'name': name,
+                'income': inc_amt,
+                'expense': exp_amt,
+                'budget': budg,
                 'remaining': rem,
                 'remaining_abs': abs(rem) if rem is not None else None,
-                'over':      over,
+                'over': (rem < 0) if rem is not None else False,
             })
-
         ctx['category_summary'] = summary
+        ctx['top_categories_summary'] = sorted(summary, key=lambda r: r['expense'], reverse=True)[:3]
 
-        # ─── tables & recent transactions ─────────────────────────────────────────
-        ctx['income_entries']      = Entry.objects.filter(user=user, type=Entry.INCOME).order_by('-date')
-        ctx['expense_entries']     = Entry.objects.filter(user=user, type=Entry.EXPENSE).order_by('title', '-date')
-        ctx['recent_transactions'] = Entry.objects.filter(user=user).order_by('-date')[:10]
-
-        # ─── chart data (for Chart.js) ────────────────────────────────────────────
-        ctx['chart_cat_labels']    = [r['name']    for r in summary]
-        ctx['chart_cat_expense']   = [float(r['expense'])  for r in summary]
-        ctx['chart_cat_income']    = [float(r['income'])   for r in summary]
-
-        ctx['chart_budget_data']   = (
-            [float(total_spent), float(total_remaining)]
-            if total_budget is not None
-            else None
-        )
-
-        cats = (
-            Category.objects
-                    .filter(user=user)
-                    .annotate(
-                        entry_count = Count('entry'),
-                        total_inc   = Sum('entry__amount', filter=Q(entry__type=Entry.INCOME)),
-                        total_exp   = Sum('entry__amount', filter=Q(entry__type=Entry.EXPENSE)),
-                    ).order_by('name')
-        )
-
-        category_stats = []
-        for c in cats:
-            c.total_inc = c.total_inc or 0
-            c.total_exp = c.total_exp or 0
-            c.net       = c.total_inc - c.total_exp
-            c.net_abs   = abs(c.net)
-            category_stats.append(c)
-
-        ctx['category_stats'] = category_stats
-
-        labels = []
-        inc_vals = []
-        exp_vals = []
+        # Entries and pagination
+        inc_qs = Entry.objects.filter(user=user, type=Entry.INCOME).order_by('-date')
+        exp_qs = Entry.objects.filter(user=user, type=Entry.EXPENSE).order_by('title', '-date')
+        rep_qs = Entry.objects.filter(user=user).order_by('-date')
+        inc_page = Paginator(inc_qs, 10).get_page(self.request.GET.get('inc_page'))
+        exp_page = Paginator(exp_qs, 10).get_page(self.request.GET.get('exp_page'))
+        rep_page = Paginator(rep_qs, 10).get_page(self.request.GET.get('report_page'))
+        ctx.update({
+            'income_entries': inc_page.object_list,
+            'expense_entries': exp_page.object_list,
+            'report_entries': rep_page.object_list,
+            'page_obj_income': inc_page,
+            'page_obj_expense': exp_page,
+            'page_obj_report': rep_page,
+            'recent_transactions': Entry.objects.filter(user=user).order_by('-date')[:10],
+        })
+        # Chart data
+        ctx['chart_cat_labels'] = [r['name'] for r in summary]
+        ctx['chart_cat_income'] = [float(r['income']) for r in summary]
+        ctx['chart_cat_expense'] = [float(r['expense']) for r in summary]
+        ctx['chart_budget_data'] = ([float(total_spent), float(total_remaining)]
+                                    if total_budget is not None else None)
+        labels, inc_vals, exp_vals = [], [], []
         for i in range(5, -1, -1):
             m = month_start - relativedelta(months=i)
             labels.append(m.strftime('%b %Y'))
-            inc = Entry.objects.filter(
-                user=user, type=Entry.INCOME,
-                date__year=m.year, date__month=m.month
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
-            exp = Entry.objects.filter(
-                user=user, type=Entry.EXPENSE,
-                date__year=m.year, date__month=m.month
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
-            inc_vals.append(float(inc))
-            exp_vals.append(float(exp))
+            inc_vals.append(float(
+                Entry.objects.filter(user=user, type=Entry.INCOME,
+                    date__year=m.year, date__month=m.month)
+                .aggregate(Sum('amount'))['amount__sum'] or 0
+            ))
+            exp_vals.append(float(
+                Entry.objects.filter(user=user, type=Entry.EXPENSE,
+                    date__year=m.year, date__month=m.month)
+                .aggregate(Sum('amount'))['amount__sum'] or 0
+            ))
+        ctx.update({
+            'chart_trend_labels': labels,
+            'chart_trend_income': inc_vals,
+            'chart_trend_expense': exp_vals,
+            'chart_cat_budget': [float(r.get('budget') or 0) for r in summary],
+        })
 
-        ctx['chart_trend_labels']    = labels
-        ctx['chart_trend_income']    = inc_vals
-        ctx['chart_trend_expense']   = exp_vals
+        # Category statistics
+        cats = Category.objects.filter(user=user).annotate(
+            entry_count=Count('entry'),
+            total_inc=Sum('entry__amount', filter=Q(entry__type=Entry.INCOME)),
+            total_exp=Sum('entry__amount', filter=Q(entry__type=Entry.EXPENSE)),
+        ).order_by('name')
+        stats = []
+        for c in cats:
+            inc = c.total_inc or 0
+            exp = c.total_exp or 0
+            net = inc - exp
+            c.net = net
+            c.net_abs = abs(net)
+            stats.append(c)
+        cat_page = Paginator(stats, 10).get_page(self.request.GET.get('cat_page'))
+        ctx['category_stats'] = cat_page.object_list
+        ctx['page_obj_category'] = cat_page
 
-        ctx['chart_cat_budget']  = [ float(r['budget']  or 0) for r in summary ]
-        ctx['chart_cat_expense'] = [ float(r['expense'] or 0) for r in summary ]
+        # Budget rows
+        budg_page = Paginator(summary, 10).get_page(self.request.GET.get('budget_page'))
+        ctx['budget_rows'] = budg_page.object_list
+        ctx['page_obj_budget'] = budg_page
 
-        qs = Entry.objects.filter(user=user)
-
-        inc_qs = ctx['income_entries']
-        inc_page = Paginator(inc_qs,10).get_page(self.request.GET.get('inc_page'))
-        ctx['page_obj_income']   = inc_page
-        ctx['income_entries']     = inc_page.object_list
-
-        exp_qs = ctx['expense_entries']
-        exp_page = Paginator(exp_qs,10).get_page(self.request.GET.get('exp_page'))
-        ctx['page_obj_expense']   = exp_page
-        ctx['expense_entries']     = exp_page.object_list
-
-        full_qs = Entry.objects.filter(user=user).order_by('-date')
-        ctx['report_entries_all'] = full_qs
-
-        ctx['report_entries'] = qs.order_by('-date')
-
-        rep_qs = ctx['report_entries']
-        rep_page = Paginator(rep_qs,10).get_page(self.request.GET.get('report_page'))
-        ctx['page_obj_report']      = rep_page
-        ctx['report_entries']       = rep_page.object_list
-
-        cat_qs = ctx['category_stats']
-        cat_page = Paginator(cat_qs,10).get_page(self.request.GET.get('cat_page'))
-        ctx['page_obj_category']     = cat_page
-        ctx['category_stats']        = cat_page.object_list
-        
-        ctx['budget_rows_list'] = summary  
-        budg_page = Paginator(ctx['budget_rows_list'],10).get_page(self.request.GET.get('budget_page'))
-        ctx['page_obj_budget']   = budg_page
-        ctx['budget_rows']       = budg_page.object_list
-
+        # Navigation and chart colors
         ctx['nav_items'] = [
-            {'href': '#dashboard',  'icon': 'images/dashboard.png',   'label': 'Dashboard'},
-            {'href': '#categories', 'icon': 'images/categories.png',  'label': 'Categories'},
-            {'href': '#income',     'icon': 'images/income.png',      'label': 'Income'},
-            {'href': '#expenses',   'icon': 'images/expense.png',     'label': 'Expenses'},
-            {'href': '#budgets',    'icon': 'images/budget.png',      'label': 'Budgets'},
-            {'href': '#reports',    'icon': 'images/reports.png',     'label': 'Reports'},
-            {'href': '#ai',         'icon': 'images/convo.png',       'label': 'AI Assistant'},
+            {'href': '#dashboard', 'icon': 'images/dashboard.png', 'label': 'Dashboard'},
+            {'href': '#categories', 'icon': 'images/categories.png', 'label': 'Categories'},
+            {'href': '#income', 'icon': 'images/income.png', 'label': 'Income'},
+            {'href': '#expenses', 'icon': 'images/expense.png', 'label': 'Expenses'},
+            {'href': '#budgets', 'icon': 'images/budget.png', 'label': 'Budgets'},
+            {'href': '#reports', 'icon': 'images/reports.png', 'label': 'Reports'},
+            {'href': '#ai', 'icon': 'images/convo.png', 'label': 'AI Assistant'},
+        ]
+        ctx['chart_cat_colors'] = [
+            f"rgba({random.randint(50,200)}, {random.randint(50,200)}, {random.randint(50,200)}, 0.5)"
+            for _ in ctx['chart_cat_labels']
         ]
 
         return ctx
+
 
     def _export_csv(self, request):
         user = request.user
@@ -320,11 +308,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             tab = 'categories'
             if cat_id:
                 instance = get_object_or_404(Category, pk=cat_id, user=user)
-                is_edit = True
-               
                 form    = forms.CategoryForm(request.POST, instance=instance, user=user)
             else:
-                is_edit = False
                 form    = forms.CategoryForm(request.POST, user=user)
 
             if form.is_valid():
@@ -422,7 +407,6 @@ class AuthView(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
 
-        # --- LOGIN FLOW ---
         if 'login-submit' in request.POST:
             login_form = forms.LoginForm(request.POST)
             context['login_form'] = login_form
@@ -492,18 +476,14 @@ class ForgotPasswordView(TemplateView):
         context['forgot_password_form'] = form
 
         if form.is_valid():
-            # pulled straight from the form’s clean_email
             user = form.cleaned_data['user_obj']
 
-            # Generate & save token
             token = secrets.token_urlsafe(32)
             PasswordResetToken.objects.create(user=user, token=token)
 
-            # Build reset URL
             path = reverse('budget:reset_password', kwargs={'token': token})
             reset_url = request.build_absolute_uri(path)
 
-            # Render & send email
             subject = "Reset your PennywAIse password"
             html_body = render_to_string(
                 'authentication/password_reset_email.html',
@@ -518,7 +498,6 @@ class ForgotPasswordView(TemplateView):
             msg.attach_alternative(html_body, "text/html")
             msg.send(fail_silently=False)
 
-            # Flash a message and redirect
             messages.success(
                 request,
                 "Check your inbox for a password reset link!"
@@ -573,7 +552,6 @@ class ResetPasswordView(TemplateView):
             token_obj.expired = True
             token_obj.save()
             
-            # Auto login user
             user = authenticate(request, username=user.username, password=reset_password_form.cleaned_data['password1'])
             if user:
                 login(request, user)
@@ -718,7 +696,6 @@ class VerifyEmailView(View):
     
 class AIQueryView(LoginRequiredMixin, View):
     def post(self, request):
-        # 1) parse & validate JSON
         try:
             data = json.loads(request.body)
             prompt = data.get('prompt', '').strip()
@@ -727,7 +704,6 @@ class AIQueryView(LoginRequiredMixin, View):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
 
-        # 2) fool-proof system instruction under the "model" role
         system_instruction = """
 You are PennywAise, a friendly personal finance assistant.
 

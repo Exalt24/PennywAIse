@@ -6,7 +6,7 @@
 {% block header %}{% endblock %}
 
 {% block content %}
-  <div class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
+  <nav class="flex h-screen overflow-hidden bg-[#f5f1ed] text-[#333]">
     
     {% include "main/sidebar.html" %}
 
@@ -29,748 +29,375 @@
       {% include "main/modals.html" %}
 
     </main>
-  </div>
+  </nav>
 
 {%endblock%}
 
 {% block footer %}{% endblock %}
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // ---- Sidebar tab switching ----
-  const links = Array.from(document.querySelectorAll('aside.sidebar nav a'));
-  const pages = Array.from(document.querySelectorAll('.page-content'));
-  const aiResponse = document.getElementById('aiResponse');
+{% block extra_scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const links = Array.from(document.querySelectorAll('aside.sidebar nav a'));
+      const pages = Array.from(document.querySelectorAll('.page-content'));
+      const aiResponse = document.getElementById('aiResponse');
+      const aiPrompt = document.getElementById('aiPrompt');
+      const viewNotesModal = document.getElementById('viewNotesModal');
+      const notesContent   = document.getElementById('notesContent');
+      const closeViewNotes = document.getElementById('closeViewNotes');
 
-   function clearPanel(panel) {
-    panel.querySelectorAll('form').forEach(f => f.reset());
-    panel.querySelectorAll('[data-clear-on-hide]').forEach(el => el.innerHTML = '');
-  }
-
-  function hideIfEmpty() {
-    if (aiResponse.innerHTML.trim() === '') {
-      aiResponse.classList.add('hidden');
-    } else {
-      aiResponse.classList.remove('hidden');
-    }
-  }
-
-  function showTab(tabId) {
-    pages.forEach(page => {
-      const willBeVisible = page.id === tabId;
-      const isCurrentlyVisible = !page.classList.contains('hidden');
-
-      if (isCurrentlyVisible && !willBeVisible) {
-        const prefix = page.dataset.prefix;
-        if (prefix) resetSection(prefix);
-        clearPanel(page);
+      function hideIfEmpty() {
+        if (aiResponse.innerHTML.trim() === '') {
+          aiResponse.classList.add('hidden');
+          aiPrompt.value = '';
+        } else {
+          aiResponse.classList.remove('hidden');
+        }
       }
 
-      page.classList.toggle('hidden', !willBeVisible);
-    });
+      function showNotesModal(notes) {
+        notesContent.textContent = notes || '(No notes)';
+        viewNotesModal.classList.remove('hidden');
+      }
+      function hideNotesModal() {
+        viewNotesModal.classList.add('hidden');
+      }
 
-    links.forEach(link => {
-      link.classList.toggle('active', link.getAttribute('href') === `#${tabId}`);
-    });
-
-    const newHash = tabId !== 'dashboard' ? `#${tabId}` : '';
-    history.replaceState(null, '', window.location.pathname + newHash);
-  }
-
-  function initSorting() {
-    // strip old listeners
-    document.querySelectorAll('th.sortable').forEach(th => {
-      th.replaceWith(th.cloneNode(true));
-    });
-  
-    document.querySelectorAll('th.sortable').forEach(th => {
-      // figure out initial direction from the class
-      // if it has sort-desc, we're currently descending, so next we want ascending first
-      let direction = th.classList.contains('sort-desc') ? 'desc' : 'asc';
-  
-      th.addEventListener('click', () => {
-        const table = th.closest('table');
-        const body  = table.querySelector('tbody');
-        const idx   = Array.from(th.parentNode.children).indexOf(th);
-  
-        // toggle direction
-        direction = direction === 'asc' ? 'desc' : 'asc';
-  
-        // clear arrow classes on all headers
-        table.querySelectorAll('th.sortable')
-             .forEach(h => h.classList.remove('sort-asc','sort-desc'));
-  
-        // perform the sort
-        const rows = Array.from(body.querySelectorAll('tr'));
-        rows.sort((a, b) => {
-          const rawA = a.children[idx].dataset.value ?? a.children[idx].textContent.trim();
-          const rawB = b.children[idx].dataset.value ?? b.children[idx].textContent.trim();
-          let cmp;
-  
-          // detect data‐type or fallback to string
-          const type = th.dataset.type;
-          if (type === 'date') {
-            cmp = new Date(rawA) - new Date(rawB);
-          } else if (type === 'number') {
-            cmp = parseFloat(rawA.replace(/[^0-9.\-]/g,'')) 
-                - parseFloat(rawB.replace(/[^0-9.\-]/g,''));
-          } else {
-            cmp = rawA.localeCompare(rawB, undefined, {numeric: true});
-          }
-  
-          // if descending, invert the compare result
-          return direction === 'desc' ? -cmp : cmp;
+      function bindNotesRows() {
+        document.querySelectorAll('tr[data-notes]').forEach(tr => {
+          tr.onclick = () => {
+            const notes = tr.dataset.notes;
+            showNotesModal(notes);
+          };
         });
-        // re‐append in sorted order
-        rows.forEach(r => body.appendChild(r));
-  
-        // add the correct arrow class
-        th.classList.add(direction === 'desc' ? 'sort-desc' : 'sort-asc');
-        th.setAttribute('aria-sort', direction === 'desc' ? 'descending' : 'ascending');
+      }
+
+      function clearPanel(panel) {
+        panel.querySelectorAll('form').forEach(f => f.reset());
+        panel.querySelectorAll('[data-clear-on-hide]').forEach(el => el.innerHTML = '');
+      }
+
+      function showTab(tabId) {
+        pages.forEach(page => {
+          const willBeVisible = page.id === tabId;
+          const isCurrentlyVisible = !page.classList.contains('hidden');
+
+          if (isCurrentlyVisible && !willBeVisible) {
+            const prefix = page.dataset.prefix;
+            if (prefix) resetSection(prefix);
+            clearPanel(page);
+          }
+
+          page.classList.toggle('hidden', !willBeVisible);
+        });
+
+        links.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${tabId}`);
+        });
+
+        const newHash = tabId !== 'dashboard' ? `#${tabId}` : '';
+        history.replaceState(null, '', window.location.pathname + newHash);
+      }
+
+      function initSorting() {
+        document.querySelectorAll('th.sortable').forEach(th => {
+          th.replaceWith(th.cloneNode(true));
+        });
+      
+        document.querySelectorAll('th.sortable').forEach(th => {
+          let direction = th.classList.contains('sort-desc') ? 'desc' : 'asc';
+      
+          th.addEventListener('click', () => {
+            const table = th.closest('table');
+            const body  = table.querySelector('tbody');
+            const idx   = Array.from(th.parentNode.children).indexOf(th);
+      
+            direction = direction === 'asc' ? 'desc' : 'asc';
+      
+            table.querySelectorAll('th.sortable')
+                .forEach(h => h.classList.remove('sort-asc','sort-desc'));
+      
+            const rows = Array.from(body.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+              const rawA = a.children[idx].dataset.value ?? a.children[idx].textContent.trim();
+              const rawB = b.children[idx].dataset.value ?? b.children[idx].textContent.trim();
+              let cmp;
+      
+              const type = th.dataset.type;
+              if (type === 'date') {
+                cmp = new Date(rawA) - new Date(rawB);
+              } else if (type === 'number') {
+                cmp = parseFloat(rawA.replace(/[^0-9.\-]/g,'')) 
+                    - parseFloat(rawB.replace(/[^0-9.\-]/g,''));
+              } else {
+                cmp = rawA.localeCompare(rawB, undefined, {numeric: true});
+              }
+
+              return direction === 'desc' ? -cmp : cmp;
+            });
+            rows.forEach(r => body.appendChild(r));
+      
+            th.classList.add(direction === 'desc' ? 'sort-desc' : 'sort-asc');
+            th.setAttribute('aria-sort', direction === 'desc' ? 'descending' : 'ascending');
+          });
+        });
+      }
+
+      document.querySelectorAll('tr[data-notes]').forEach(tr => {
+        tr.addEventListener('click', () => {
+          showNotesModal(tr.dataset.notes);
+        });
       });
-    });
-  }
-  
-  
 
+      closeViewNotes.addEventListener('click', hideNotesModal);
+      viewNotesModal.addEventListener('click', e => {
+        if (e.target === viewNotesModal) hideNotesModal();
+      });
 
-  links.forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const target = link.getAttribute('href').slice(1) || 'dashboard';
-      showTab(target);
-      document.querySelectorAll('.non-field-error').forEach(el => el.remove());
-      const newHash = target !== 'dashboard' ? `#${target}` : '';
-      history.replaceState(null, '', window.location.pathname + newHash);
-      bindNotesRows();
-      hideIfEmpty();
+      {% if active_tab != 'dashboard' %}
+        showTab('{{ active_tab }}');
+        history.replaceState(null, '', window.location.pathname + '#{{ active_tab }}');
+      {% else %}
+        const hash = window.location.hash.slice(1);
+        const valid = pages.map(p => p.id);
+        if (hash && valid.includes(hash)) {
+          showTab(hash);
+          
+        } else {
+          showTab('dashboard');
+          history.replaceState(null, '', window.location.pathname);
+          
+        }
+      {% endif %}
+
+      links.forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const target = link.getAttribute('href').slice(1) || 'dashboard';
+          showTab(target);
+          document.querySelectorAll('.non-field-error').forEach(el => el.remove());
+          const newHash = target !== 'dashboard' ? `#${target}` : '';
+          history.replaceState(null, '', window.location.pathname + newHash);
+          bindNotesRows();
+          hideIfEmpty();
+          initSorting();
+        });
+        
+      });
+
       initSorting();
-    });
-    
-  });
 
-  {% if active_tab != 'dashboard' %}
-    showTab('{{ active_tab }}');
-    history.replaceState(null, '', window.location.pathname + '#{{ active_tab }}');
-  {% else %}
-    const hash = window.location.hash.slice(1);
-    const valid = pages.map(p => p.id);
-    if (hash && valid.includes(hash)) {
-      showTab(hash);
-      
-    } else {
-      showTab('dashboard');
-      history.replaceState(null, '', window.location.pathname);
-      
-    }
-  {% endif %}
+      const addEntryBtn = document.getElementById('addEntryBtn');
+      const addEntryModal = document.getElementById('addEntryModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const cancelEntryBtn = document.getElementById('cancelEntryBtn');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+      const modalTypeDiv = document.getElementById('modalTypeDiv');
+      const form = document.querySelector('#addEntryModal form');
 
-  const sidebar     = document.getElementById('sidebar');
-  const toggleBtn   = document.getElementById('sidebarToggle');
-  const toggleIcon  = toggleBtn.querySelector('svg');
-
-  toggleBtn.addEventListener('click', () => {
-    // collapse/expand the sidebar
-    sidebar.classList.toggle('collapsed');
-    // rotate the arrow
-    toggleIcon.classList.toggle('rotate-180');
-  });
-
-  initSorting();
-  // ---- User menu toggle ----
-// Attach a click‐handler to every <nav aria-label="User menu"> on the page
-  document
-  .querySelectorAll('nav[aria-label="User menu"]')
-  .forEach(nav => {
-    const summary = nav.querySelector('summary.profile-dropdown');
-    const menu    = nav.querySelector('ul.usermenu');
-    summary.addEventListener('click', e => {
-      e.stopPropagation();
-      menu.classList.toggle('hidden');
-    });
-  });
-
-// Clicking anywhere else should close *all* open menus
-document.addEventListener('click', () => {
-  document.querySelectorAll('ul.usermenu').forEach(m => m.classList.add('hidden'));
-});
-
-  document.addEventListener('click', () => userMenu.classList.add('hidden'));
-  // ---- Modal controls ----
-  const addEntryBtn = document.getElementById('addEntryBtn');
-  const addEntryModal = document.getElementById('addEntryModal');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  const cancelEntryBtn = document.getElementById('cancelEntryBtn');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalSubmitBtn = document.getElementById('modalSubmitBtn');
-  const modalTypeDiv = document.getElementById('modalTypeDiv');
-  const form = document.querySelector('#addEntryModal form');
-
-  function showModal() {
-    addEntryModal.classList.remove('hidden');
-    addEntryModal.classList.add('flex');
-  }
-
-  function hideModal() {
-    addEntryModal.classList.add('hidden');
-    addEntryModal.classList.remove('flex');
-  }
-
-  function cleanUrl() {
-    history.replaceState(null, '', window.location.pathname + '');
-  }
-
-  function resetModalToAdd() {
-    modalTitle.textContent = 'Add New Entry';
-    modalSubmitBtn.textContent = 'Save';
-    modalTypeDiv.classList.remove('hidden');
-    const eid = document.getElementById('modalEntryId');
-    if (eid) eid.value = '';
-    form.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(el => {
-      el.value = '';
-      if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0;
-    });
-    form.querySelectorAll('.text-red-600').forEach(e => e.remove());
-  }
-
-  addEntryBtn.addEventListener('click', e => {
-    e.preventDefault();
-    resetModalToAdd();
-    showModal();
-  });
-
-  [closeModalBtn, cancelEntryBtn].forEach(btn => btn.addEventListener('click', e => {
-    e.preventDefault();
-    hideModal();
-    cleanUrl();
-    resetModalToAdd();
-  }));
-
-  addEntryModal.addEventListener('click', e => {
-    if (e.target === addEntryModal) {
-      hideModal();
-      cleanUrl();
-      resetModalToAdd();
-    }
-  });
-
-  {% if is_edit or entry_form.errors %}
-    showModal();
-    cleanUrl();
-  {% endif %}
-
-  // ---- Table simple filtering ----
-  function setupFilter(inputId, tableId) {
-    const inp = document.getElementById(inputId);
-    const tbl = document.getElementById(tableId);
-    inp.addEventListener('input', () => {
-      const q = inp.value.toLowerCase();
-      tbl.querySelectorAll('tr').forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-      });
-    });
-  }
-
-  // ---- Edit Category Modal ----
-  const editCatModal = document.getElementById('editCategoryModal');
-  const editCatIdInput = document.getElementById('editCategoryId');
-  const closeEditCatModal = document.getElementById('closeEditCatModal');
-  const editCatNameInput = editCatModal.querySelector('input[name="name"]');
-  const cancelBtn = document.getElementById('cancelEditCategory');
-
-  document.querySelectorAll('.edit-cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      editCatIdInput.value = btn.dataset.id;
-      editCatNameInput.value = btn.dataset.name;
-      editCatModal.classList.remove('hidden');
-    });
-  });
-
-  cancelBtn.addEventListener('click', e => {
-    e.preventDefault();
-    editCatModal.classList.add('hidden');
-    editCatIdInput.value = '';
-    editCatNameInput.value = '';
-    editCatModal.querySelectorAll('.text-red-600.mt-1').forEach(el => el.remove());
-  });
-
-  closeEditCatModal.addEventListener('click', e => {
-    e.preventDefault();
-    editCatModal.classList.add('hidden');
-  });
-
-  editCatModal.addEventListener('click', e => {
-    if (e.target === editCatModal) {
-      editCatModal.classList.add('hidden');
-    }
-  });
-
-  {% if is_edit_category %}
-    editCatModal.classList.remove('hidden');
-  {% endif %}
-
-  // ---- Table Advanced Filtering (Income, Expense Tables) ----
-  function initTableFilter(opts) {
-    const { dateFrom, dateTo, title, category, minAmt, maxAmt, tableBody } = opts;
-    const df = document.querySelector(dateFrom);
-    const dt = document.querySelector(dateTo);
-    const ti = document.querySelector(title);
-    const ca = document.querySelector(category);
-    const mn = document.querySelector(minAmt);
-    const mx = document.querySelector(maxAmt);
-    const rows = Array.from(document.querySelectorAll(tableBody + ' tr'));
-    const dateError = document.getElementById(dateFrom === '#incDateFrom' ? 'incDateError' : 'expDateError');
-    const amtError = document.getElementById(minAmt === '#incMinAmount' ? 'incAmountError' : 'expAmountError');
-
-    function applyFilters() {
-      const fromDate = df.valueAsDate;
-      const toDate = dt.valueAsDate;
-      const titleQ = ti.value.trim().toLowerCase();
-      const catQ = ca.value.trim().toLowerCase();
-      const minA = parseFloat(mn.value) || -Infinity;
-      const maxA = parseFloat(mx.value) || Infinity;
-
-      let valid = true;
-      if (fromDate && toDate && fromDate > toDate) {
-        valid = false;
-        dateError.classList.remove('hidden');
-      } else {
-        dateError.classList.add('hidden');
-      }
-      if (minA && maxA && minA > maxA) {
-        valid = false;
-        amtError.classList.remove('hidden');
-      } else {
-        amtError.classList.add('hidden');
+      function showModal() {
+        addEntryModal.classList.remove('hidden');
+        addEntryModal.classList.add('flex');
       }
 
-      if (!valid) return;
+      function hideModal() {
+        addEntryModal.classList.add('hidden');
+        addEntryModal.classList.remove('flex');
+      }
 
-      rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        let ok = true;
+      function cleanUrl() {
+        history.replaceState(null, '', window.location.pathname + '');
+      }
 
-        if ((fromDate || toDate) && cells[3]) {
-          const d = new Date(cells[3].textContent);
-          if (fromDate && d < fromDate) ok = false;
-          if (toDate && d > toDate) ok = false;
+      function resetModalToAdd() {
+        modalTitle.textContent = 'Add New Entry';
+        modalSubmitBtn.textContent = 'Save';
+        modalTypeDiv.classList.remove('hidden');
+        const eid = document.getElementById('modalEntryId');
+        if (eid) eid.value = '';
+        form.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(el => {
+          el.value = '';
+          if (el.tagName.toLowerCase() === 'select') el.selectedIndex = 0;
+        });
+        form.querySelectorAll('.text-red-600').forEach(e => e.remove());
+      }
+
+      addEntryBtn.addEventListener('click', e => {
+        e.preventDefault();
+        resetModalToAdd();
+        showModal();
+      });
+
+      [closeModalBtn, cancelEntryBtn].forEach(btn => btn.addEventListener('click', e => {
+        e.preventDefault();
+        hideModal();
+        cleanUrl();
+        resetModalToAdd();
+      }));
+
+      addEntryModal.addEventListener('click', e => {
+        if (e.target === addEntryModal) {
+          hideModal();
+          cleanUrl();
+          resetModalToAdd();
         }
+      });
 
-        if (titleQ && cells[0] && !cells[0].textContent.toLowerCase().includes(titleQ)) ok = false;
-        if (catQ && cells[1] && !cells[1].textContent.toLowerCase().includes(catQ)) ok = false;
+      {% if is_edit or entry_form.errors %}
+        showModal();
+        cleanUrl();
+      {% endif %}
 
-        if (cells[2]) {
-          const raw = cells[2].textContent.replace(/[^0-9.]/g, '');
-          const amt = parseFloat(raw) || 0;
-          if (amt < minA || amt > maxA) ok = false;
+      const editCatModal = document.getElementById('editCategoryModal');
+      const editCatIdInput = document.getElementById('editCategoryId');
+      const closeEditCatModal = document.getElementById('closeEditCatModal');
+      const editCatNameInput = editCatModal.querySelector('input[name="name"]');
+      const cancelBtn = document.getElementById('cancelEditCategory');
+
+      document.querySelectorAll('.edit-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          editCatIdInput.value = btn.dataset.id;
+          editCatNameInput.value = btn.dataset.name;
+          editCatModal.classList.remove('hidden');
+        });
+      });
+
+      cancelBtn.addEventListener('click', e => {
+        e.preventDefault();
+        editCatModal.classList.add('hidden');
+        editCatIdInput.value = '';
+        editCatNameInput.value = '';
+        editCatModal.querySelectorAll('.text-red-600.mt-1').forEach(el => el.remove());
+      });
+
+      closeEditCatModal.addEventListener('click', e => {
+        e.preventDefault();
+        editCatModal.classList.add('hidden');
+      });
+
+      editCatModal.addEventListener('click', e => {
+        if (e.target === editCatModal) {
+          editCatModal.classList.add('hidden');
         }
-
-        row.style.display = ok ? '' : 'none';
-      });
-    }
-
-    [df, dt, ti, ca, mn, mx].forEach(el => el && el.addEventListener('input', applyFilters));
-  }
-
-  function fetchTable(prefix) {
-    const params = new URLSearchParams(window.location.search);
-    params.set('prefix', prefix);
-
-    ['DateFrom','DateTo','TitleFilter','CategoryFilter','MinAmount','MaxAmount']
-      .forEach(sfx => {
-        const el = document.getElementById(prefix + sfx);
-        params.set(prefix + sfx, el.value || '');
       });
 
-    const url = `/entries/filter/?${params.toString()}${location.hash}`;
+      {% if is_edit_category %}
+        editCatModal.classList.remove('hidden');
+      {% endif %}
 
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        const containerId = prefix === 'inc' ? 'incContainer' : 'expContainer';
-        document.getElementById(containerId).innerHTML = data.html;
-        initSorting();
-        bindNotesRows();
-      });
-  }
+      function fetchReports() {
+        const params = new URLSearchParams(window.location.search);
+      
+        ['From','To','Type','Cat'].forEach(sfx => {
+          const el = document.getElementById('rep' + sfx);
+          params.set('rep' + sfx, el.value || '');
+        });
 
-  initTableFilter({
-    dateFrom: '#incDateFrom',
-    dateTo: '#incDateTo',
-    title: '#incTitleFilter',
-    category: '#incCategoryFilter',
-    minAmt: '#incMinAmount',
-    maxAmt: '#incMaxAmount',
-    tableBody: '#incomeTable'
-  });
-
-  initTableFilter({
-    dateFrom: '#expDateFrom',
-    dateTo: '#expDateTo',
-    title: '#expTitleFilter',
-    category: '#expCategoryFilter',
-    minAmt: '#expMinAmount',
-    maxAmt: '#expMaxAmount',
-    tableBody: '#expenseTable'
-  });
-
-
-  ['inc','exp'].forEach(prefix => {
-    ['DateFrom','DateTo','TitleFilter','CategoryFilter','MinAmount','MaxAmount']
-      .forEach(sfx => {
-        const el = document.getElementById(prefix + sfx);
+        const url = `/reports/filter/?${params.toString()}${location.hash}`;
+      
+        fetch(url)
+          .then(r => r.json())
+          .then(data => {
+            document.getElementById('repContainer').innerHTML = data.html;
+            initSorting();
+          });
+      }
+      
+      ['From','To','Type','Cat'].forEach(sfx => {
+        const el = document.getElementById('rep' + sfx);
         if (!el) return;
-        el.addEventListener('input', () => fetchTable(prefix));
+        el.addEventListener('input', fetchReports);
       });
-  });
+      
 
-  // ---- Charts ----
-  {% if chart_trend_labels and chart_trend_income and chart_trend_expense %}
-  new Chart(document.getElementById('trendChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: {{ chart_trend_labels|safe }},
-      datasets: [
-        {
-          label: 'Income',
-          data: {{ chart_trend_income|safe }},
-          borderColor: 'rgba(16,185,129,1)',
-          fill: false
-        },
-        {
-          label: 'Expenses',
-          data: {{ chart_trend_expense|safe }},
-          borderColor: 'rgba(239,68,68,1)',
-          fill: false
+      document.getElementById('repContainer').addEventListener('click', e => {
+        if (e.target.matches('#repContainer nav a')) {
+          e.preventDefault();
+          const href = new URL(e.target.href);
+          window.history.replaceState(null, '', href.pathname + href.search + location.hash);
+          fetchReports();
         }
-      ]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
-  {% endif %}
-
-  (() => {
-    const data = {{ chart_budget_data|default:"[]"|safe }};
-    const canvas = document.getElementById('budgetChart');
-    const noData = document.getElementById('overallNoData');
-    const hasData = Array.isArray(data) && data.length > 0 && !data.every(v => v === 0);
-
-    canvas.classList.toggle('hidden', !hasData);
-    noData.classList.toggle('hidden', hasData);
-
-    if (hasData) {
-      new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: { labels: ['Spent', 'Remaining'], datasets: [{ data }] },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
       });
-    }
-  })();
 
-  (() => {
-    const labels = {{ chart_cat_labels|default:"[]"|safe }};
-    const budg = {{ chart_cat_budget|default:"[]"|safe }};
-    const spent = {{ chart_cat_expense|default:"[]"|safe }};
-    const canvas = document.getElementById('catBudgetDonut');
-    const noData = document.getElementById('catNoData');
-    const hasData = labels.length > 0 && !(budg.every(v => v === 0) && spent.every(v => v === 0));
+      
 
-    canvas.classList.toggle('hidden', !hasData);
-    noData.classList.toggle('hidden', hasData);
+      const inputs = {
+        from: document.getElementById('repFrom'),
+        to: document.getElementById('repTo'),
+        type: document.getElementById('repType'),
+        cat: document.getElementById('repCat'),
+      };
+      const tableBody = document.querySelector('#reportTable tbody');
+      const filterApplied = document.getElementById('filterApplied');
 
-    if (hasData) {
-      new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: { labels, datasets: [{ label: 'Budget', data: budg }, { label: 'Spent', data: spent }] },
-        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-      });
-    }
-  })();
+      function applyReportFilter() {
+        const fromDate = inputs.from.valueAsDate;
+        const toDate = inputs.to.valueAsDate;
+        const typeVal = inputs.type.value;
+        const catVal = inputs.cat.value;
+        
+        const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
+        filterApplied.value = isFilterActive ? 'true' : 'false';
 
-  {% if chart_cat_labels and chart_cat_expense and chart_cat_income %}
-  new Chart(document.getElementById('categoryChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: {{ chart_cat_labels|safe }},
-      datasets: [
-        {
-          label: 'Expense',
-          data: {{ chart_cat_expense|safe }},
-          backgroundColor: 'rgba(239,68,68,0.5)'
-        },
-        {
-          label: 'Income',
-          data: {{ chart_cat_income|safe }},
-          backgroundColor: 'rgba(16,185,129,0.5)'
-        }
-      ]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
-  {% endif %}
-
-  function fetchReports() {
-    const params = new URLSearchParams(window.location.search);
-  
-    ['From','To','Type','Cat'].forEach(sfx => {
-      const el = document.getElementById('rep' + sfx);
-      params.set('rep' + sfx, el.value || '');
-    });
-
-    const url = `/reports/filter/?${params.toString()}${location.hash}`;
-  
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('repContainer').innerHTML = data.html;
-        initSorting();
-      });
-  }
-  
-  ['From','To','Type','Cat'].forEach(sfx => {
-    const el = document.getElementById('rep' + sfx);
-    if (!el) return;
-    el.addEventListener('input', fetchReports);
-  });
-  
-
-  document.getElementById('repContainer').addEventListener('click', e => {
-    if (e.target.matches('#repContainer nav a')) {
-      e.preventDefault();
-      const href = new URL(e.target.href);
-      window.history.replaceState(null, '', href.pathname + href.search + location.hash);
-      fetchReports();
-    }
-  });
-
-  // ---- Report Table Filtering + Exporting ----
-const inputs = {
-  from: document.getElementById('repFrom'),
-  to: document.getElementById('repTo'),
-  type: document.getElementById('repType'),
-  cat: document.getElementById('repCat'),
-};
-const tableBody = document.querySelector('#reportTable tbody');
-const filterApplied = document.getElementById('filterApplied');
-
-function applyReportFilter() {
-  const fromDate = inputs.from.valueAsDate;
-  const toDate = inputs.to.valueAsDate;
-  const typeVal = inputs.type.value;
-  const catVal = inputs.cat.value;
-  
-  const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
-  filterApplied.value = isFilterActive ? 'true' : 'false';
-
-  Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
-    const cells = row.children;
-    if (!cells.length) return;
-    let show = true;
-    
-    // Date filtering (3rd column, index 3)
-    if (cells[3]) {
-      const d = new Date(cells[3].textContent);
-      if (fromDate && d < fromDate) show = false;
-      if (toDate && d > toDate) show = false;
-    }
-    
-    // Type filtering (4th column, index 4)
-    if (typeVal && cells[4] && cells[4].textContent.trim() !== (typeVal === 'IN' ? 'Income' : 'Expense')) {
-      show = false;
-    }
-    
-    // Category filtering (data attribute on category cell)
-    if (catVal && cells[1] && cells[1].dataset.catId !== catVal) {
-      show = false;
-    }
-    
-    row.style.display = show ? '' : 'none';
-  });
-}
-
-Object.values(inputs).forEach(inp => inp.addEventListener('input', applyReportFilter));
-applyReportFilter();
-
-document.getElementById('exportCsv').addEventListener('click', () => {
-  const isFiltered = filterApplied.value === 'true';
-  const exportFilename = '{{ request.user.username }}_transactions_{% now "Y-m-d" %}.csv';
-  // Determine which table to use
-  const tableToExport = isFiltered 
-    ? document.getElementById('reportTable')
-    : document.getElementById('fullReportTable');
-  
-  const headers = Array.from(tableToExport.querySelectorAll('thead th')).map(th => th.textContent.trim());
-  const rows = Array.from(tableToExport.querySelectorAll('tbody tr'))
-    .filter(r => isFiltered ? r.style.display !== 'none' : true)
-    .map(r => {
-      return Array.from(r.children).map((td, idx) => {
-        let cell = td.textContent.trim();
-        if (idx === 2) cell = cell.replace(/[^\d\.-]/g, '');
-        return cell;
-      });
-    });
-  
-  let csv = [headers, ...rows].map(r => r.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = exportFilename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-});
-
-  // ---- Overall vs By Category Chart Buttons ----
-  const btnOverall = document.getElementById('showOverall');
-  const btnByCat = document.getElementById('showByCategory');
-  const chartOverall = document.getElementById('budgetChart');
-  const chartByCat = document.getElementById('catBudgetDonut');
-  const noOverall = document.getElementById('overallNoData');
-  const noByCat = document.getElementById('catNoData');
-
-  function activateOverall() {
-    btnOverall.classList.replace('bg-gray-200', 'bg-indigo-600');
-    btnOverall.classList.replace('text-gray-700', 'text-white');
-    btnByCat.classList.replace('bg-indigo-600', 'bg-gray-200');
-    btnByCat.classList.replace('text-white', 'text-gray-700');
-    chartOverall.hidden = false;
-    chartByCat.hidden = true;
-    noByCat.classList.add('hidden');
-    noOverall.classList.toggle('hidden', !chartOverall.classList.contains('hidden'));
-  }
-
-  function activateByCategory() {
-    btnByCat.classList.replace('bg-gray-200', 'bg-indigo-600');
-    btnByCat.classList.replace('text-gray-700', 'text-white');
-    btnOverall.classList.replace('bg-indigo-600', 'bg-gray-200');
-    btnOverall.classList.replace('text-white', 'text-gray-700');
-    noOverall.classList.add('hidden');
-    noByCat.classList.toggle('hidden', !chartByCat.classList.contains('hidden'));
-    chartOverall.hidden = true;
-    chartByCat.hidden = false;
-  }
-
-  btnOverall.addEventListener('click', activateOverall);
-  btnByCat.addEventListener('click', activateByCategory);
-
-  activateOverall(); // Default
-
-});
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  const aiForm = document.getElementById('aiForm');
-  const aiPrompt = document.getElementById('aiPrompt');
-  const aiResponse = document.getElementById('aiResponse');
-  const btn        = aiForm.querySelector('button[type="submit"]');
-
-  aiForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const question = aiPrompt.value.trim();
-    if (!question) return;
-
-    aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
-
-    const resp = await fetch('{% url "budget:ai-query" %}', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-      body: JSON.stringify({ prompt: question }),
-    });
-    const data = await resp.json();
-    aiResponse.innerHTML = `<p>${data.answer}</p>`;
-  });
-
-  function updateButtonState() {
-    if (aiPrompt.value.trim() === "") {
-      btn.disabled = true;
-      btn.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-      btn.disabled = false;
-      btn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-  }
-  aiPrompt.addEventListener('input', updateButtonState);
-  updateButtonState();
-
-  aiForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const question = aiPrompt.value.trim();
-    if (!question) return;
-
-    btn.dataset.clicked = 'true';
-    btn.innerHTML = 'Processing…';
-
-    aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
-
-    try {
-      const resp = await fetch("{% url 'budget:ai-query' %}", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({ prompt: question }),
-      });
-      const data = await resp.json();
-
-      if (resp.ok) {
-        aiResponse.innerHTML = `<p>${data.answer}</p>`;
-        aiPrompt.value = "";
-        updateButtonState();
-      } else {
-        aiResponse.innerHTML = `<p class="text-red-600">${data.error || 'Something went wrong.'}</p>`;
+        Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+          const cells = row.children;
+          if (!cells.length) return;
+          let show = true;
+          
+          if (cells[3]) {
+            const d = new Date(cells[3].textContent);
+            if (fromDate && d < fromDate) show = false;
+            if (toDate && d > toDate) show = false;
+          }
+          
+          if (typeVal && cells[4] && cells[4].textContent.trim() !== (typeVal === 'IN' ? 'Income' : 'Expense')) {
+            show = false;
+          }
+          
+          if (catVal && cells[1] && cells[1].dataset.catId !== catVal) {
+            show = false;
+          }
+          
+          row.style.display = show ? '' : 'none';
+        });
       }
-    } catch (err) {
-      aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
-    } finally {
-      delete btn.dataset.clicked;
-      btn.innerHTML = 'Get Answer';
-    }
 
-    if (aiResponse.innerHTML.trim() === '') {
-      aiResponse.classList.add('hidden');
-    } else {
-      aiResponse.classList.remove('hidden');
-    }
-  });
-});
+      Object.values(inputs).forEach(inp => inp.addEventListener('input', applyReportFilter));
+      applyReportFilter();
 
-const viewNotesModal = document.getElementById('viewNotesModal');
-const notesContent   = document.getElementById('notesContent');
-const closeViewNotes = document.getElementById('closeViewNotes');
-
-function showNotesModal(notes) {
-  notesContent.textContent = notes || '(No notes)';
-  viewNotesModal.classList.remove('hidden');
-}
-function hideNotesModal() {
-  viewNotesModal.classList.add('hidden');
-}
-
-document.querySelectorAll('tr[data-notes]').forEach(tr => {
-  tr.addEventListener('click', () => {
-    showNotesModal(tr.dataset.notes);
-  });
-});
-
-closeViewNotes.addEventListener('click', hideNotesModal);
-viewNotesModal.addEventListener('click', e => {
-  if (e.target === viewNotesModal) hideNotesModal();
-});
-
-function bindNotesRows() {
-  document.querySelectorAll('tr[data-notes]').forEach(tr => {
-    tr.onclick = () => {
-      const notes = tr.dataset.notes;
-      showNotesModal(notes);
-    };
-  });
-}
+      document.getElementById('exportCsv').addEventListener('click', () => {
+        const isFiltered = filterApplied.value === 'true';
+        const exportFilename = '{{ request.user.username }}_transactions_{% now "Y-m-d" %}.csv';
+        // Determine which table to use
+        const tableToExport = isFiltered 
+          ? document.getElementById('reportTable')
+          : document.getElementById('fullReportTable');
+        
+        const headers = Array.from(tableToExport.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        const rows = Array.from(tableToExport.querySelectorAll('tbody tr'))
+          .filter(r => isFiltered ? r.style.display !== 'none' : true)
+          .map(r => {
+            return Array.from(r.children).map((td, idx) => {
+              let cell = td.textContent.trim();
+              if (idx === 2) cell = cell.replace(/[^\d\.-]/g, '');
+              return cell;
+            });
+          });
+        
+        let csv = [headers, ...rows].map(r => r.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = exportFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    });
 
 
-</script>
+  </script>
 {% endblock %}

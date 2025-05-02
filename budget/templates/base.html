@@ -32,6 +32,7 @@
     </footer>
 
     {% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
       <script>
         document.querySelectorAll('button[type="submit"]').forEach(button => {
 
@@ -58,12 +59,10 @@
           const toasts = document.querySelectorAll('#toast-container .toast');
           toasts.forEach((toast, i) => {
             setTimeout(() => {
-              // fade out
               toast.style.transition = 'opacity 0.5s ease';
               toast.style.opacity = '0';
-              // remove from DOM once invisible
               setTimeout(() => toast.remove(), 500);
-            }, 5000 + (i * 300)); // stagger by 300ms if multiple
+            }, 5000 + (i * 300));
           });
         });
 
@@ -124,11 +123,11 @@
           if (!th) return;
         
           let asc = th.classList.contains('sort-asc');
-          // ...same sort logic as above (find table, sort rows, toggle classes)...
         });
       </script>
     {% endblock %}
 
-    {% block extra_js %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+    {% block more_extra_scripts %}{% endblock %}
   </body>
 </html>
