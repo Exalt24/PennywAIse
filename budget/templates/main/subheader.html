@@ -1,59 +1,71 @@
 {% load static %}
-
-<header class="user" role="banner">
-    <nav aria-label="User menu" class="relative">
-      <details
-        id="userBtn"
-        class="button"
-        aria-haspopup="true"
-        aria-controls="userMenu"
-        aria-expanded="false"
-        class="relative">
-        <summary class="profile-dropdown">
-          <span id="userGreeting" class="text-black">
-            Hi, {{ user.first_name|default:user.username }}!
-          </span>
-          <img
-            id="dropdownIcon"
-            src="{% static 'images/dropdown.png' %}"
-            alt="▾"
-            class="dropdown-icon"
-          />
-        </summary>
-      </details>
-  
-      <ul
-        id="userMenu"
-        class="hidden usermenu"
-        role="menu"
-        aria-labelledby="userBtn"
-      >
-      <li>
-        <button class="menu block px-4 py-2 text-left w-full text-gray-400 cursor-not-allowed" disabled>
-          Profile (coming soon)
-        </button>
-      </li>
-      <li>
-        <button class="menu block px-4 py-2 text-left w-full text-gray-400 cursor-not-allowed" disabled>
-          Settings (coming soon)
-        </button>
-      </li>
-      
-        <li role="separator" class="border-t border-t-gray-300 my-1"></li>
-        <li role="none">
-          <form
-            method="post"
-            action="{% url 'logout' %}"
-            class="menu p-0"
-            role="none"
-          >
-            {% csrf_token %}
-            <button type="submit" role="menuitem" class="w-full text-left">
-              Logout
-            </button>
-          </form>
+<section class="flex justify-between">
+  <header class="header-m">
+    <h2 class="pagetitle">{{ section_title }}</h2>
+  </header>
+  <section class="user" role="banner">
+      <nav aria-label="User menu" class="relative bg-white rounded-full">
+        <details
+          id="userBtn"
+          class="button"
+          aria-haspopup="true"
+          aria-controls="userMenu"
+          aria-expanded="false"
+          class="relative">
+          <summary class="profile-dropdown">
+            <a href="/">
+              <img
+                id="logoImage"
+                src="{% static 'images/profile.png' %}"
+                alt="PennywAise logo"
+                class="h-8 w-auto rounded-full"
+              />
+            </a>
+            <span id="userGreeting" class="text-black">
+              Hi, {{ user.first_name|default:user.username }}!
+            </span>
+            <img
+              id="dropdownIcon"
+              src="{% static 'images/dropdown.png' %}"
+              alt="▾"
+              class="dropdown-icon"
+            />
+          </summary>
+        </details>
+    
+        <ul
+          id="userMenu"
+          class="hidden usermenu"
+          role="menu"
+          aria-labelledby="userBtn"
+        >
+        <li>
+          <button class="menu block px-4 py-2 text-left w-full text-gray-400 cursor-not-allowed" disabled>
+            Profile (coming soon)
+          </button>
         </li>
-      </ul>
-    </nav>
-</header>
+        <li>
+          <button class="menu block px-4 py-2 text-left w-full text-gray-400 cursor-not-allowed" disabled>
+            Settings (coming soon)
+          </button>
+        </li>
+        
+          <li role="separator" class="border-t border-t-gray-300 my-1"></li>
+          <li role="none">
+            <form
+              method="post"
+              action="{% url 'logout' %}"
+              class="menu p-0"
+              role="none"
+            >
+              {% csrf_token %}
+              <button type="submit" role="menuitem" class="w-full text-left">
+                Logout
+              </button>
+            </form>
+          </li>
+        </ul>
+      </nav>
+  </section>
+</section>
   
