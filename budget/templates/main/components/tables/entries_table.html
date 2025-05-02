@@ -2,10 +2,10 @@
 
 {% block table_head %}
   <tr>
-    <th class="px-3 py-2 text-left sortable sort-asc" aria-sort="ascending">Title</th>
-    <th class="px-3 py-2 text-left sortable" aria-sort="none">Category</th>
-    <th class="px-3 py-2 text-left sortable" aria-sort="none">Amount</th>
-    <th class="px-3 py-2 text-left sortable" aria-sort="none">Date</th>
+    <th class="px-3 py-2 text-left sortable sort-desc" aria-sort="descending" data-type="date">Date</th>
+    <th class="px-3 py-2 text-left sortable" aria-sort="none" data-type="string">Title</th>
+    <th class="px-3 py-2 text-left sortable" aria-sort="none" data-type="string">Category</th>
+    <th class="px-3 py-2 text-left sortable" aria-sort="none" data-type="number">Amount</th>
     <th class="px-3 py-2 text-left">Actions</th>
   </tr>
 {% endblock %}
@@ -16,10 +16,15 @@
     class="cursor-pointer hover:bg-gray-50"
     data-notes="{{ entry.notes }}"
     >
+    <td
+      class="px-3 py-2"
+      data-value="{{ entry.date|date:'Y-m-d' }}"
+    >
+      {{ entry.date|date:'Y-m-d' }}
+    </td>
       <td class="px-3 py-2">{{ entry.title }}</td>
       <td class="px-3 py-2">{{ entry.category.name }}</td>
-      <td class="px-3 py-2 {{ amount_class }}">{{ amount_prefix }} ₱{{ entry.amount }}</td>
-      <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
+      <td class="px-3 py-2 {{ amount_class }}" data-value="{{ entry.amount }}">{{ amount_prefix }}₱{{ entry.amount }}</td>
       <td class="px-3 py-2 whitespace-nowrap">
         <a href="?edit={{ entry.pk }}#{{ section_id }}"
            class="text-blue-600 hover:underline focus:ring-2 focus:ring-offset-1 focus:ring-blue-400"

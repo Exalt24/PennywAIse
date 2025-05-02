@@ -13,7 +13,7 @@
 {% block table_body %}
   {% for entry in entries %}
     <tr>
-      <td class="px-3 py-2">{{ entry.date|date:"M d, Y" }}</td>
+      <td class="px-3 py-2">{{ entry.date|date:'Y-m-d' }}</td>
       <td class="px-3 py-2">{{ entry.title }}</td>
       <td class="px-3 py-2">
         {% if entry.category %}{{ entry.category.name }}{% else %}&mdash;{% endif %}

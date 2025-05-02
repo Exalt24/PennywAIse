@@ -15,13 +15,30 @@
   {% for cat in category_stats %}
     <tr>
       <td class="px-3 py-2 cat-name">{{ cat.name }}</td>
-      <td class="px-3 py-2 text-center">{{ cat.entry_count }}</td>
-      <td class="px-3 py-2 text-right text-green-600">₱{{ cat.total_inc|floatformat:2 }}</td>
-      <td class="px-3 py-2 text-right text-red-600">₱{{ cat.total_exp|floatformat:2 }}</td>
-      <td class="px-3 py-2 text-right
-            {% if cat.net > 0 %}text-green-600{% elif cat.net < 0 %}text-red-600{% endif %}">
+    <td class="px-3 py-2 text-center">{{ cat.entry_count }}</td>
+
+    <td class="px-3 py-2 text-right text-green-600">
+      {% if cat.total_inc is not None %}
+        ₱{{ cat.total_inc|floatformat:2 }}
+      {% else %}
+        <span class="text-gray-400">&mdash;</span>
+      {% endif %}
+    </td>
+    <td class="px-3 py-2 text-right text-red-600">
+      {% if cat.total_exp is not None %}
+        ₱{{ cat.total_exp|floatformat:2 }}
+      {% else %}
+        <span class="text-gray-400">&mdash;</span>
+      {% endif %}
+    </td>
+    <td class="px-3 py-2 text-right
+          {% if cat.net > 0 %}text-green-600{% elif cat.net < 0 %}text-red-600{% endif %}">
+      {% if cat.net is not None %}
         {% if cat.net > 0 %}+{% elif cat.net < 0 %}–{% endif %}₱{{ cat.net_abs|floatformat:2 }}
-      </td>
+      {% else %}
+        <span class="text-gray-400">&mdash;</span>
+      {% endif %}
+    </td>
       <td class="px-3 py-2 text-center space-x-2">
         <form method="post" class="inline" role="presentation">
           {% csrf_token %}
