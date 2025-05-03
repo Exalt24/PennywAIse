@@ -24,6 +24,8 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
 import random
+from datetime import date, timedelta
+import calendar
 
 
 gemini_client = genai.Client(
@@ -127,11 +129,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         # Averages and extremes
         avg_txn = (month_qs.aggregate(avg=Avg('amount'))['avg'] or 0)
-        largest = (Entry.objects.filter(user=user, type=Entry.EXPENSE, date__gte=month_start)
+        largest_expense = (Entry.objects.filter(user=user, type=Entry.EXPENSE, date__gte=month_start)
+                .order_by('-amount').first())
+        largest_income = (Entry.objects.filter(user=user, type=Entry.INCOME, date__gte=month_start)
                 .order_by('-amount').first())
         ctx.update({
             'avg_transaction': avg_txn,
-            'largest_expense': largest,
+            'largest_expense': largest_expense,
+            'largest_income': largest_income,
         })
 
         # Cash-flow forecast
@@ -190,7 +195,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         rep_qs = Entry.objects.filter(user=user).order_by('-date')
         inc_page = Paginator(inc_qs, 10).get_page(self.request.GET.get('inc_page'))
         exp_page = Paginator(exp_qs, 10).get_page(self.request.GET.get('exp_page'))
-        rep_page = Paginator(rep_qs, 10).get_page(self.request.GET.get('report_page'))
+        rep_page = Paginator(rep_qs,10).get_page(self.request.GET.get('report_page'))
         ctx.update({
             'income_entries': inc_page.object_list,
             'expense_entries': exp_page.object_list,
@@ -227,6 +232,57 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'chart_cat_budget': [float(r.get('budget') or 0) for r in summary],
         })
 
+        # ── GitHub-style monthly heatmap setup ─────────────────────────
+        today       = date.today()
+        month_start = today.replace(day=1)
+        year, month = month_start.year, month_start.month
+
+        # build a matrix of weeks for this month
+        month_cal = calendar.monthcalendar(year, month)
+
+        # column labels = weekdays Mon→Sun
+        ctx['heatmap_labels_x'] = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+
+        # row labels = "May 1", "May 5", … the first in-month day of each week
+        ctx['heatmap_labels_y'] = [
+        f"{month_start.strftime('%b')} {min([d for d in week if d>0])}"
+        if any(d>0 for d in week) else ''
+        for week in month_cal
+        ]
+
+        # read counts for every date in this month
+        qs = (
+        Entry.objects
+            .filter(user=user, date__year=year, date__month=month)
+            .values('date')
+            .annotate(count=Count('pk'))
+        )
+        counts = { r['date']: r['count'] for r in qs }
+
+        # build the full grid (including zeros and future → blank)
+        heatmap_data = []
+        for wi, week in enumerate(month_cal):
+            for di, day in enumerate(week):
+                if day == 0:
+                    # outside this month
+                    heatmap_data.append({'x':di, 'y':wi, 'v':0, 'date':''})
+                else:
+                    dt = month_start.replace(day=day)
+                    if dt > today:
+                        # future → blank
+                        heatmap_data.append({'x':di, 'y':wi, 'v':0, 'date':''})
+                    else:
+                        heatmap_data.append({
+                        'x'   : di,             # weekday index
+                        'y'   : wi,             # week index
+                        'v'   : counts.get(dt, 0),
+                        'date': dt.isoformat(), # for tooltip
+                        })
+
+        ctx.update({
+        'heatmap_data'      : heatmap_data,
+        'heatmap_week_count': len(month_cal),
+        })
         # Category statistics
         cats = Category.objects.filter(user=user).annotate(
             entry_count=Count('entry'),
@@ -283,7 +339,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             qs = qs.filter(category_id=gf['category'])
 
         resp = HttpResponse(content_type='text/csv')
-        resp['Content-Disposition'] = 'attachment; filename="{user}_transactions.csv"'.format(user=user.username)
+        resp['Content-Disposition'] = 'attachment; filename="{user}_transactions_{now}.csv"'.format(
+            user=user.username,
+            now=timezone.localdate().strftime('%Y-%m-%d')
+        )
         writer = csv.writer(resp)
         writer.writerow(['Date','Title','Category','Type','Amount'])
         for e in qs.order_by('-date'):

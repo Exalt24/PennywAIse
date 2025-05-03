@@ -285,7 +285,7 @@
       {% if is_edit_category %}
         editCatModal.classList.remove('hidden');
       {% endif %}
-
+      
       function fetchReports() {
         const params = new URLSearchParams(window.location.search);
       
@@ -293,7 +293,7 @@
           const el = document.getElementById('rep' + sfx);
           params.set('rep' + sfx, el.value || '');
         });
-
+    
         const url = `/reports/filter/?${params.toString()}${location.hash}`;
       
         fetch(url)
@@ -310,7 +310,7 @@
         el.addEventListener('input', fetchReports);
       });
       
-
+    
       document.getElementById('repContainer').addEventListener('click', e => {
         if (e.target.matches('#repContainer nav a')) {
           e.preventDefault();
@@ -319,84 +319,70 @@
           fetchReports();
         }
       });
-
+    
+    const inputs = {
+      from: document.getElementById('repFrom'),
+      to: document.getElementById('repTo'),
+      type: document.getElementById('repType'),
+      cat: document.getElementById('repCat'),
+    };
+    const tableBody = document.querySelector('#reportTable tbody');
+    const filterApplied = document.getElementById('filterApplied');
+    
+    function applyReportFilter() {
+      const fromDate = inputs.from.valueAsDate;
+      const toDate = inputs.to.valueAsDate;
+      const typeVal = inputs.type.value;
+      const catVal = inputs.cat.value;
       
-
-      const inputs = {
-        from: document.getElementById('repFrom'),
-        to: document.getElementById('repTo'),
-        type: document.getElementById('repType'),
-        cat: document.getElementById('repCat'),
-      };
-      const tableBody = document.querySelector('#reportTable tbody');
-      const filterApplied = document.getElementById('filterApplied');
-
-      function applyReportFilter() {
-        const fromDate = inputs.from.valueAsDate;
-        const toDate = inputs.to.valueAsDate;
-        const typeVal = inputs.type.value;
-        const catVal = inputs.cat.value;
+      const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
+      filterApplied.value = isFilterActive ? 'true' : 'false';
+    
+      Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+        const cells = row.children;
+        if (!cells.length) return;
+        let show = true;
         
-        const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
-        filterApplied.value = isFilterActive ? 'true' : 'false';
-
-        Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
-          const cells = row.children;
-          if (!cells.length) return;
-          let show = true;
-          
-          if (cells[3]) {
-            const d = new Date(cells[3].textContent);
-            if (fromDate && d < fromDate) show = false;
-            if (toDate && d > toDate) show = false;
-          }
-          
-          if (typeVal && cells[4] && cells[4].textContent.trim() !== (typeVal === 'IN' ? 'Income' : 'Expense')) {
-            show = false;
-          }
-          
-          if (catVal && cells[1] && cells[1].dataset.catId !== catVal) {
-            show = false;
-          }
-          
-          row.style.display = show ? '' : 'none';
-        });
-      }
-
-      Object.values(inputs).forEach(inp => inp.addEventListener('input', applyReportFilter));
-      applyReportFilter();
-
-      document.getElementById('exportCsv').addEventListener('click', () => {
-        const isFiltered = filterApplied.value === 'true';
-        const exportFilename = '{{ request.user.username }}_transactions_{% now "Y-m-d" %}.csv';
-        // Determine which table to use
-        const tableToExport = isFiltered 
-          ? document.getElementById('reportTable')
-          : document.getElementById('fullReportTable');
+        if (cells[3]) {
+          const d = new Date(cells[3].textContent);
+          if (fromDate && d < fromDate) show = false;
+          if (toDate && d > toDate) show = false;
+        }
         
-        const headers = Array.from(tableToExport.querySelectorAll('thead th')).map(th => th.textContent.trim());
-        const rows = Array.from(tableToExport.querySelectorAll('tbody tr'))
-          .filter(r => isFiltered ? r.style.display !== 'none' : true)
-          .map(r => {
-            return Array.from(r.children).map((td, idx) => {
-              let cell = td.textContent.trim();
-              if (idx === 2) cell = cell.replace(/[^\d\.-]/g, '');
-              return cell;
-            });
-          });
+        if (typeVal && cells[4] && cells[4].textContent.trim() !== (typeVal === 'IN' ? 'Income' : 'Expense')) {
+          show = false;
+        }
         
-        let csv = [headers, ...rows].map(r => r.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = exportFilename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (catVal && cells[1] && cells[1].dataset.catId !== catVal) {
+          show = false;
+        }
+        
+        row.style.display = show ? '' : 'none';
       });
+    }
+    
+    Object.values(inputs).forEach(inp => inp.addEventListener('input', applyReportFilter));
+    applyReportFilter();
+
+    document.getElementById('exportCsv').addEventListener('click', e => {
+      e.preventDefault();
+    
+      const from = document.getElementById('repFrom').value;
+      const to   = document.getElementById('repTo').value;
+      const type = document.getElementById('repType').value;
+      const cat  = document.getElementById('repCat').value;
+    
+      const params = new URLSearchParams();
+      if (from) params.set('from', from);
+      if (to)   params.set('to', to);
+      if (type) params.set('type', type);
+      if (cat)  params.set('category', cat);
+      params.set('export', 'csv');
+    
+      window.open(`${window.location.pathname}?${params.toString()}`, '_blank');
     });
+    
+  });
 
 
   </script>

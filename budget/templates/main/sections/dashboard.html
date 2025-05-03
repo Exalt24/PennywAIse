@@ -12,11 +12,48 @@
         <h3 class="title">Total Income</h3>
         <p class="value">₱{{ income_total|floatformat:2 }}</p>
         <p class="meta">This month</p>
+        <h3 class="title">Income vs Last Month</h3>
+        <p class="value">
+          {% if income_pct_change %}
+            <p class="value {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+              {{ income_pct_change|floatformat:1 }}%
+            </p>
+          {% else %}
+            <p class="value text-gray-500">N/A</p>
+          {% endif %}
+        </p>
+
+        <p class="meta">₱{{ income_total|floatformat:2 }} - ₱{{ last_income_total|floatformat:2 }}</p>
+        <h3 class="title">Largest Income</h3>
+        {% if largest_income %}
+          <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
+          <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
+        {% else %}
+          <p class="value text-gray-500">—</p>
+        {% endif %}
       </article>
       <article class="card" role="region" aria-label="Total Expenses: ₱{{ expense_total|floatformat:2 }} this month">
         <h3 class="title">Total Expenses</h3>
         <p class="value">₱{{ expense_total|floatformat:2 }}</p>
         <p class="meta">This month</p>
+        <h3 class="title">Expenses vs Last Month</h3>
+        <p class="value">
+          {% if expense_pct_change %}
+            <p class="value {% if expense_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+              {{ expense_pct_change|floatformat:1 }}%
+            </p>
+          {% else %}
+            <p class="value text-gray-500">N/A</p>
+          {% endif %}
+        </p>
+        <p class="meta">₱{{ expense_total|floatformat:2 }} - ₱{{ last_expense_total|floatformat:2 }}</p>
+        <h3 class="title">Largest Expense</h3>
+        {% if largest_expense %}
+          <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
+          <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
+        {% else %}
+          <p class="value text-gray-500">—</p>
+        {% endif %}
       </article>
       <article class="card" role="region" aria-label="Net Balance: {% if net_balance > 0 %}+₱{{ net_balance_abs|floatformat:2 }}{% elif net_balance < 0 %}−₱{{ net_balance_abs|floatformat:2 }}{% else %}₱0.00{% endif %}">
         <h3 class="title">Net Balance</h3>
@@ -33,6 +70,14 @@
         </p>
         <p class="meta">Income − Expenses</p>
       </article>
+      <article class="card" role="region" aria-label="Transactions: {{ transaction_count }} entries this month">
+        <h3 class="title">Transactions</h3>
+        <p class="value">{{ transaction_count }}</p>
+        <p class="meta">Entries this month</p>
+      </article>
+    </section>
+
+    <section id="insights" class="overview mt-6" role="region" aria-label="Quick Insights">
       <article class="card" role="region" aria-label="Monthly Budget">
         <h3 class="title">Monthly Budget</h3>
         {% if total_budget is not None %}
@@ -47,56 +92,6 @@
         {% endif %}
         <p class="meta">Total budget</p>
       </article>
-      <article class="card" role="region" aria-label="Transactions: {{ transaction_count }} entries this month">
-        <h3 class="title">Transactions</h3>
-        <p class="value">{{ transaction_count }}</p>
-        <p class="meta">Entries this month</p>
-      </article>
-    </section>
-
-    <section id="insights" class="overview mt-6" role="region" aria-label="Quick Insights">
-      <article class="card">
-        <h3 class="title">Income vs Last Month</h3>
-        <p class="value">₱{{ income_total|floatformat:2 }}</p>
-        {% if income_pct_change %}
-          <p class="meta {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-            {{ income_pct_change|floatformat:1 }}%
-          </p>
-        {% else %}
-          <p class="meta text-gray-500">N/A</p>
-        {% endif %}
-      </article>
-    
-      <article class="card">
-        <h3 class="title">Expenses vs Last Month</h3>
-        <p class="value">₱{{ expense_total|floatformat:2 }}</p>
-        {% if expense_pct_change %}
-          <p class="meta {% if expense_pct_change < 0 %}text-green-600{% else %}text-red-600{% endif %}">
-            {{ expense_pct_change|floatformat:1 }}%
-          </p>
-        {% else %}
-          <p class="meta text-gray-500">N/A</p>
-        {% endif %}
-      </article>
-    
-      <article class="card">
-        <h3 class="title">Average Txn</h3>
-        <p class="value">₱{{ avg_transaction|floatformat:2 }}</p>
-        <p class="meta">per entry</p>
-      </article>
-    
-      <article class="card">
-        <h3 class="title">Largest Expense</h3>
-        {% if largest_expense %}
-          <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
-          <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
-        {% else %}
-          <p class="value text-gray-500">—</p>
-        {% endif %}
-      </article>
-    </section>
-    
-    <section id="top‐cats" class="overview mt-6" role="region" aria-label="Top Spending Categories">
       <article class="card">
         <h3 class="title">Top 3 Categories</h3>
         <ul class="space-y-1">
@@ -108,7 +103,11 @@
           {% endfor %}
         </ul>
       </article>
-    
+      <article class="card">
+        <h3 class="title">Average Txn</h3>
+        <p class="value">₱{{ avg_transaction|floatformat:2 }}</p>
+        <p class="meta">per entry</p>
+      </article>
       <article class="card">
         <h3 class="title">Projected Month-End Balance</h3>
         <p class="value {% if projected_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
@@ -195,8 +194,14 @@
             {% else %}
               <p class="mt-3 text-center text-gray-500">No categories to display.</p>
             {% endif %}
+
+
           </section>
-     
+          <section class="progress mt-6" aria-label="Monthly Heatmap">
+            <h2 class="text-lg mb-2">Entries This Month</h2>
+            <canvas id="heatmapChart" class="w-full h-64"></canvas>
+          </section>
+          
     </section>
     {% with section_id="recent" aria_label="Recent Transactions table" table_id="dashboardTable" entries=recent_transactions empty_message="No transactions yet." title="Recent Transactions (latest 10 entries)" title_id="recent-heading" page_obj=page_obj_recent page_param="recent_page" %}
       {% include "main/components/tables/recent_transactions_table.html" %}
@@ -319,6 +324,74 @@
           }
         );
       {% endif %}
+
+      const ctxHM = document.getElementById('heatmapChart').getContext('2d');
+new Chart(ctxHM, {
+  type: 'matrix',
+  data: {
+    datasets: [{
+      label: 'Entries',
+      data: {{ heatmap_data|safe }},
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.05)',
+      backgroundColor: ({dataset, dataIndex}) => {
+        const v   = dataset.data[dataIndex].v;
+        const max = Math.max(...dataset.data.map(d=>d.v), 1);
+        // 5-step GitHub ramp
+        const level  = Math.min(5, Math.floor((v/max)*5));
+        const alphas = [0,0.2,0.4,0.6,0.8,1];
+        return `rgba(16,185,129,${alphas[level]})`;
+      },
+      width: ({chart}) => {
+        const area = chart.chartArea;
+        return area
+          ? (area.width  / {{ heatmap_labels_x|length }}) - 2
+          : 0;
+      },
+      height: ({chart}) => {
+        const area = chart.chartArea;
+        return area
+          ? (area.height / {{ heatmap_labels_y|length }}) - 2
+          : 0;
+      }
+    }]
+  },
+  options: {
+    scales: {
+      x: {
+        type: 'category',
+        labels: {{ heatmap_labels_x|safe }},
+        grid: { display: false },
+        offset: true
+      },
+      y: {
+        type: 'category',
+        labels: {{ heatmap_labels_y|safe }},
+        grid: { display: false },
+        offset: true
+      }
+    },
+    plugins: {
+      tooltip: {
+        filter: ti => !!ti.raw.date,  // skip blanks & future
+        callbacks: {
+          title: ([item]) => item.raw.date,
+          label: ctx => {
+            const v = ctx.raw.v;
+            return v
+              ? `${v} entr${v===1?'y':'ies'}`
+              : 'No entries';
+          }
+        }
+      },
+      legend: { display: false }
+    }
+  }
+});
+
+
+
+
     });
 
     const btnOverall = document.getElementById('showOverall');
@@ -353,6 +426,6 @@
     btnOverall.addEventListener('click', activateOverall);
     btnByCat.addEventListener('click', activateByCategory);
   
-    activateOverall();
+    activateOverall();    
   </script>
 {% endblock %}
