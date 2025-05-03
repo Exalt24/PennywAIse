@@ -124,6 +124,11 @@ All tests live under the `budget` app. You can run:
   python manage.py test budget.tests_suite.test_views
   python manage.py test budget.tests_suite.test_security
   python manage.py test budget.tests_suite.test_integration
+  python manage.py test budget.tests_suite.test_tasks
+  python manage.py test budget.tests_suite.test_apps
+  python manage.py test budget.tests_suite.test_command
+  python manage.py test budget.tests_suite.test_admin
+  python manage.py test budget.tests_suite.test_security
   ```
 
 - **Specific class or method**:
