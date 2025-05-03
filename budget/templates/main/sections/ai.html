@@ -40,74 +40,58 @@
     const aiPrompt = document.getElementById('aiPrompt');
     const btn        = aiForm.querySelector('button[type="submit"]');
 
-    aiForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      const question = aiPrompt.value.trim();
-      if (!question) return;
+   function updateButtonState() {
+    const empty       = aiPrompt.value.trim() === "";
+    const processing  = btn.dataset.processing === "true";
+    btn.disabled = empty || processing;
+    btn.classList.toggle('opacity-50', empty || processing);
+    btn.classList.toggle('cursor-not-allowed', empty || processing);
+  }
+  aiPrompt.addEventListener('input', updateButtonState);
+  updateButtonState();
 
-      aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+  aiForm.addEventListener('submit', async e => {
+    e.preventDefault();
 
-      const resp = await fetch('{% url "budget:ai-query" %}', {
+    if (btn.dataset.processing === "true") return;
+
+    const question = aiPrompt.value.trim();
+    if (!question) return;
+
+
+    btn.dataset.processing = "true";
+    btn.innerText = "Processing…";
+    updateButtonState();
+
+    aiResponse.innerHTML = '';
+    aiResponse.classList.remove('hidden');
+    aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
+
+    try {
+      const resp = await fetch("{% url 'budget:ai-query' %}", {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
         body: JSON.stringify({ prompt: question }),
       });
       const data = await resp.json();
-      aiResponse.innerHTML = `<p>${data.answer}</p>`;
-    });
 
-    function updateButtonState() {
-      if (aiPrompt.value.trim() === "") {
-        btn.disabled = true;
-        btn.classList.add('opacity-50', 'cursor-not-allowed');
+      if (resp.ok) {
+        aiResponse.innerHTML = marked.parse(data.answer);
+        aiPrompt.value = "";
       } else {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        aiResponse.innerHTML = `<p class="text-red-600">${data.error || 'Something went wrong.'}</p>`;
       }
+    } catch (err) {
+      aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
+    } finally {
+      // 3) Reset button
+      delete btn.dataset.processing;
+      btn.innerText = "Get Answer";
+      updateButtonState();
     }
-    aiPrompt.addEventListener('input', updateButtonState);
-    updateButtonState();
-
-    aiForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      const question = aiPrompt.value.trim();
-      if (!question) return;
-
-      btn.dataset.clicked = 'true';
-      btn.innerHTML = 'Processing…';
-
-      aiResponse.innerHTML = '<p class="text-gray-500">Thinking…</p>';
-
-      try {
-        const resp = await fetch("{% url 'budget:ai-query' %}", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify({ prompt: question }),
-        });
-        const data = await resp.json();
-
-        if (resp.ok) {
-          aiResponse.innerHTML = `<p>${data.answer}</p>`;
-          aiPrompt.value = "";
-          updateButtonState();
-        } else {
-          aiResponse.innerHTML = `<p class="text-red-600">${data.error || 'Something went wrong.'}</p>`;
-        }
-      } catch (err) {
-        aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
-      } finally {
-        delete btn.dataset.clicked;
-        btn.innerHTML = 'Get Answer';
-      }
-
-      if (aiResponse.innerHTML.trim() === '') {
-        aiResponse.classList.add('hidden');
-      } else {
-        aiResponse.classList.remove('hidden');
-      }
-    });
+  });
   </script>
 {% endblock %}
