@@ -144,9 +144,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         days_in_month = (month_start + relativedelta(months=1) - relativedelta(days=1)).day
         avg_daily_spent = expense_total / days_passed if days_passed else 0
         projected_balance = income_total - (avg_daily_spent * days_in_month)
+        abs_proj_balance = abs(projected_balance)
         ctx.update({
             'avg_daily_spent': avg_daily_spent,
             'projected_balance': projected_balance,
+            'abs_proj_balance': abs_proj_balance,
         })
 
         # Per-category aggregates

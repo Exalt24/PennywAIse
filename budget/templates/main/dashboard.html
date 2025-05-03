@@ -38,7 +38,7 @@
 {% block extra_scripts %}
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const links = Array.from(document.querySelectorAll('aside.sidebar nav a'));
+      const links = Array.from(document.querySelectorAll('aside.sidebar nav a.nav-sidebar'));
       const pages = Array.from(document.querySelectorAll('.page-content'));
       const aiResponse = document.getElementById('aiResponse');
       const aiPrompt = document.getElementById('aiPrompt');
@@ -207,7 +207,9 @@
       }
 
       function cleanUrl() {
-        history.replaceState(null, '', window.location.pathname + '');
+        history.replaceState(null, '', window.location.pathname);
+        const hash = window.location.hash.slice(1);
+        if (hash) history.replaceState(null, '', window.location.pathname + '#' + hash);
       }
 
       function resetModalToAdd() {
@@ -232,7 +234,6 @@
       [closeModalBtn, cancelEntryBtn].forEach(btn => btn.addEventListener('click', e => {
         e.preventDefault();
         hideModal();
-        cleanUrl();
         resetModalToAdd();
       }));
 
@@ -246,7 +247,6 @@
 
       {% if is_edit or entry_form.errors %}
         showModal();
-        cleanUrl();
       {% endif %}
 
       const editCatModal = document.getElementById('editCategoryModal');
