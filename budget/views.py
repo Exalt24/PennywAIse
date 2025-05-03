@@ -24,9 +24,9 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
 import random
-from datetime import date, timedelta
-import calendar
-
+from django.utils import timezone
+import time
+from datetime import timedelta
 
 gemini_client = genai.Client(
     api_key=settings.GEMINI_API_KEY,
@@ -230,58 +230,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'chart_trend_income': inc_vals,
             'chart_trend_expense': exp_vals,
             'chart_cat_budget': [float(r.get('budget') or 0) for r in summary],
-        })
-
-        # ── GitHub-style monthly heatmap setup ─────────────────────────
-        today       = date.today()
-        month_start = today.replace(day=1)
-        year, month = month_start.year, month_start.month
-
-        # build a matrix of weeks for this month
-        month_cal = calendar.monthcalendar(year, month)
-
-        # column labels = weekdays Mon→Sun
-        ctx['heatmap_labels_x'] = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
-
-        # row labels = "May 1", "May 5", … the first in-month day of each week
-        ctx['heatmap_labels_y'] = [
-        f"{month_start.strftime('%b')} {min([d for d in week if d>0])}"
-        if any(d>0 for d in week) else ''
-        for week in month_cal
-        ]
-
-        # read counts for every date in this month
-        qs = (
-        Entry.objects
-            .filter(user=user, date__year=year, date__month=month)
-            .values('date')
-            .annotate(count=Count('pk'))
-        )
-        counts = { r['date']: r['count'] for r in qs }
-
-        # build the full grid (including zeros and future → blank)
-        heatmap_data = []
-        for wi, week in enumerate(month_cal):
-            for di, day in enumerate(week):
-                if day == 0:
-                    # outside this month
-                    heatmap_data.append({'x':di, 'y':wi, 'v':0, 'date':''})
-                else:
-                    dt = month_start.replace(day=day)
-                    if dt > today:
-                        # future → blank
-                        heatmap_data.append({'x':di, 'y':wi, 'v':0, 'date':''})
-                    else:
-                        heatmap_data.append({
-                        'x'   : di,             # weekday index
-                        'y'   : wi,             # week index
-                        'v'   : counts.get(dt, 0),
-                        'date': dt.isoformat(), # for tooltip
-                        })
-
-        ctx.update({
-        'heatmap_data'      : heatmap_data,
-        'heatmap_week_count': len(month_cal),
         })
         # Category statistics
         cats = Category.objects.filter(user=user).annotate(

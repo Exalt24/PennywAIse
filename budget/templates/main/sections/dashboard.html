@@ -194,14 +194,7 @@
             {% else %}
               <p class="mt-3 text-center text-gray-500">No categories to display.</p>
             {% endif %}
-
-
           </section>
-          <section class="progress mt-6" aria-label="Monthly Heatmap">
-            <h2 class="text-lg mb-2">Entries This Month</h2>
-            <canvas id="heatmapChart" class="w-full h-64"></canvas>
-          </section>
-          
     </section>
     {% with section_id="recent" aria_label="Recent Transactions table" table_id="dashboardTable" entries=recent_transactions empty_message="No transactions yet." title="Recent Transactions (latest 10 entries)" title_id="recent-heading" page_obj=page_obj_recent page_param="recent_page" %}
       {% include "main/components/tables/recent_transactions_table.html" %}
@@ -324,74 +317,7 @@
           }
         );
       {% endif %}
-
-      const ctxHM = document.getElementById('heatmapChart').getContext('2d');
-new Chart(ctxHM, {
-  type: 'matrix',
-  data: {
-    datasets: [{
-      label: 'Entries',
-      data: {{ heatmap_data|safe }},
-      borderWidth: 1,
-      borderColor: 'rgba(0,0,0,0.05)',
-      backgroundColor: ({dataset, dataIndex}) => {
-        const v   = dataset.data[dataIndex].v;
-        const max = Math.max(...dataset.data.map(d=>d.v), 1);
-        // 5-step GitHub ramp
-        const level  = Math.min(5, Math.floor((v/max)*5));
-        const alphas = [0,0.2,0.4,0.6,0.8,1];
-        return `rgba(16,185,129,${alphas[level]})`;
-      },
-      width: ({chart}) => {
-        const area = chart.chartArea;
-        return area
-          ? (area.width  / {{ heatmap_labels_x|length }}) - 2
-          : 0;
-      },
-      height: ({chart}) => {
-        const area = chart.chartArea;
-        return area
-          ? (area.height / {{ heatmap_labels_y|length }}) - 2
-          : 0;
-      }
-    }]
-  },
-  options: {
-    scales: {
-      x: {
-        type: 'category',
-        labels: {{ heatmap_labels_x|safe }},
-        grid: { display: false },
-        offset: true
-      },
-      y: {
-        type: 'category',
-        labels: {{ heatmap_labels_y|safe }},
-        grid: { display: false },
-        offset: true
-      }
-    },
-    plugins: {
-      tooltip: {
-        filter: ti => !!ti.raw.date,  // skip blanks & future
-        callbacks: {
-          title: ([item]) => item.raw.date,
-          label: ctx => {
-            const v = ctx.raw.v;
-            return v
-              ? `${v} entr${v===1?'y':'ies'}`
-              : 'No entries';
-          }
-        }
-      },
-      legend: { display: false }
-    }
-  }
-});
-
-
-
-
+      
     });
 
     const btnOverall = document.getElementById('showOverall');
