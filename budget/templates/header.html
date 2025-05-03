@@ -56,10 +56,12 @@
         class="sm:hidden ml-auto focus:outline-none"
         aria-label="Open menu"
       >
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <img
+          id="menuIcon"
+          src="{% static 'images/kebabmenu.png' %}"
+          alt=""
+          class="w-6 h-6 filter"
+        />
       </button>
 
       <!-- Mobile Menu Panel -->
@@ -114,7 +116,6 @@
     const navLinks   = Array.from(document.querySelectorAll(".nav-link"));
     const logoImage  = document.getElementById("logoImage");
     const dropdownIcon = document.getElementById("dropdownIcon");
-    const userGreeting = document.getElementById("userGreeting");
     const homeLogoSrc  = "{% static 'images/logo3.png' %}";
     const otherLogoSrc = "{% static 'images/logo9.png' %}";
 
@@ -143,6 +144,8 @@
         userGreeting.classList.toggle("text-white", isHome);
         userGreeting.classList.toggle("text-[#40020F]", !isHome);
       }
+
+      if (menuIcon) menuIcon.classList.toggle("invert", isHome);
     }
 
     window.addEventListener("scroll", updateHeader);
