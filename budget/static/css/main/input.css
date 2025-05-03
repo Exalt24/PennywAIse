@@ -78,10 +78,10 @@ header {
 .header-m {
   @apply mb-4;
 }
-
 .header-nav {
-  @apply hidden md:flex space-x-8 uppercase;
+  @apply hidden sm:flex flex-1 justify-center space-x-8 uppercase;
 }
+
 
 .search input {
   @apply w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg;
