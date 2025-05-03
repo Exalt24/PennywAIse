@@ -87,7 +87,6 @@
     } catch (err) {
       aiResponse.innerHTML = `<p class="text-red-600">Network error: ${err.message}</p>`;
     } finally {
-      // 3) Reset button
       delete btn.dataset.processing;
       btn.innerText = "Get Answer";
       updateButtonState();
