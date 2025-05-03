@@ -148,7 +148,7 @@ python -m coverage html   # view `htmlcov/index.html`
 
 | Member                 | Responsibility                                                                              |
 |------------------------|---------------------------------------------------------------------------------------------|
-| Amielle Jaezxier Perez | Testing framework, Models & business logic                                                  |
+| Amielle Jaezxier Perez | Testing framework, Models & business logic, Frontend UI                                     |
 | Daniel Alexis Cruz     | Authentication, Email workflows, Models & business logic, Tailwind integration, Frontend UI |
 | Nikka Joie Mendoza     | Frontend UI & refinement, Tailwind Integration                                              |
 
@@ -164,4 +164,3 @@ python -m coverage html   # view `htmlcov/index.html`
 6. **Export** data via the Reports page for further analysis.
 
 Enjoy taking control of your financial future with PennywAIse!
-
