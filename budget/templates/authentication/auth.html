@@ -7,9 +7,10 @@
 
 {% block content %}
 
-  <section role="region" aria-label="Authentication page" class="grid grid-cols-1 md:grid-cols-2">
+  <section role="region" aria-label="Authentication page" class="grid grid-cols-1 min-lg:grid-cols-2">
     <!-- Hero / Left Panel -->
-    <section role="region" aria-label="Hero section" class="h-screen bg-gradient-to-b from-[#BD132D] to-[#642828] relative flex flex-col justify-center px-12 text-white">
+    <section role="region" aria-label="Hero section" class="h-[400px]
+    lg:h-screen  bg-gradient-to-b from-[#BD132D] to-[#642828] relative flex flex-col justify-center px-12 text-white">
       <!-- Back button -->
       <a
         href="/"
@@ -39,14 +40,14 @@
     </section>
 
     <!-- Auth Forms / Right Panel -->
-    <section role="region" aria-label="Authentication container" class="bg-white flex justify-center mt-15">
+    <section role="region" aria-label="Authentication container" class="bg-white flex justify-center mt-5 md:mt-15 lg:mt-10">
       <section class="relative w-full max-w-md">
         <!-- Register Card -->
         <article
           id="register-card"
           role="region" 
           aria-labelledby="register-heading"
-          class="h-140 absolute inset-0 bg-[#dcdcdc] rounded-lg shadow-lg pt-10 p-6 transform transition-all duration-500 ease-in-out z-10 translate-x-8 translate-y-8 overflow-hidden"
+          class="h-140 absolute inset-0 bg-[#dcdcdc] rounded-lg shadow-lg pt-10 p-6 transform transition-all duration-500 ease-in-out z-10 translate-x-8 translate-y-8 overflow-hidden max-sm:m-10"
         >
           <h2 id="register-heading" class="text-3xl font-bold mb-4 text-[#642828] text-center">Register</h2>
           <form method="post" role="form" aria-describedby="register-errors" class="space-y-4">
@@ -194,7 +195,7 @@
           id="login-card"
           role="region"
           aria-labelledby="login-heading"
-          class="h-140 absolute inset-0 bg-[#e7e4de] rounded-lg shadow-lg pt-15 p-6 transform transition-all duration-500 ease-in-out z-20 translate-x-0 translate-y-0 overflow-hidden"
+          class="h-140 absolute inset-0 bg-[#e7e4de] rounded-lg shadow-lg pt-15 p-6 transform transition-all duration-500 ease-in-out z-20 translate-x-0 translate-y-0 overflow-hidden max-sm:m-10"
         >
           <h2 id="login-heading" class="text-3xl font-bold mb-4 jus text-[#642828] text-center">Login</h2>
           {% if login_error %}
