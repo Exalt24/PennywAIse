@@ -20,6 +20,11 @@
   @apply text-2xl leading-8 font-bold text-[#40020F];
 }
 
+@media (max-width: 400px) {
+  .pagetitle {
+    @apply text-xl leading-6;
+  }
+}
 .create {
   @apply bg-[#1B1F1E] hover:bg-[#3f3a36] text-white border-0 px-4 py-3 rounded-full cursor-pointer mb-6;
 }
@@ -140,9 +145,12 @@ header {
 }
 
 .hero-title {
-  @apply text-6xl font-extrabold text-[#e7e4de] mb-4 leading-tight;
-}
+  @apply font-extrabold text-[#e7e4de] mb-4 leading-tight;
 
+  @apply text-4xl
+         sm:text-4xl
+         xl:text-6xl;
+}
 .hero-description {
   @apply text-lg text-[#e7e4de] mb-8 max-w-md mx-auto lg:mx-0;
 }
@@ -172,7 +180,7 @@ header {
 }
 
 .about-section {
-  @apply py-20 bg-[#e7e4de] h-screen flex items-center;
+  @apply py-20 bg-[#e7e4de] h-screen flex items-center  min-h-screen;
 }
 
 .about-article {

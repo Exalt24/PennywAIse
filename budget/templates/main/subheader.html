@@ -1,5 +1,5 @@
 {% load static %}
-<section class="flex justify-between mb-4 border-b border-gray-300 py-2 px-4">
+<section class="flex justify-between space-x-2 mb-4 border-b border-gray-300 py-2 px-4">
   <header class="header-m">
     <h2 class="pagetitle">{{ section_title }}</h2>
   </header>
@@ -16,10 +16,10 @@
             <img
               id="logoImage"
               src="{% static 'images/profile.png' %}"
-              alt="PennywAise logo"
+              alt="profile"
               class="h-8 w-auto rounded-full"
             />
-            <span id="userGreeting" class="text-black">
+            <span id="userGreeting" class="hidden sm:inline text-black">
               Hi, {{ user.first_name|default:user.username }}!
             </span>
             <img
