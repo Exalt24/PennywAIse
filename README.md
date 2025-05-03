@@ -110,7 +110,7 @@ All tests live under the `budget` app. You can run:
   ```bash
   python manage.py test budget.test_models
   python manage.py test budget.test_forms
-  python manage.py test budget.test_views
+  python manage.py test budget.test_admin
   python manage.py test budget.test_security
   python manage.py test budget.test_integration
   ```

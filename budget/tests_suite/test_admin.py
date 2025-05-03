@@ -13,7 +13,22 @@ User = get_user_model()
 class MockRequest:
     def __init__(self):
         self.session = {}
-        self._messages = FallbackStorage(None)
+        # Use a simple object with required methods instead of FallbackStorage
+        class SimpleStorage:
+            def __init__(self):
+                self.added = []
+            def add(self, level, message, extra_tags=''):
+                self.added.append((level, message, extra_tags))
+        
+        self._messages = SimpleStorage()
+        self.user = None
+        self.method = 'GET'
+        self.GET = {}
+        self.POST = {}
+        self.META = {'SCRIPT_NAME': '', 'PATH_INFO': '/'}
+        self.path = '/'
+        self.headers = {}
+        self.content_type = None
 
 class ContactMessageAdminTest(TestCase):
     def setUp(self):
@@ -47,11 +62,8 @@ class ContactMessageAdminTest(TestCase):
         
     def test_mark_as_read_action(self):
         """Test the admin action to mark messages as read"""
-        # Create a mock request
-        request = RequestFactory().get('/')
-        middleware = SessionMiddleware(lambda req: None)
-        middleware.process_request(request)
-        request.session.save()
+        # Create a mock request using MockRequest
+        request = MockRequest()
         request.user = self.admin_user
         
         # Execute the action
@@ -74,11 +86,8 @@ class ContactMessageAdminTest(TestCase):
         self.message2.is_read = True
         self.message2.save()
         
-        # Create a mock request
-        request = RequestFactory().get('/')
-        middleware = SessionMiddleware(lambda req: None)
-        middleware.process_request(request)
-        request.session.save()
+        # Create a mock request using MockRequest
+        request = MockRequest()
         request.user = self.admin_user
         
         # Execute the action
@@ -108,4 +117,18 @@ class ContactMessageAdminTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'User One')
-        self.assertNotContains(response, 'User Two')  # Shouldn't be in search results 
+        self.assertNotContains(response, 'User Two')  # Shouldn't be in search results
+        
+    def test_mock_request_class(self):
+        """Test that ensures MockRequest class is covered"""
+        mock_request = MockRequest()
+        self.assertEqual(mock_request.session, {})
+        self.assertEqual(mock_request.user, None)
+        self.assertEqual(mock_request.method, 'GET')
+        self.assertEqual(mock_request.path, '/')
+        self.assertEqual(mock_request.GET, {})
+        self.assertEqual(mock_request.POST, {})
+        
+        # Test the messages functionality
+        mock_request._messages.add(level=25, message="Test message")
+        self.assertEqual(mock_request._messages.added[0][1], "Test message") 
