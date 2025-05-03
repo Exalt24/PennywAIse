@@ -14,6 +14,21 @@ class MockRequest:
     def __init__(self):
         self.session = {}
         self._messages = FallbackStorage(None)
+        class SimpleStorage:
+            def __init__(self):
+                self.added = []
+            def add(self, level, message, extra_tags=''):
+                self.added.append((level, message, extra_tags))
+
+        self._messages = SimpleStorage()
+        self.user = None
+        self.method = 'GET'
+        self.GET = {}
+        self.POST = {}
+        self.META = {'SCRIPT_NAME': '', 'PATH_INFO': '/'}
+        self.path = '/'
+        self.headers = {}
+        self.content_type = None
 
 class ContactMessageAdminTest(TestCase):
     def setUp(self):
@@ -47,12 +62,9 @@ class ContactMessageAdminTest(TestCase):
         
     def test_mark_as_read_action(self):
         """Test the admin action to mark messages as read"""
-        # Create a mock request
-        request = RequestFactory().get('/')
-        middleware = SessionMiddleware(lambda req: None)
-        middleware.process_request(request)
-        request.session.save()
+        request = MockRequest()
         request.user = self.admin_user
+
         
         # Execute the action
         queryset = ContactMessage.objects.filter(pk__in=[self.message1.pk, self.message2.pk])
@@ -74,11 +86,9 @@ class ContactMessageAdminTest(TestCase):
         self.message2.is_read = True
         self.message2.save()
         
-        # Create a mock request
-        request = RequestFactory().get('/')
-        middleware = SessionMiddleware(lambda req: None)
-        middleware.process_request(request)
-        request.session.save()
+        request = MockRequest()
+        request.user = self.admin_user
+
         request.user = self.admin_user
         
         # Execute the action
