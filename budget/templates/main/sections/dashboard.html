@@ -464,15 +464,13 @@
             {% if total_budget is not None %}
               <p class="value">
                 ₱{{ total_budget|floatformat:2 }}
-                <span class="{% if over_budget %}text-red-600{% else %}text-green-600{% endif %}">
-                  (
+                <p class="{% if over_budget %}text-red-600{% else %}text-green-600{% endif %} text-sm">
                   {% if over_budget %}
                     Over by ₱{{ total_remaining|floatformat:2 }}
                   {% else %}
                     Remaining ₱{{ total_remaining|floatformat:2 }}
                   {% endif %}
-                  )
-                </span>
+                </p>
               </p>
             {% else %}
               <p class="value text-gray-500">Not set</p>
@@ -533,9 +531,18 @@
           <section class="space-y-1">
             <h3 class="title">Projected Month-End Balance</h3>
             <p class="value {% if projected_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
-              ₱{{ projected_balance|floatformat:2 }}
+              {% if projected_balance > 0 %}
+                +₱{{ abs_proj_balance|floatformat:2 }}
+              {% elif projected_balance < 0 %}
+                −₱{{ abs_proj_balance|floatformat:2 }}
+              {% else %}
+                ₱0.00
+              {% endif %}
             </p>
             <p class="meta">based on avg ₱{{ avg_daily_spent|floatformat:2 }}/day</p>
+            <p class="meta">
+              {{ days_remaining }} days remaining this month
+            </p>
           </section>
         </section>
       </article>
