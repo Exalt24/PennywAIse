@@ -57,12 +57,14 @@ class EntryForm(forms.ModelForm):
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
+                # Use %d instead of %-d for Windows compatibility
+                date_format = "%b %d, %Y"
                 raise forms.ValidationError(
-                    "You already have an entry in “%(cat)s” on %(date)s titled “%(title)s.”",
+                    "You already have an entry in \"%(cat)s\" on %(date)s titled \"%(title)s.\"",
                     code='duplicate_entry',
                     params={
                         'cat':      category.name,
-                        'date':     date.strftime("%b %-d, %Y"),
+                        'date':     date.strftime(date_format),
                         'title':    title.strip(),
                     }
                 )
@@ -166,7 +168,7 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("No account is registered with this email.")
         if not user.is_active:
             raise forms.ValidationError(
-                "Your account isn’t activated yet. "
+                "Your account isn't activated yet. "
                 "Please check your email for the verification link."
             )
         return email
@@ -382,7 +384,7 @@ class ForgotPasswordForm(forms.Form):
                 "Please check your email (or wait a bit before requesting again)."
             )
 
-        # Attach the user to the form so the view doesn’t have to re-query
+        # Attach the user to the form so the view doesn't have to re-query
         self.cleaned_data['user_obj'] = user
         return email
 
