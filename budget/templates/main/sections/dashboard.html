@@ -8,78 +8,238 @@
   {% endwith %}
   
     <section id="overview" class="overview" role="region" aria-label="Overview cards">
-      <article class="card" role="region" aria-label="Total Income: ₱{{ income_total|floatformat:2 }} this month">
-        <h3 class="title">Total Income</h3>
-        <p class="value">₱{{ income_total|floatformat:2 }}</p>
-        <p class="meta">This month</p>
-        <h3 class="title">Income vs Last Month</h3>
-        <p class="value">
-          {% if income_pct_change %}
-            <p class="value {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-              {{ income_pct_change|floatformat:1 }}%
-            </p>
-          {% else %}
-            <p class="value text-gray-500">N/A</p>
-          {% endif %}
-        </p>
+      <article
+        class="card p-6 space-y-6"
+        role="region"
+        aria-label="Total Income, Comparison, and Largest Income"
+      >
+        <!-- Total Income -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/T-income.png' %}"
+              alt="Income icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+          <div class="space-y-1">
+            <h3 class="title">Total Income</h3>
+            <p class="value">₱{{ income_total|floatformat:2 }}</p>
+            <p class="meta">This month</p>
+          </div>
+        </section>
 
-        <p class="meta">₱{{ income_total|floatformat:2 }} - ₱{{ last_income_total|floatformat:2 }}</p>
-        <h3 class="title">Largest Income</h3>
-        {% if largest_income %}
-          <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
-          <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
-        {% else %}
-          <p class="value text-gray-500">—</p>
-        {% endif %}
-      </article>
-      <article class="card" role="region" aria-label="Total Expenses: ₱{{ expense_total|floatformat:2 }} this month">
-        <h3 class="title">Total Expenses</h3>
-        <p class="value">₱{{ expense_total|floatformat:2 }}</p>
-        <p class="meta">This month</p>
-        <h3 class="title">Expenses vs Last Month</h3>
-        <p class="value">
-          {% if expense_pct_change %}
-            <p class="value {% if expense_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-              {{ expense_pct_change|floatformat:1 }}%
+        <!-- Income vs Last Month -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/income1.png' %}"
+              alt="Income icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+          <div class="space-y-1">
+            <h3 class="title">Income vs Last Month</h3>
+            {% if income_pct_change %}
+              <p class="value {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                {{ income_pct_change|floatformat:1 }}%
+              </p>
+            {% else %}
+              <p class="value text-gray-500">N/A</p>
+            {% endif %}
+            <p class="meta">
+              ₱{{ income_total|floatformat:2 }} − ₱{{ last_income_total|floatformat:2 }}
             </p>
-          {% else %}
-            <p class="value text-gray-500">N/A</p>
-          {% endif %}
-        </p>
-        <p class="meta">₱{{ expense_total|floatformat:2 }} - ₱{{ last_expense_total|floatformat:2 }}</p>
-        <h3 class="title">Largest Expense</h3>
-        {% if largest_expense %}
-          <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
-          <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
-        {% else %}
-          <p class="value text-gray-500">—</p>
-        {% endif %}
+          </div>
+        </section>
+
+        <!-- Largest Income -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/largeincome.png' %}"
+              alt="Income icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+          <div class="space-y-1">
+            <h3 class="title">Largest Income</h3>
+            {% if largest_income %}
+              <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
+              <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
+            {% else %}
+              <p class="value text-gray-500">—</p>
+            {% endif %}
+          </div>
+        </section>
       </article>
-      <article class="card" role="region" aria-label="Net Balance: {% if net_balance > 0 %}+₱{{ net_balance_abs|floatformat:2 }}{% elif net_balance < 0 %}−₱{{ net_balance_abs|floatformat:2 }}{% else %}₱0.00{% endif %}">
-        <h3 class="title">Net Balance</h3>
-        <p
-          class="value {% if net_balance > 0 %}text-green-600{% elif net_balance < 0 %}text-red-600{% endif %}"
-        >
-          {% if net_balance > 0 %}
-            +₱{{ net_balance_abs|floatformat:2 }}
-          {% elif net_balance < 0 %}
-            −₱{{ net_balance_abs|floatformat:2 }}
-          {% else %}
-            ₱0.00
-          {% endif %}
-        </p>
-        <p class="meta">Income − Expenses</p>
+
+      <article
+        class="card p-6 space-y-6"
+        role="region"
+        aria-label="Total Expenses, Comparison, and Largest Expense"
+      >
+        <!-- Total Expenses -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/exp.png' %}"
+              alt="Expenses icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+          <div class="space-y-1">
+            <h3 class="title">Total Expenses</h3>
+            <p class="value">₱{{ expense_total|floatformat:2 }}</p>
+            <p class="meta">This month</p>
+          </div>
+        </section>
+
+        <!-- Expenses vs Last Month -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/expense1.png' %}"
+              alt="Expenses icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+          <div class="space-y-1">
+            <h3 class="title">Expenses vs Last Month</h3>
+            {% if expense_pct_change %}
+              <p class="value {% if expense_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                {{ expense_pct_change|floatformat:1 }}%
+              </p>
+            {% else %}
+              <p class="value text-gray-500">N/A</p>
+            {% endif %}
+            <p class="meta">
+              ₱{{ expense_total|floatformat:2 }} − ₱{{ last_expense_total|floatformat:2 }}
+            </p>
+          </div>
+        </section>
+
+        <!-- Largest Expense -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/largeexpense.png' %}"
+              alt="Expenses icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+          <div class="space-y-1">
+            <h3 class="title">Largest Expense</h3>
+            {% if largest_expense %}
+              <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
+              <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
+            {% else %}
+              <p class="value text-gray-500">—</p>
+            {% endif %}
+          </div>
+        </section>
       </article>
-      <article class="card" role="region" aria-label="Transactions: {{ transaction_count }} entries this month">
-        <h3 class="title">Transactions</h3>
-        <p class="value">{{ transaction_count }}</p>
-        <p class="meta">Entries this month</p>
+
+      <article
+        class="card p-6 flex flex-col space-y-6"
+        role="region"
+        aria-label="Net Balance and Transactions Summary"
+      >
+        <!-- Net Balance -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <!-- Icon column -->
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#f074c7] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/bal.png' %}"
+              alt="Balance icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+
+          <!-- Text column -->
+          <div class="space-y-1">
+            <h3 class="title">Net Balance</h3>
+            <p
+              class="value {% if net_balance > 0 %}text-green-600{% elif net_balance < 0 %}text-red-600{% endif %}"
+            >
+              {% if net_balance > 0 %}
+                +₱{{ net_balance_abs|floatformat:2 }}
+              {% elif net_balance < 0 %}
+                −₱{{ net_balance_abs|floatformat:2 }}
+              {% else %}
+                ₱0.00
+              {% endif %}
+            </p>
+            <p class="meta">Income − Expenses</p>
+          </div>
+        </section>
+
+        <!-- Transactions -->
+        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+          <!-- Icon column -->
+          <a
+            href="#"
+            class="inline-flex items-center justify-center bg-[#f0748b] rounded-full h-10 w-10 transition-colors"
+          >
+            <img
+              src="{% static 'images/transac.png' %}"
+              alt="Transactions icon"
+              class="h-6 w-6 filter brightness-0 invert"
+            />
+          </a>
+
+          <!-- Text column -->
+          <div class="space-y-1">
+            <h3 class="title">Transactions</h3>
+            <p class="value">{{ transaction_count }}</p>
+            <p class="meta">Entries this month</p>
+          </div>
+        </section>
       </article>
+
+
     </section>
 
     <section id="insights" class="overview mt-6" role="region" aria-label="Quick Insights">
       <article class="card" role="region" aria-label="Monthly Budget">
-        <h3 class="title">Monthly Budget</h3>
+        <section class="flex items-center space-x-3"> 
+        <a
+          href="#"
+          class="
+            inline-flex items-center justify-center
+            bg-purple-400 rounded-full h-10 w-10
+             transition-colors
+          "
+        >
+          <img
+            src="{% static 'images/monthly-budget.png' %}"
+            alt="Icon"
+            class="h-6 w-6 filter brightness-0 invert"
+          />
+        </a>
+        <h3 class="title mt-2">Monthly Budget</h3>
+      </section>
         {% if total_budget is not None %}
           <p class="value">
             ₱{{ total_budget|floatformat:2 }}
@@ -93,7 +253,23 @@
         <p class="meta">Total budget</p>
       </article>
       <article class="card">
-        <h3 class="title">Top 3 Categories</h3>
+        <section class="flex items-center space-x-3">
+        <a
+          href="#"
+          class="
+            inline-flex items-center justify-center
+            bg-[#E89271] rounded-full h-10 w-10
+             transition-colors
+          "
+        >
+          <img
+            src="{% static 'images/category.png' %}"
+            alt="Icon"
+            class="h-6 w-6 filter brightness-0 invert"
+          />
+        </a>
+        <h3 class="title mt-2">Top 3 Categories</h3>
+      </section>
         <ul class="space-y-1">
           {% for cat in top_categories_summary %}
             <li class="flex justify-between">
@@ -104,12 +280,44 @@
         </ul>
       </article>
       <article class="card">
-        <h3 class="title">Average Txn</h3>
+        <section class="flex items-center space-x-3">
+        <a
+          href="#"
+          class="
+            inline-flex items-center justify-center
+            bg-[#70A1E5] rounded-full h-10 w-10
+             transition-colors
+          "
+        >
+          <img
+            src="{% static 'images/transaction.png' %}"
+            alt="Icon"
+            class="h-6 w-6 filter brightness-0 invert"
+          />
+        </a>
+        <h3 class="title mt-2">Average Txn</h3>
+      </section>
         <p class="value">₱{{ avg_transaction|floatformat:2 }}</p>
         <p class="meta">per entry</p>
       </article>
       <article class="card">
-        <h3 class="title">Projected Month-End Balance</h3>
+        <section class="flex items-center space-x-3">
+        <a
+          href="#"
+          class="
+            inline-flex items-center justify-center
+            bg-[#F0C274] rounded-full h-10 w-10
+             transition-colors
+          "
+        >
+          <img
+            src="{% static 'images/balance.png' %}"
+            alt="Icon"
+            class="h-6 w-6 filter brightness-0 invert"
+          />
+        </a>
+        <h3 class="title mt-2">Projected Month-End Balance</h3>
+      </section>
         <p class="value {% if projected_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
           ₱{{ projected_balance|floatformat:2 }}
         </p>
@@ -123,13 +331,13 @@
             <nav aria-label="Trend view toggles" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-4">
               <button
                 id="trendBarBtn"
-                class="px-3 py-1 rounded bg-indigo-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
+                class="px-3 py-1 rounded-full bg-[#CBDAC4] text-[#1A932E] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#1A932E]"
               >
                 Bar
               </button>
               <button
                 id="trendLineBtn"
-                class="px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+                class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#1A932E]"
               >
                 Line
               </button>
@@ -140,10 +348,10 @@
           <section id="budgetCard" class="progress" role="region" aria-label="Budget Utilization chart">
             <h2 id="budgetCardTitle" class="text-lg mb-2">Budget Utilization</h2>
             <nav aria-label="Budget view toggles" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-4">
-              <button id="showOverall" class="px-3 py-1 rounded bg-indigo-600 text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400">
+              <button id="showOverall" class="px-3 py-1 rounded-full bg-[#CBDAC4] text-[#1A932E] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#1A932E]">
                 Overall
               </button>
-              <button id="showByCategory" class="px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400">
+              <button id="showByCategory" class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#1A932E]">
                 By Category
               </button>
             </nav>
@@ -163,7 +371,7 @@
             <canvas id="categoryChart" class="w-full h-56 md:h-48 lg:h-64" height="200" aria-label="Category breakdown chart"></canvas>
             {% if category_summary %}
               <button
-                class="mt-4 px-3 py-1 rounded bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
+                class="mt-4 px-3 py-1 rounded-full bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#1A932E]"
                 onclick="document.getElementById('categoryTable').classList.toggle('hidden')"
                 aria-expanded="false"
                 aria-controls="categoryTable"
@@ -182,10 +390,10 @@
                   </thead>
                   <tbody>
                     {% for row in category_summary %}
-                      <tr>
-                        <td class="px-3 py-2">{{ row.name }}</td>
-                        <td class="px-3 py-2 text-green-600">₱{{ row.income|floatformat:2 }}</td>
-                        <td class="px-3 py-2 text-red-600">₱{{ row.expense|floatformat:2 }}</td>
+                      <tr class="text-sm">
+                        <td class="px-3 py-2 break-words">{{ row.name }}</td>
+                        <td class="px-3 py-2 text-green-600 break-words">₱{{ row.income|floatformat:2 }}</td>
+                        <td class="px-3 py-2 text-red-600 break-words">₱{{ row.expense|floatformat:2 }}</td>
                       </tr>
                     {% endfor %}
                   </tbody>
@@ -225,29 +433,29 @@
       document.getElementById('trendBarBtn').addEventListener('click', () => {
         trendChart.config.type = 'bar';
         trendChart.update();
-        document.getElementById('trendBarBtn').classList.replace('bg-gray-200','bg-indigo-600');
-        document.getElementById('trendBarBtn').classList.replace('text-gray-700', 'text-white');
-        document.getElementById('trendLineBtn').classList.replace('bg-indigo-600','bg-gray-200');
-        document.getElementById('trendLineBtn').classList.replace('text-white', 'text-gray-700');
+        document.getElementById('trendBarBtn').classList.replace('bg-gray-200','bg-[#CBDAC4]');
+        document.getElementById('trendBarBtn').classList.replace('text-gray-700', 'text-[#1A932E]');
+        document.getElementById('trendLineBtn').classList.replace('bg-[#CBDAC4]','bg-gray-200');
+        document.getElementById('trendLineBtn').classList.replace('text-[#1A932E]', 'text-gray-700');
       });
     
       document.getElementById('trendLineBtn').addEventListener('click', () => {
         trendChart.config.type = 'line';
         trendChart.update();
-        document.getElementById('trendLineBtn').classList.replace('bg-gray-200','bg-indigo-600');
-        document.getElementById('trendLineBtn').classList.replace('text-gray-700', 'text-white');
-        document.getElementById('trendBarBtn').classList.replace('bg-indigo-600','bg-gray-200');
-        document.getElementById('trendBarBtn').classList.replace('text-white', 'text-gray-700');
+        document.getElementById('trendLineBtn').classList.replace('bg-gray-200','bg-[#CBDAC4]');
+        document.getElementById('trendLineBtn').classList.replace('text-gray-700', 'text-[#1A932E]');
+        document.getElementById('trendBarBtn').classList.replace('bg-[#CBDAC4]','bg-gray-200');
+        document.getElementById('trendBarBtn').classList.replace('text-[#1A932E]', 'text-gray-700');
       });
       
       const toggleBtns = document.getElementById('toggleCategoryChartTable');
       toggleBtns.addEventListener('click', () => {
         if (toggleBtns.classList.contains('bg-gray-200')) {
-          toggleBtns.classList.replace('bg-gray-200', 'bg-indigo-600');
-          toggleBtns.classList.replace('text-gray-700', 'text-white');
+          toggleBtns.classList.replace('bg-gray-200', 'bg-[#CBDAC4]');
+          toggleBtns.classList.replace('text-gray-700', 'text-[#1A932E]');
           document.getElementById('categoryTable').classList.remove('hidden');
         } else {
-          toggleBtns.classList.replace('bg-indigo-600', 'bg-gray-200');
+          toggleBtns.classList.replace('bg-[#CBDAC4]', 'bg-gray-200');
           toggleBtns.classList.replace('text-white', 'text-gray-700');
           document.getElementById('categoryTable').classList.add('hidden');
         }
@@ -328,10 +536,10 @@
     const noByCat = document.getElementById('catNoData');
   
     function activateOverall() {
-      btnOverall.classList.replace('bg-gray-200', 'bg-indigo-600');
-      btnOverall.classList.replace('text-gray-700', 'text-white');
-      btnByCat.classList.replace('bg-indigo-600', 'bg-gray-200');
-      btnByCat.classList.replace('text-white', 'text-gray-700');
+      btnOverall.classList.replace('bg-gray-200', 'bg-[#CBDAC4]');
+      btnOverall.classList.replace('text-gray-700', 'text-[#1A932E]');
+      btnByCat.classList.replace('bg-[#CBDAC4]', 'bg-gray-200');
+      btnByCat.classList.replace('text-[#1A932E]', 'text-gray-700');
       chartOverall.hidden = false;
       chartByCat.hidden = true;
       noByCat.classList.add('hidden');
@@ -339,10 +547,10 @@
     }
   
     function activateByCategory() {
-      btnByCat.classList.replace('bg-gray-200', 'bg-indigo-600');
-      btnByCat.classList.replace('text-gray-700', 'text-white');
-      btnOverall.classList.replace('bg-indigo-600', 'bg-gray-200');
-      btnOverall.classList.replace('text-white', 'text-gray-700');
+      btnByCat.classList.replace('bg-gray-200', 'bg-[#CBDAC4]');
+      btnByCat.classList.replace('text-gray-700', 'text-[#1A932E]');
+      btnOverall.classList.replace('bg-[#CBDAC4]', 'bg-gray-200');
+      btnOverall.classList.replace('text-[#1A932E]', 'text-gray-700');
       noOverall.classList.add('hidden');
       noByCat.classList.toggle('hidden', !chartByCat.classList.contains('hidden'));
       chartOverall.hidden = true;
