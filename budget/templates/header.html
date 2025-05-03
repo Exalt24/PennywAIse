@@ -1,119 +1,175 @@
-{% load static %}
+  {% load static %}
 
-<section aria-label="Header" class="hero-header">
-  <header class="header-layout">
-    <!-- Logo -->
-    <a href="/" aria-label="Go to homepage">
-      <img
-        id="logoImage"
-        src="{% static 'images/logo3.png' %}"
-        alt="PennywAIse logo"
-        class="h-12 w-auto mr-2"
-      />
-    </a>
+  <section aria-label="Header" class="hero-header">
+    <header class="header-layout relative flex items-center px-4 py-2">
+      <!-- Logo -->
+      <a href="/" aria-label="Go to homepage">
+        <img
+          id="logoImage"
+          src="{% static 'images/logo3.png' %}"
+          alt="PennywAIse logo"
+          class="h-12 w-auto mr-2"
+        />
+      </a>
 
-    <!-- Nav links -->
-    <ul class="header-nav">
-      <li>
-        <a
-          href="#about"
-          class="nav-link text-white hover:text-[#8E8178] transition px-2 pb-1"
-          >About</a
+      <!-- Desktop Nav Links -->
+      <ul class="header-nav">
+        <li><a href="#about"   class="nav-link text-white hover:text-[#8E8178] transition pb-1">About</a></li>
+        <li><a href="#features" class="nav-link text-white hover:text-[#8E8178] transition pb-1">Features</a></li>
+        <li><a href="#contact"  class="nav-link text-white hover:text-[#8E8178] transition pb-1">Contact</a></li>
+      </ul>
+
+      <!-- Desktop Auth Dropdown -->
+      <div class="hidden sm:flex items-center ml-auto">
+        {% if user.is_authenticated %}
+        <details class="relative">
+          <summary class="flex items-center space-x-2 cursor-pointer">
+            <img
+              src="{% static 'images/profile.png' %}"
+              alt="Profile"
+              class="h-8 w-8 rounded-full"
+            />
+            <span id="userGreeting" class="text-black">{{ user.first_name|default:user.username }}</span>
+            <img
+              id="dropdownIcon"
+              src="{% static 'images/dropdown.png' %}"
+              alt="▾"
+              class="dropdown-icon"
+            />
+          </summary>
+          <section class="dropdown-modal absolute right-0 mt-2 bg-white shadow-lg rounded p-2">
+            <a href="{% url 'budget:dashboard' %}" class="dropdown-button block px-4 py-2">Dashboard</a>
+            <form method="post" action="{% url 'logout' %}" role="none" class="mt-1">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-button block w-full text-left px-4 py-2">Logout</button>
+            </form>
+          </section>
+        </details>
+        {% else %}
+        <a href="{% url 'budget:auth' %}" class="button-darksm ml-4">Login</a>
+        {% endif %}
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button
+        id="menuButton"
+        class="sm:hidden ml-auto focus:outline-none"
+        aria-label="Open menu"
+      >
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- Mobile Menu Panel -->
+      <div
+      id="mobileMenu"
+      class="hidden fixed inset-0 z-50 sm:hidden flex items-center justify-end pr-6"
+      role="dialog"
+      aria-modal="true"
+    >
+      <!-- Modal panel -->
+      <div id="menuPanel" class="relative bg-white top-50 w-11/12 max-w-sm rounded-lg p-6 overflow-y-auto">
+        <!-- Close button -->
+        <button
+          id="menuClose"
+          class="absolute top-3 right-3 focus:outline-none"
+          aria-label="Close menu"
         >
-      </li>
-      <li>
-        <a
-          href="#features"
-          class="nav-link text-white hover:text-[#8E8178] transition px-2 pb-1"
-          >Features</a
-        >
-      </li>
-      <li>
-        <a
-          href="#contact"
-          class="nav-link text-white hover:text-[#8E8178] transition px-2 pb-1"
-          >Contact</a
-        >
-      </li>
-    </ul>
+          <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+    
+        <!-- Auth/Profile -->
+        {% if user.is_authenticated %}
+        <div class="flex items-center space-x-3 mb-4">
+          <img src="{% static 'images/profile.png' %}" alt="Profile" class="h-10 w-10 rounded-full" />
+          <span class="text-gray-800 font-medium">{{ user.first_name|default:user.username }}</span>
+        </div>
+        <a href="{% url 'budget:dashboard' %}" class="block py-2 border-b">Dashboard</a>
+        <form method="post" action="{% url 'logout' %}" class="mt-2">
+          {% csrf_token %}
+          <button type="submit" class="w-full text-left py-2">Logout</button>
+        </form>
+        {% else %}
+        <a href="{% url 'budget:auth' %}" class="block py-2 border-b">Login</a>
+        {% endif %}
+    
+        <!-- Mobile nav links -->
+        <nav class="mt-4 space-y-2">
+          <a href="#about"    class="block py-2">About</a>
+          <a href="#features" class="block py-2">Features</a>
+          <a href="#contact"  class="block py-2">Contact</a>
+        </nav>
+      </div>
+      </div>
+    </header>
+  </section>
 
-    <!-- Auth dropdown -->
-    <section class="flex items-center">
-      {% if user.is_authenticated %}
-      <details class="relative">
-        <summary class="profile-dropdown">
-          <img
-            id="logoImage"
-            src="{% static 'images/profile.png' %}"
-            alt="PennywAise logo"
-            class="h-8 w-auto rounded-full"
-          />
-          <span id="userGreeting" class="text-black">
-            {{ user.first_name|default:user.username }}!
-          </span>
-          <img
-            id="dropdownIcon"
-            src="{% static 'images/dropdown.png' %}"
-            alt="▾"
-            class="dropdown-icon"
-          />
-        </summary>
-        <section class="dropdown-modal">
-          <a href="{% url 'budget:dashboard' %}" class="dropdown-button">Dashboard</a>
-          <form method="post" action="{% url 'logout' %}" role="none">
-            {% csrf_token %}
-            <button type="submit" class="dropdown-button">Logout</button>
-          </form>
-        </section>
-      </details>
-      {% else %}
-      <a href="{% url 'budget:auth' %}" class="button-darksm">Login</a>
-      {% endif %}
-    </section>
-  </header>
-</section>
+  <script>
+    // existing scroll‐based header logic
+    const navLinks   = Array.from(document.querySelectorAll(".nav-link"));
+    const logoImage  = document.getElementById("logoImage");
+    const dropdownIcon = document.getElementById("dropdownIcon");
+    const userGreeting = document.getElementById("userGreeting");
+    const homeLogoSrc  = "{% static 'images/logo3.png' %}";
+    const otherLogoSrc = "{% static 'images/logo9.png' %}";
 
-<script>
-  const navLinks = Array.from(document.querySelectorAll(".nav-link"));
-  const logoImage = document.getElementById("logoImage");
-  const dropdownIcon = document.getElementById("dropdownIcon");
-  const userGreeting = document.getElementById("userGreeting");
+    function updateHeader() {
+      let current = "";
+      navLinks.forEach(link => {
+        const id = link.getAttribute("href").slice(1);
+        const sec = document.getElementById(id);
+        if (sec && window.pageYOffset >= sec.offsetTop - 80) {
+          current = id;
+        }
+      });
+      const isHome = !current || current === "home";
+      logoImage.src = isHome ? homeLogoSrc : otherLogoSrc;
+      if (dropdownIcon) dropdownIcon.classList.toggle("inverted", isHome);
 
-  const homeLogoSrc = "{% static 'images/logo3.png' %}";
-  const otherLogoSrc = "{% static 'images/logo9.png' %}";
+      navLinks.forEach(link => {
+        link.classList.toggle("text-white", isHome);
+        link.classList.toggle("text-[#40020F]", !isHome);
+        const active = link.getAttribute("href") === `#${current}`;
+        link.classList.toggle("border-b-2", active);
+        link.classList.toggle("border-[#c3002d]", active);
+      });
 
-  function updateHeader() {
-    let current = "";
-    navLinks.forEach((link) => {
-      const id = link.getAttribute("href").slice(1);
-      const sec = document.getElementById(id);
-      if (sec && window.pageYOffset >= sec.offsetTop - 80) {
-        current = id;
+      if (userGreeting) {
+        userGreeting.classList.toggle("text-white", isHome);
+        userGreeting.classList.toggle("text-[#40020F]", !isHome);
       }
-    });
-    const isHome = !current || current === "home";
-
-    logoImage.src = isHome ? homeLogoSrc : otherLogoSrc;
-
-    if (dropdownIcon) {
-      dropdownIcon.classList.toggle("inverted", isHome);
     }
 
-    navLinks.forEach((link) => {
-      link.classList.toggle("text-white", isHome);
-      link.classList.toggle("text-[#40020F]", !isHome);
+    window.addEventListener("scroll", updateHeader);
+    window.addEventListener("load", updateHeader);
 
-      const active = link.getAttribute("href") === `#${current}`;
-      link.classList.toggle("border-b-2", active);
-      link.classList.toggle("border-[#c3002d]", active);
-    });
+  // mobile menu toggle
+  const menuButton = document.getElementById("menuButton");
+  const menuClose  = document.getElementById("menuClose");
+  const mobileMenu = document.getElementById("mobileMenu");
+  const menuPanel  = document.getElementById("menuPanel");
 
-    if (userGreeting) {
-      userGreeting.classList.toggle("text-white", isHome);
-      userGreeting.classList.toggle("text-[#40020F]", !isHome);
-    }
+  function closeMenu() {
+    mobileMenu.classList.add("hidden");
   }
 
-  window.addEventListener("scroll", updateHeader);
-  window.addEventListener("load", updateHeader);
-</script>
+  menuButton.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+  });
+  menuClose.addEventListener("click", closeMenu);
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= 600) {
+      closeMenu();
+    }
+  });
+
+  mobileMenu.querySelectorAll("a").forEach(a =>
+    a.addEventListener("click", closeMenu)
+  );
+  </script>
