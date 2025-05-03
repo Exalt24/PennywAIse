@@ -54,6 +54,17 @@
           aiResponse.classList.remove('hidden');
         }
       }
+
+      const tables = document.querySelectorAll('section.page-content table');
+      tables.forEach(table => {
+        const tbody = table.querySelector('tbody');
+        tbody.dataset.original = tbody.innerHTML;
+
+        table.querySelectorAll('th.sortable').forEach(th => {
+          th.dataset.initialClass = th.className;
+          th.dataset.initialAria  = th.getAttribute('aria-sort');
+        });
+      });
       
       function resetDropdowns(panel) {
         panel
@@ -77,15 +88,20 @@
         viewNotesModal.classList.add('hidden');
       }
 
-      function bindNotesRows() {
-        document.querySelectorAll('tr[data-notes]').forEach(tr => {
-          tr.onclick = () => {
-            const notes = tr.dataset.notes;
-            showNotesModal(notes);
-          };
-        });
-      }
+      document.body.addEventListener('click', e => {
+        if (e.target.closest('.edit-entry-btn')) {
+          return;
+        }
+        if (e.target.closest('form button[name="delete-entry"]')) {
+          return;
+        }
+        const tr = e.target.closest('tr[data-notes]');
+        if (!tr) return;
 
+        showNotesModal(tr.dataset.notes);
+      });
+
+      
       function clearPanel(panel) {
         panel.querySelectorAll('form').forEach(f => f.reset());
         panel.querySelectorAll('[data-clear-on-hide]').forEach(el => el.innerHTML = '');
@@ -104,6 +120,21 @@
 
           page.classList.toggle('hidden', !willBeVisible);
           if (willBeVisible) {
+            if (tabId !== 'income' && tabId !== 'expenses') {
+            const table = page.querySelector('table');
+            const tbody = table && table.querySelector('tbody');
+            
+            if (tbody.dataset.original) tbody.innerHTML = tbody.dataset.original;
+
+            table.querySelectorAll('th.sortable').forEach(th => {
+              // clear everything…
+              th.classList.remove('sort-asc','sort-desc');
+              th.className = th.dataset.initialClass;
+              th.setAttribute('aria-sort', th.dataset.initialAria);
+            });
+          }
+
+            initSorting();
             resetDropdowns(page);
           }
         });
@@ -160,12 +191,6 @@
         });
       }
 
-      document.querySelectorAll('tr[data-notes]').forEach(tr => {
-        tr.addEventListener('click', () => {
-          showNotesModal(tr.dataset.notes);
-        });
-      });
-
       closeViewNotes.addEventListener('click', hideNotesModal);
       viewNotesModal.addEventListener('click', e => {
         if (e.target === viewNotesModal) hideNotesModal();
@@ -195,7 +220,6 @@
           document.querySelectorAll('.non-field-error').forEach(el => el.remove());
           const newHash = target !== 'dashboard' ? `#${target}` : '';
           history.replaceState(null, '', window.location.pathname + newHash);
-          bindNotesRows();
           hideIfEmpty();
           initSorting();
         });
@@ -221,12 +245,6 @@
       function hideModal() {
         addEntryModal.classList.add('hidden');
         addEntryModal.classList.remove('flex');
-      }
-
-      function cleanUrl() {
-        history.replaceState(null, '', window.location.pathname);
-        const hash = window.location.hash.slice(1);
-        if (hash) history.replaceState(null, '', window.location.pathname + '#' + hash);
       }
 
       function resetModalToAdd() {
@@ -257,12 +275,46 @@
       addEntryModal.addEventListener('click', e => {
         if (e.target === addEntryModal) {
           hideModal();
-          cleanUrl();
           resetModalToAdd();
         }
       });
 
-      {% if is_edit or entry_form.errors %}
+      document.addEventListener('click', async (e) => {
+        // see if an edit button (or an inner element) was clicked
+        const btn = e.target.closest('.edit-entry-btn');
+        if (!btn) return;
+
+        e.stopPropagation();
+        const id  = btn.dataset.id;
+        const tab = window.location.hash || '';  // keep #income/#expenses
+
+        // 1) fetch entry data
+        const res  = await fetch(`/dashboard/entry-data/${id}/`);
+        if (!res.ok) return alert('Failed to load entry.');
+
+        const data = await res.json();
+
+        // 2) populate the modal form
+        modalTitle.textContent     = 'Edit Entry';
+        modalSubmitBtn.textContent = 'Update';
+        modalTypeDiv.classList.add('hidden');
+
+        document.getElementById('modalEntryId').value  = data.id;
+        form.querySelector('input[name="date"]').value     = data.date;
+        form.querySelector('input[name="title"]').value    = data.title;
+        form.querySelector('select[name="category"]').value = data.category;
+        form.querySelector('select[name="type"]').value     = data.type;
+        form.querySelector('input[name="amount"]').value   = data.amount;
+        form.querySelector('textarea[name="notes"]').value = data.notes;
+
+        form.querySelectorAll('.text-red-600').forEach(el => el.remove());
+
+        // 3) show the modal
+        showModal();
+      });
+
+
+      {% if entry_form.errors %}
         showModal();
       {% endif %}
 
@@ -343,7 +395,7 @@
       type: document.getElementById('repType'),
       cat: document.getElementById('repCat'),
     };
-    const tableBody = document.querySelector('#reportTable tbody');
+    const reportTableBody = document.querySelector('#reportTable tbody');
     const filterApplied = document.getElementById('filterApplied');
     
     function applyReportFilter() {
@@ -355,7 +407,7 @@
       const isFilterActive = !!(fromDate || toDate || typeVal || catVal);
       filterApplied.value = isFilterActive ? 'true' : 'false';
     
-      Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+      Array.from(reportTableBody.querySelectorAll('tr')).forEach(row => {
         const cells = row.children;
         if (!cells.length) return;
         let show = true;

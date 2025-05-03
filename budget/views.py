@@ -25,8 +25,7 @@ from google.genai import types
 from google.genai.errors import ClientError
 import random
 from django.utils import timezone
-import time
-from datetime import timedelta
+from django.db.models.functions import Lower
 
 gemini_client = genai.Client(
     api_key=settings.GEMINI_API_KEY,
@@ -86,10 +85,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if edit_id:
             entry = get_object_or_404(Entry, pk=edit_id, user=user)
             ctx['entry_form'] = forms.EntryForm(instance=entry, user=user)
-            ctx['is_edit'] = True
             ctx['edit_id'] = entry.pk
-        else:
-            ctx['is_edit'] = False
 
         today = timezone.localdate()
         month_start = today.replace(day=1)
@@ -239,7 +235,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             entry_count=Count('entry'),
             total_inc=Sum('entry__amount', filter=Q(entry__type=Entry.INCOME)),
             total_exp=Sum('entry__amount', filter=Q(entry__type=Entry.EXPENSE)),
-        ).order_by('name')
+        ).order_by(Lower('name'))
         stats = []
         for c in cats:
             inc = c.total_inc or 0
@@ -252,7 +248,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx['category_stats'] = cat_page.object_list
         ctx['page_obj_category'] = cat_page
 
-        # Budget rows
+        summary = sorted(summary, key=lambda r: r['name'].lower())
         budg_page = Paginator(summary, 10).get_page(self.request.GET.get('budget_page'))
         ctx['budget_rows'] = budg_page.object_list
         ctx['page_obj_budget'] = budg_page
@@ -363,7 +359,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
             ctx = self.get_context_data(**kwargs)
             ctx['entry_form'] = form
-            ctx['is_edit']    = bool(eid)
             ctx['edit_id']    = eid
             return self.render_to_response(ctx)
 
@@ -753,3 +748,16 @@ Always be polite, accurate, and to the point.
 
         full_answer = "".join(answer_fragments).strip()
         return JsonResponse({'answer': full_answer})
+    
+class EntryDataView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        entry = get_object_or_404(Entry, pk=pk, user=request.user)
+        return JsonResponse({
+            'id':       entry.pk,
+            'date':     entry.date.isoformat(),
+            'title':    entry.title,
+            'category': entry.category_id or '',
+            'type':     entry.type,
+            'amount':   str(entry.amount),
+            'notes':    entry.notes or '',
+        })
