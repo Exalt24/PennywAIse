@@ -28,8 +28,8 @@
       <td class="px-3 py-2 whitespace-nowrap flex items-center">
         <button
           type="button"
-          onclick="event.stopPropagation(); window.location='?edit={{ entry.pk }}#{{ section_id }}';"
-          class="inline-flex items-center p-2 text-gray-800 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+          class="edit-entry-btn inline-flex items-center p-2 text-gray-800 rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-400"
+          data-id="{{ entry.pk }}"
           aria-label="Edit entry {{ entry.title }}"
         >
         <img width="15" height="15" src="https://img.icons8.com/ios/50/pencil--v1.png" alt="pencil--v1"/>

@@ -12,4 +12,5 @@ urlpatterns = [
     path('reports/filter/', views.ReportsAjaxView.as_view(), name='reports-filter'),
     path('verify-email/<uuid:token>/', views.VerifyEmailView.as_view(), name='verify_email'),
     path('ai-query/', views.AIQueryView.as_view(), name='ai-query'),
+    path('dashboard/entry-data/<int:pk>/', views.EntryDataView.as_view(), name='entry-data'),
 ]

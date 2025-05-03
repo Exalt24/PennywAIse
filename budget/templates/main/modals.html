@@ -22,7 +22,7 @@
     </button>
 
     <h3 id="edit-category-title" class="text-lg font-semibold mb-4">Edit Category</h3>
-    <form method="post" action="{% url 'budget:dashboard' %}">
+    <form method="post">
       {% csrf_token %}
       <input
         type="hidden"
@@ -85,7 +85,6 @@
     </h2>
 
     <form method="post"
-          action="{% url 'budget:dashboard' %}"
           id="entryModalForm"
           class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full"
     >
