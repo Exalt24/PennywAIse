@@ -6,7 +6,7 @@
   {% with section_title="Dashboard"%}
     {% include "main/subheader.html" %}
   {% endwith %}
-  
+
     <section id="overview" class="overview" role="region" aria-label="Overview cards">
       <article
         class="card p-6 space-y-6"
@@ -14,72 +14,150 @@
         aria-label="Total Income, Comparison, and Largest Income"
       >
         <!-- Total Income -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/T-income.png' %}"
-              alt="Income icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Total Income</h3>
-            <p class="value">₱{{ income_total|floatformat:2 }}</p>
-            <p class="meta">This month</p>
-          </div>
+        <section id="totalIncomeContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/T-income.png' %}"
+                alt="Income icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Total Income</h3>
+              <!-- Chevron toggle -->
+                <button
+                  id="toggleIncomeBtn"
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="totalIncomeDetails"
+                >
+                  <svg
+                    id="toggleIncomeChevron"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="totalIncomeDetails" class="space-y-1">
+                <p class="value">₱{{ income_total|floatformat:2 }}</p>
+                <p class="meta">This month</p>
+              </section>
+            </section>
+          </section>
         </section>
 
         <!-- Income vs Last Month -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/income1.png' %}"
-              alt="Income icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Income vs Last Month</h3>
-            {% if income_pct_change %}
-              <p class="value {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-                {{ income_pct_change|floatformat:1 }}%
-              </p>
-            {% else %}
-              <p class="value text-gray-500">N/A</p>
-            {% endif %}
-            <p class="meta">
-              ₱{{ income_total|floatformat:2 }} − ₱{{ last_income_total|floatformat:2 }}
-            </p>
-          </div>
+        <section id="incomeVsLastContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/income1.png' %}"
+                alt="Income icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Income vs Last Month</h3>
+                <!-- Chevron toggle -->
+                <button
+                  id="toggleVsLastBtn"
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="incomeVsLastDetails"
+                >
+                  <svg
+                    id="toggleVsLastChevron"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+                <section id="incomeVsLastDetails" class="space-y-1">
+                  {% if income_pct_change %}
+                <p class="value {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                  {{ income_pct_change|floatformat:1 }}%
+                </p>
+                {% else %}
+                <p class="value text-gray-500">N/A</p>
+                {% endif %}
+                <p class="meta">
+                  ₱{{ income_total|floatformat:2 }} − ₱{{ last_income_total|floatformat:2 }}
+                </p>
+                </section>
+            </section>
+          </section>
         </section>
-
         <!-- Largest Income -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/largeincome.png' %}"
-              alt="Income icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Largest Income</h3>
-            {% if largest_income %}
-              <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
-              <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
-            {% else %}
-              <p class="value text-gray-500">—</p>
-            {% endif %}
-          </div>
+        <section id="largestIncomeContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <!-- Icon column -->
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#74cff0] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/largeincome.png' %}"
+                alt="Largest Income icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+
+            <!-- Text column -->
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Largest Income</h3>
+                <!-- Chevron toggle -->
+                <button
+                  id="toggleLargestIncomeBtn"
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="largestIncomeDetails"
+                >
+                  <svg
+                    id="toggleLargestIncomeChevron"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+                <!-- Details to show/hide -->
+                <section id="largestIncomeDetails" class="space-y-1">
+                  {% if largest_income %}
+                    <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
+                    <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
+                  {% else %}
+                    <p class="value text-gray-500">—</p>
+                  {% endif %}
+          </section>
+            </section>
+          </section>
         </section>
       </article>
 
@@ -89,136 +167,273 @@
         aria-label="Total Expenses, Comparison, and Largest Expense"
       >
         <!-- Total Expenses -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/exp.png' %}"
-              alt="Expenses icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Total Expenses</h3>
-            <p class="value">₱{{ expense_total|floatformat:2 }}</p>
-            <p class="meta">This month</p>
-          </div>
+        <section id="totalExpensesContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/exp.png' %}"
+                alt="Expenses icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Total Expenses</h3>
+                <button
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="totalExpensesDetails"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="totalExpensesDetails" class="space-y-1">
+                <p class="value">₱{{ expense_total|floatformat:2 }}</p>
+                <p class="meta">This month</p>
+              </section>
+            </section>
+          </section>
         </section>
 
         <!-- Expenses vs Last Month -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/expense1.png' %}"
-              alt="Expenses icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Expenses vs Last Month</h3>
-            {% if expense_pct_change %}
-              <p class="value {% if expense_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
-                {{ expense_pct_change|floatformat:1 }}%
-              </p>
-            {% else %}
-              <p class="value text-gray-500">N/A</p>
-            {% endif %}
-            <p class="meta">
-              ₱{{ expense_total|floatformat:2 }} − ₱{{ last_expense_total|floatformat:2 }}
-            </p>
-          </div>
+        <section id="expensesVsLastContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/expense1.png' %}"
+                alt="Expenses icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Expenses vs Last Month</h3>
+                <button
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="expensesVsLastDetails"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="expensesVsLastDetails" class="space-y-1">
+                {% if expense_pct_change %}
+                  <p class="value {% if expense_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {{ expense_pct_change|floatformat:1 }}%
+                  </p>
+                {% else %}
+                  <p class="value text-gray-500">N/A</p>
+                {% endif %}
+                <p class="meta">
+                  ₱{{ expense_total|floatformat:2 }} − ₱{{ last_expense_total|floatformat:2 }}
+                </p>
+              </section>
+            </section>
+          </section>
         </section>
 
         <!-- Largest Expense -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/largeexpense.png' %}"
-              alt="Expenses icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Largest Expense</h3>
-            {% if largest_expense %}
-              <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
-              <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
-            {% else %}
-              <p class="value text-gray-500">—</p>
-            {% endif %}
-          </div>
+        <section id="largestExpenseContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#84f074] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/largeexpense.png' %}"
+                alt="Expenses icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Largest Expense</h3>
+                <button
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="largestExpenseDetails"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="largestExpenseDetails" class="space-y-1">
+                {% if largest_expense %}
+                  <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
+                  <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
+                {% else %}
+                  <p class="value text-gray-500">—</p>
+                {% endif %}
+              </section>
+            </section>
+          </section>
         </section>
       </article>
 
       <article
-        class="card p-6 flex flex-col space-y-6"
+        class="card p-6 space-y-6"
         role="region"
-        aria-label="Net Balance and Transactions Summary"
+        aria-label="Summary: Net Balance, Transactions & Average Transaction"
       >
         <!-- Net Balance -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <!-- Icon column -->
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#f074c7] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/bal.png' %}"
-              alt="Balance icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-
-          <!-- Text column -->
-          <div class="space-y-1">
-            <h3 class="title">Net Balance</h3>
-            <p
-              class="value {% if net_balance > 0 %}text-green-600{% elif net_balance < 0 %}text-red-600{% endif %}"
+        <section id="netBalanceContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#f0748b] rounded-full h-10 w-10 transition-colors"
             >
-              {% if net_balance > 0 %}
-                +₱{{ net_balance_abs|floatformat:2 }}
-              {% elif net_balance < 0 %}
-                −₱{{ net_balance_abs|floatformat:2 }}
-              {% else %}
-                ₱0.00
-              {% endif %}
-            </p>
-            <p class="meta">Income − Expenses</p>
-          </div>
+              <img
+                src="{% static 'images/bal.png' %}"
+                alt="Balance icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Net Balance</h3>
+                <button
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="netBalanceDetails"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="netBalanceDetails" class="space-y-1">
+                <p class="value {% if net_balance > 0 %}text-green-600{% elif net_balance < 0 %}text-red-600{% endif %}">
+                  {% if net_balance > 0 %}+₱{{ net_balance_abs|floatformat:2 }}
+                  {% elif net_balance < 0 %}−₱{{ net_balance_abs|floatformat:2 }}
+                  {% else %}₱0.00{% endif %}
+                </p>
+                <p class="meta">Income − Expenses</p>
+              </section>
+            </section>
+          </section>
         </section>
 
         <!-- Transactions -->
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <!-- Icon column -->
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#f0748b] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/transac.png' %}"
-              alt="Transactions icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
+        <section id="transactionsContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#f0748b] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/transac.png' %}"
+                alt="Transactions icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Transactions</h3>
+                <button
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="transactionsDetails"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="transactionsDetails" class="space-y-1">
+                <p class="value">{{ transaction_count }}</p>
+                <p class="meta">Entries this month</p>
+              </section>
+            </section>
+          </section>
+        </section>
 
-          <!-- Text column -->
-          <div class="space-y-1">
-            <h3 class="title">Transactions</h3>
-            <p class="value">{{ transaction_count }}</p>
-            <p class="meta">Entries this month</p>
-          </div>
+        <!-- Average Transaction -->
+        <section id="averageTxnContainer" class="dashboard-dropdown space-y-2">
+          <section class="grid grid-cols-[auto_1fr] items-start gap-4">
+            <a
+              href="#"
+              class="inline-flex items-center justify-center bg-[#f0748b] rounded-full h-10 w-10 transition-colors"
+            >
+              <img
+                src="{% static 'images/ave.png' %}"
+                alt="Transaction icon"
+                class="h-6 w-6 filter brightness-0 invert"
+              />
+            </a>
+            <section class="space-y-1">
+              <section class="flex items-center justify-between">
+                <h3 class="title">Average Txn</h3>
+                <button
+                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  aria-expanded="true"
+                  aria-controls="averageTxnDetails"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 transform transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </section>
+              <section id="averageTxnDetails" class="space-y-1">
+                <p class="value">₱{{ avg_transaction|floatformat:2 }}</p>
+                <p class="meta">per entry</p>
+              </section>
+            </section>
+          </section>
         </section>
       </article>
-
-
     </section>
 
     <section
@@ -244,7 +459,7 @@
               class="h-6 w-6 filter brightness-0 invert"
             />
           </a>
-          <div class="space-y-1">
+          <section class="space-y-1">
             <h3 class="title">Monthly Budget</h3>
             {% if total_budget is not None %}
               <p class="value">
@@ -263,7 +478,7 @@
               <p class="value text-gray-500">Not set</p>
             {% endif %}
             <p class="meta">Total budget</p>
-          </div>
+          </section>
         </section>
       </article>
 
@@ -284,7 +499,7 @@
               class="h-6 w-6 filter brightness-0 invert"
             />
           </a>
-          <div class="space-y-1">
+          <section class="space-y-1">
             <h3 class="title">Top 3 Categories</h3>
             <ul class="space-y-1">
               {% for cat in top_categories_summary %}
@@ -294,32 +509,7 @@
                 </li>
               {% endfor %}
             </ul>
-          </div>
-        </section>
-      </article>
-
-      <!-- Average Transaction -->
-      <article
-        class="card p-6 space-y-4"
-        role="region"
-        aria-label="Average Transaction"
-      >
-        <section class="grid grid-cols-[auto_1fr] items-start gap-4">
-          <a
-            href="#"
-            class="inline-flex items-center justify-center bg-[#70A1E5] rounded-full h-10 w-10 transition-colors"
-          >
-            <img
-              src="{% static 'images/transaction.png' %}"
-              alt="Transaction icon"
-              class="h-6 w-6 filter brightness-0 invert"
-            />
-          </a>
-          <div class="space-y-1">
-            <h3 class="title">Average Txn</h3>
-            <p class="value">₱{{ avg_transaction|floatformat:2 }}</p>
-            <p class="meta">per entry</p>
-          </div>
+          </section>
         </section>
       </article>
 
@@ -340,18 +530,18 @@
               class="h-6 w-6 filter brightness-0 invert"
             />
           </a>
-          <div class="space-y-1">
+          <section class="space-y-1">
             <h3 class="title">Projected Month-End Balance</h3>
             <p class="value {% if projected_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
               ₱{{ projected_balance|floatformat:2 }}
             </p>
             <p class="meta">based on avg ₱{{ avg_daily_spent|floatformat:2 }}/day</p>
-          </div>
+          </section>
         </section>
       </article>
     </section>
 
-    
+
     <section id="charts" class="content" role="region" aria-label="Charts">
         <section class="progress" role="region" aria-label="Monthly Trend chart">
             <h2 class="text-lg mb-2">Monthly Trend</h2>
@@ -369,9 +559,9 @@
                 Line
               </button>
 
-            </nav>            
+            </nav>
           <canvas id="trendChart" class="w-full h-56 md:h-48 lg:h-64"></canvas>
-        </section>        
+        </section>
           <section id="budgetCard" class="progress" role="region" aria-label="Budget Utilization chart">
             <h2 id="budgetCardTitle" class="text-lg mb-2">Budget Utilization</h2>
             <nav aria-label="Budget view toggles" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-4">
@@ -386,13 +576,13 @@
               No budget data to display.
             </section>
             <canvas id="budgetChart" class="hidden w-full h-56 md:h-48 lg:h-64" aria-label="Overall budget utilization chart"></canvas>
-      
+
             <section id="catNoData" class="p-4 text-center text-gray-500 hidden" role="status">
               No category data to display.
             </section>
             <canvas id="catBudgetDonut" class="hidden h-56 md:h-48 lg:h-64" aria-label="By-category budget utilization chart"></canvas>
           </section>
-    
+
           <section class="progress" role="region" aria-label="Category Breakdown">
             <h2 class="text-lg mb-2">Category Breakdown</h2>
             <canvas id="categoryChart" class="w-full h-56 md:h-48 lg:h-64" height="200" aria-label="Category breakdown chart"></canvas>
@@ -441,8 +631,8 @@
       document.addEventListener('DOMContentLoaded', function() {
       const ctxTrend = document.getElementById('trendChart').getContext('2d');
       const trendChart = new Chart(ctxTrend, {
-        type: 'bar',                
-        data: { 
+        type: 'bar',
+        data: {
           labels: {{ chart_trend_labels|safe }},
           datasets: [{
             label: 'Income',
@@ -456,7 +646,7 @@
         },
         options: { responsive: true, scales: { y: { beginAtZero: true } } }
       });
-      
+
       document.getElementById('trendBarBtn').addEventListener('click', () => {
         trendChart.config.type = 'bar';
         trendChart.update();
@@ -465,7 +655,7 @@
         document.getElementById('trendLineBtn').classList.replace('bg-[#CBDAC4]','bg-gray-200');
         document.getElementById('trendLineBtn').classList.replace('text-[#1A932E]', 'text-gray-700');
       });
-    
+
       document.getElementById('trendLineBtn').addEventListener('click', () => {
         trendChart.config.type = 'line';
         trendChart.update();
@@ -474,7 +664,7 @@
         document.getElementById('trendBarBtn').classList.replace('bg-[#CBDAC4]','bg-gray-200');
         document.getElementById('trendBarBtn').classList.replace('text-[#1A932E]', 'text-gray-700');
       });
-      
+
       const toggleBtns = document.getElementById('toggleCategoryChartTable');
       toggleBtns.addEventListener('click', () => {
         if (toggleBtns.classList.contains('bg-gray-200')) {
@@ -487,16 +677,16 @@
           document.getElementById('categoryTable').classList.add('hidden');
         }
       });
-      
+
       (() => {
         const data = {{ chart_budget_data|default:"[]"|safe }};
         const canvas = document.getElementById('budgetChart');
         const noData = document.getElementById('overallNoData');
         const hasData = Array.isArray(data) && data.length > 0 && !data.every(v => v === 0);
-    
+
         canvas.classList.toggle('hidden', !hasData);
         noData.classList.toggle('hidden', hasData);
-    
+
         if (hasData) {
           new Chart(
             document.getElementById('budgetChart').getContext('2d'),
@@ -512,10 +702,10 @@
               options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
             }
           );
-          
+
         }
       })();
-      
+
       (() => {
         const labels = {{ chart_cat_labels|default:"[]"|safe }};
         const budg = {{ chart_cat_budget|default:"[]"|safe }};
@@ -523,10 +713,10 @@
         const canvas = document.getElementById('catBudgetDonut');
         const noData = document.getElementById('catNoData');
         const hasData = labels.length > 0 && !(budg.every(v => v === 0) && spent.every(v => v === 0));
-    
+
         canvas.classList.toggle('hidden', !hasData);
         noData.classList.toggle('hidden', hasData);
-    
+
         if (hasData) {
           new Chart(canvas.getContext('2d'), {
             type: 'doughnut',
@@ -535,7 +725,7 @@
           });
         }
       })();
-      
+
       {% if chart_cat_labels and chart_cat_expense and chart_cat_income %}
         new Chart(
           document.getElementById('categoryChart').getContext('2d'),
@@ -544,15 +734,15 @@
             data: {
               labels: {{ chart_cat_labels|safe }},
               datasets: [{
-                data: {{ chart_cat_expense|safe }},     // show expense distribution
-                backgroundColor: {{ chart_cat_colors|safe }}, 
+                data: {{ chart_cat_expense|safe }},
+                backgroundColor: {{ chart_cat_colors|safe }},
               }]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
           }
         );
       {% endif %}
-      
+
     });
 
     const btnOverall = document.getElementById('showOverall');
@@ -561,7 +751,7 @@
     const chartByCat = document.getElementById('catBudgetDonut');
     const noOverall = document.getElementById('overallNoData');
     const noByCat = document.getElementById('catNoData');
-  
+
     function activateOverall() {
       btnOverall.classList.replace('bg-gray-200', 'bg-[#CBDAC4]');
       btnOverall.classList.replace('text-gray-700', 'text-[#1A932E]');
@@ -572,7 +762,7 @@
       noByCat.classList.add('hidden');
       noOverall.classList.toggle('hidden', !chartOverall.classList.contains('hidden'));
     }
-  
+
     function activateByCategory() {
       btnByCat.classList.replace('bg-gray-200', 'bg-[#CBDAC4]');
       btnByCat.classList.replace('text-gray-700', 'text-[#1A932E]');
@@ -583,10 +773,28 @@
       chartOverall.hidden = true;
       chartByCat.hidden = false;
     }
-  
+
     btnOverall.addEventListener('click', activateOverall);
     btnByCat.addEventListener('click', activateByCategory);
-  
-    activateOverall();    
+
+    activateOverall();
+  </script>
+  <script>
+    document.querySelectorAll('button[aria-controls]').forEach(btn => {
+      btn.addEventListener('click', () => {
+
+        const targetId = btn.getAttribute('aria-controls');
+        const details  = document.getElementById(targetId);
+
+
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!isExpanded));
+
+        details.classList.toggle('hidden');
+
+        const chevron = btn.querySelector('svg');
+        if (chevron) chevron.classList.toggle('-rotate-180');
+      });
+    });
   </script>
 {% endblock %}
