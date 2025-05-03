@@ -149,6 +149,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'avg_daily_spent': avg_daily_spent,
             'projected_balance': projected_balance,
             'abs_proj_balance': abs_proj_balance,
+            'days_remaining': days_in_month - days_passed,
         })
 
         # Per-category aggregates
