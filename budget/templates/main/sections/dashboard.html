@@ -29,25 +29,6 @@
             <section class="space-y-1">
               <section class="flex items-center justify-between">
                 <h3 class="title">Total Income</h3>
-              <!-- Chevron toggle -->
-                <button
-                  id="toggleIncomeBtn"
-                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-expanded="true"
-                  aria-controls="totalIncomeDetails"
-                >
-                  <svg
-                    id="toggleIncomeChevron"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 transform transition-transform duration-200"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
               </section>
               <section id="totalIncomeDetails" class="space-y-1">
                 <p class="value">₱{{ income_total|floatformat:2 }}</p>
@@ -77,7 +58,7 @@
                 <button
                   id="toggleVsLastBtn"
                   class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-expanded="true"
+                  aria-expanded="false"
                   aria-controls="incomeVsLastDetails"
                 >
                   <svg
@@ -93,7 +74,7 @@
                   </svg>
                 </button>
               </section>
-                <section id="incomeVsLastDetails" class="space-y-1">
+                <section id="incomeVsLastDetails" class="space-y-1 hidden">
                   {% if income_pct_change %}
                 <p class="value {% if income_pct_change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
                   {{ income_pct_change|floatformat:1 }}%
@@ -131,7 +112,7 @@
                 <button
                   id="toggleLargestIncomeBtn"
                   class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-expanded="true"
+                  aria-expanded="false"
                   aria-controls="largestIncomeDetails"
                 >
                   <svg
@@ -148,7 +129,7 @@
                 </button>
               </section>
                 <!-- Details to show/hide -->
-                <section id="largestIncomeDetails" class="space-y-1">
+                <section id="largestIncomeDetails" class="space-y-1 hidden">
                   {% if largest_income %}
                     <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
                     <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
@@ -182,22 +163,6 @@
             <section class="space-y-1">
               <section class="flex items-center justify-between">
                 <h3 class="title">Total Expenses</h3>
-                <button
-                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-expanded="true"
-                  aria-controls="totalExpensesDetails"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 transform transition-transform duration-200"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
               </section>
               <section id="totalExpensesDetails" class="space-y-1">
                 <p class="value">₱{{ expense_total|floatformat:2 }}</p>
@@ -323,22 +288,6 @@
             <section class="space-y-1">
               <section class="flex items-center justify-between">
                 <h3 class="title">Net Balance</h3>
-                <button
-                  class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  aria-expanded="true"
-                  aria-controls="netBalanceDetails"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 transform transition-transform duration-200"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
               </section>
               <section id="netBalanceDetails" class="space-y-1">
                 <p class="value {% if net_balance > 0 %}text-green-600{% elif net_balance < 0 %}text-red-600{% endif %}">
@@ -408,7 +357,7 @@
             </a>
             <section class="space-y-1">
               <section class="flex items-center justify-between">
-                <h3 class="title">Average Txn</h3>
+                <h3 class="title">Average Transaction Amount</h3>
                 <button
                   class="inline-flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
                   aria-expanded="true"
@@ -539,7 +488,7 @@
                 ₱0.00
               {% endif %}
             </p>
-            <p class="meta">based on avg ₱{{ avg_daily_spent|floatformat:2 }}/day</p>
+            <p class="text-sm">based on average: <span class="font-semibold"> ₱{{ avg_daily_spent|floatformat:2 }}/day</span></p>
             <p class="meta">
               {{ days_remaining }} days remaining this month
             </p>
@@ -785,8 +734,7 @@
     btnByCat.addEventListener('click', activateByCategory);
 
     activateOverall();
-  </script>
-  <script>
+
     document.querySelectorAll('button[aria-controls]').forEach(btn => {
       btn.addEventListener('click', () => {
 

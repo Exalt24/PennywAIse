@@ -54,6 +54,20 @@
           aiResponse.classList.remove('hidden');
         }
       }
+      
+      function resetDropdowns(panel) {
+        panel
+          .querySelectorAll('button[aria-controls]')
+          .forEach(btn => {
+            btn.setAttribute('aria-expanded', 'false');
+      
+            const details = document.getElementById(btn.getAttribute('aria-controls'));
+            if (details) details.classList.add('hidden');
+      
+            const chevron = btn.querySelector('svg');
+            if (chevron) chevron.classList.remove('-rotate-180');
+          });
+      }
 
       function showNotesModal(notes) {
         notesContent.textContent = notes || '(No notes)';
@@ -89,6 +103,9 @@
           }
 
           page.classList.toggle('hidden', !willBeVisible);
+          if (willBeVisible) {
+            resetDropdowns(page);
+          }
         });
 
         links.forEach(link => {
