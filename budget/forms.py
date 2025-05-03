@@ -72,6 +72,10 @@ class EntryForm(forms.ModelForm):
         title = self.cleaned_data.get('title', '').strip()
         if not title:
             raise forms.ValidationError("Title cannot be empty.")
+        if len(title) > 50:
+            raise forms.ValidationError("Title cannot exceed 50 characters.")
+        if not title[0].isalpha():
+            raise forms.ValidationError("Title must start with a letter.")
         return title
 
     def clean_amount(self):
@@ -99,6 +103,12 @@ class EntryForm(forms.ModelForm):
             raise forms.ValidationError("Please pick a category.")
         return cat
     
+    def clean_notes(self):
+        notes = self.cleaned_data.get('notes', '').strip()
+        if notes and len(notes) > 80:
+            raise forms.ValidationError("Notes cannot exceed 80 characters.")
+        return notes
+
     class Meta:
         model = Entry
         fields = ['title', 'amount', 'date', 'type', 'category', 'notes']
@@ -363,13 +373,11 @@ class ForgotPasswordForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
 
-        # 1) Does this address exist?
         try:
             user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
             raise forms.ValidationError("No account is registered with this email.")
 
-        # 2) Has a token already been sent in the last 24 h?
         cutoff = timezone.now() - timezone.timedelta(hours=24)
         existing = PasswordResetToken.objects.filter(
             user=user,
@@ -382,7 +390,6 @@ class ForgotPasswordForm(forms.Form):
                 "Please check your email (or wait a bit before requesting again)."
             )
 
-        # Attach the user to the form so the view doesn’t have to re-query
         self.cleaned_data['user_obj'] = user
         return email
 

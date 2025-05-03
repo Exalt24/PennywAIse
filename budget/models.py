@@ -20,11 +20,11 @@ class Entry(models.Model):
 
     user     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.CASCADE)
-    title    = models.CharField(max_length=100)
+    title    = models.CharField(max_length=50)
     amount   = models.DecimalField(max_digits=10, decimal_places=2)
     date     = models.DateField()
     type     = models.CharField(max_length=2, choices=TYPE_CHOICES)
-    notes    = models.TextField(blank=True)
+    notes    = models.TextField(blank=True, max_length=80)
 
     class Meta:
         unique_together = (
