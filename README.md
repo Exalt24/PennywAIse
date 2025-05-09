@@ -8,6 +8,7 @@
 [![Chart.js](https://img.shields.io/badge/Chart.js-Latest-yellow.svg)](https://www.chartjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-Exalt24-lightgrey.svg)](https://github.com/Exalt24/WebEngLongExam2)
+[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen.svg)](https://pennywaise.onrender.com/)
 
 </div>
 
@@ -16,6 +17,10 @@
 ![PennywAIse Logo](budget/static/images/logo5.png)
 
 </div>
+
+## 🌟 Live Demo
+
+**Try PennywAIse today!** Access our live demo at: [https://pennywaise.onrender.com/](https://pennywaise.onrender.com/)
 
 ## 🔍 Overview
 
@@ -181,6 +186,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com/) - For responsive UI components
 - [Chart.js](https://www.chartjs.org/) - Interactive data visualizations
 - [Google Gemini AI](https://ai.google.dev/) - Powering the AI insights engine
+- [Render](https://render.com/) - Application hosting platform
 
 ---
 
