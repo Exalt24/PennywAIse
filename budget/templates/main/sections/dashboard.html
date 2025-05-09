@@ -134,7 +134,7 @@
                     <p class="value">₱{{ largest_income.amount|floatformat:2 }}</p>
                     <p class="meta">{{ largest_income.title }} on {{ largest_income.date }}</p>
                   {% else %}
-                    <p class="value text-gray-500">—</p>
+                    <p class="value text-gray-500">N/A</p>
                   {% endif %}
           </section>
             </section>
@@ -259,7 +259,7 @@
                   <p class="value">₱{{ largest_expense.amount|floatformat:2 }}</p>
                   <p class="meta">{{ largest_expense.title }} on {{ largest_expense.date }}</p>
                 {% else %}
-                  <p class="value text-gray-500">—</p>
+                  <p class="value text-gray-500">N/A</p>
                 {% endif %}
               </section>
             </section>
@@ -541,7 +541,16 @@
 
           <section class="progress" role="region" aria-label="Category Breakdown">
             <h2 class="text-lg mb-2">Category Breakdown</h2>
-            <canvas id="categoryChart" class="w-full h-56 md:h-48 lg:h-64" height="200" aria-label="Category breakdown chart"></canvas>
+            {% if chart_cat_labels and has_cat_expense %}
+              <canvas id="categoryChart"
+                      class="w-full h-56 md:h-48 lg:h-64"
+                      height="200"
+                      aria-label="Category breakdown chart"></canvas>
+            {% else %}
+              <p class="mt-3 text-center text-gray-500">
+                No expenses yet for this month.
+              </p>
+            {% endif %}
             {% if category_summary %}
               <button
                 class="mt-4 px-3 py-1 rounded-full bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#1A932E]"
@@ -629,7 +638,7 @@
           document.getElementById('categoryTable').classList.remove('hidden');
         } else {
           toggleBtns.classList.replace('bg-[#CBDAC4]', 'bg-gray-200');
-          toggleBtns.classList.replace('text-white', 'text-gray-700');
+          toggleBtns.classList.replace('text-[#1A932E]', 'text-gray-700');
           document.getElementById('categoryTable').classList.add('hidden');
         }
       });
@@ -667,11 +676,14 @@
         const budg = {{ chart_cat_budget|default:"[]"|safe }};
         const spent = {{ chart_cat_expense|default:"[]"|safe }};
         const canvas = document.getElementById('catBudgetDonut');
+        const otherCanvas = document.getElementById('budgetChart');
         const noData = document.getElementById('catNoData');
         const hasData = labels.length > 0 && !(budg.every(v => v === 0) && spent.every(v => v === 0));
 
         canvas.classList.toggle('hidden', !hasData);
-        noData.classList.toggle('hidden', hasData);
+        if(otherCanvas.classList.contains('hidden')) {
+          noData.classList.toggle('hidden', !hasData);
+        }
 
         if (hasData) {
           new Chart(canvas.getContext('2d'), {
@@ -682,7 +694,7 @@
         }
       })();
 
-      {% if chart_cat_labels and chart_cat_expense and chart_cat_income %}
+      if ({{ chart_cat_labels|default:"[]"|safe }}.length > 0) {
         new Chart(
           document.getElementById('categoryChart').getContext('2d'),
           {
@@ -697,7 +709,7 @@
             options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
           }
         );
-      {% endif %}
+      }
 
     });
 

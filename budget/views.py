@@ -26,6 +26,7 @@ from google.genai.errors import ClientError
 import random
 from django.utils import timezone
 from django.db.models.functions import Lower
+from decimal import Decimal
 
 gemini_client = genai.Client(
     api_key=settings.GEMINI_API_KEY,
@@ -136,11 +137,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         })
 
         # Cash-flow forecast
-        days_passed = today.day
+        days_passed   = today.day
         days_in_month = (month_start + relativedelta(months=1) - relativedelta(days=1)).day
-        avg_daily_spent = expense_total / days_passed if days_passed else 0
-        projected_balance = income_total - (avg_daily_spent * days_in_month)
-        abs_proj_balance = abs(projected_balance)
+
+        if days_passed:
+            avg_daily_spent = expense_total / Decimal(days_passed)
+        else:
+            avg_daily_spent = Decimal('0')
+        projected_balance = income_total - (avg_daily_spent * Decimal(days_in_month))
+        abs_proj_balance  = abs(projected_balance)
         ctx.update({
             'avg_daily_spent': avg_daily_spent,
             'projected_balance': projected_balance,
@@ -205,9 +210,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'recent_transactions': Entry.objects.filter(user=user).order_by('-date')[:10],
         })
         # Chart data
+        expenses = [r['expense'] for r in summary]
         ctx['chart_cat_labels'] = [r['name'] for r in summary]
         ctx['chart_cat_income'] = [float(r['income']) for r in summary]
         ctx['chart_cat_expense'] = [float(r['expense']) for r in summary]
+        ctx['has_cat_expense']    = any(exp > 0 for exp in expenses)
         ctx['chart_budget_data'] = ([float(total_spent), float(total_remaining)]
                                     if total_budget is not None else None)
         labels, inc_vals, exp_vals = [], [], []

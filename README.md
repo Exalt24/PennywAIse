@@ -1,171 +1,190 @@
 # PennywAIse
 
-PennywAIse is a Django‑powered budgeting dashboard designed to help you take control of your finances. With a clean Tailwind CSS design, interactive Chart.js visualizations, and an intuitive interface—plus our AI‑driven insight engine—PennywAIse makes tracking income, expenses, and budgets both simple and transformative.
+<div align="center">
 
----
+[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Django](https://img.shields.io/badge/Django-Latest-green.svg)](https://www.djangoproject.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-Latest-blueviolet.svg)](https://tailwindcss.com/)
+[![Chart.js](https://img.shields.io/badge/Chart.js-Latest-yellow.svg)](https://www.chartjs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-Exalt24-lightgrey.svg)](https://github.com/Exalt24/WebEngLongExam2)
+
+</div>
+
+<div align="center">
+
+![PennywAIse Logo](budget/static/images/logo5.png)
+
+</div>
+
+## 🔍 Overview
+
+PennywAIse is a sophisticated Django-powered budgeting dashboard designed to transform how you manage your finances. Combining a sleek Tailwind CSS interface, interactive Chart.js visualizations, and cutting-edge AI-driven insights, PennywAIse makes financial management both intuitive and empowering.
+
+Gain control of your financial future with intelligent spending analysis, personalized coaching, and visual breakdowns of your financial habits—all in one secure, user-friendly platform.
 
 ## ✨ Key Features
 
-1. **AI‑Powered Financial Coaching**
+### 🤖 AI-Powered Financial Coaching
+- **Intelligent Analysis**: Receive personalized recommendations based on your actual spending patterns
+- **Subscription Optimization**: Identify redundant or underused subscription services
+- **Spending Insights**: Discover trends and opportunities for savings through AI pattern recognition
 
-   - Get intelligent, personalized tips on where to save, which subscriptions to trim, and how to optimize your spending habits—instantly, based on your real data.
+### 🔐 Enterprise-Grade Security
+- **Secure Authentication System**: Registration, login, and session management with industry-standard security
+- **Protected Routes**: Comprehensive access control ensures data privacy
+- **Encrypted Data**: All sensitive information is properly encrypted and securely stored
 
-2. **Secure User Authentication**
+### 💰 Comprehensive Financial Management
+- **Transaction Tracking**: Record, edit, and categorize all income and expenses
+- **Custom Categories**: Organize transactions with preset or personalized categories
+- **Flexible Notes**: Add context to any transaction for better record-keeping
 
-   - **Registration & Login**: Sign up, log in, and out securely; passwords are hashed and safely stored.
-   - **Access Control**: All dashboard views are protected—only authenticated users can access or modify data.
+### 📊 Data Visualization Dashboard
+- **Financial Snapshot**: View your monthly balance, income, and expenses at a glance
+- **Category Breakdown**: Interactive pie charts showing spending distribution
+- **Trend Analysis**: Track your financial patterns with time-series visualizations
+- **Comparative Statistics**: See month-to-month improvements and changes
 
-3. **Income & Expense Management**
+### 🎯 Budget Planning & Alerts
+- **Budget Creation**: Set monthly spending limits overall or by category
+- **Alert System**: Receive notifications when approaching budget thresholds
+- **Progress Tracking**: Visual indicators of budget status throughout the month
 
-   - **Add / Edit / Delete Entries**: Record a title, amount, date, type (Income/Expense), category, and optional notes.
-   - **Categorization**: Organize your transactions into custom or preset categories (Food, Travel, Bills, etc.).
+### 📤 Data Portability
+- **Export Functionality**: Generate CSV exports for external analysis
+- **Report Generation**: Create custom reports for specific time periods or categories
 
-4. **Visual Dashboard**
+## 🖥️ Screenshots
 
-   - **Net Balance Card**: See total income, total expenses, and remaining balance for the current month.
-   - **Charts & Graphs**: Pie chart of expense breakdown by category; bar/line charts showing trends over time.
-   - **Quick Stats**: Transaction counts, month‑to‑month comparisons, and real‑time filtering.
+<div align="center">
 
-5. **Budgets & Alerts** *(Stretch Goal)*
+  ![Dashboard Screenshot](budget/static/images/DashboardSS.png)
+  <p><em>Main Dashboard with financial overview</em></p>
+  
+  ![Budget Screenshot](budget/static/images/BudgetSS.png)
+  <p><em>Budget management interface</em></p>
+</div>
 
-   - Define monthly budgets (overall or per category) and receive over‑budget warnings.
+## 🚀 Installation & Setup
 
-6. **Data Export** *(Stretch Goal)*
+### Prerequisites
+- Python 3.8 or higher
+- Node.js 14+ and npm
+- Git
 
-   - Export your entries or reports as CSV for deeper analysis in Excel or Google Sheets.
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/Exalt24/WebEngLongExam2.git
+cd WebEngLongExam2
+```
 
----
+### Step 2: Configure Environment
+Create a `.env` file in the project root with the following variables:
 
-## 🚀 Prerequisites
+```dotenv
+SECRET_KEY=<your-secret-key>
+DEBUG=True                # Set to False in production
+GMAIL_ADDRESS=<your-gmail>@gmail.com
+GMAIL_APP_PASS=<your-16-char-app-password>
+GENAI_API_KEY=<your-gemini-api-key>
+```
 
-- **Python 3.8+** and **Node.js 14+**
-- **pip**, **npm**, and **Git** installed
+#### Generate a Secure Secret Key
+```bash
+python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(50))"
+```
 
----
+### Step 3: Install Dependencies
+```bash
+# Install frontend dependencies
+npm install
 
-## 🛠️ Setup & Development
+# Install backend dependencies
+pip install -r requirements.txt
+```
 
-1. **Clone the repository**
+### Step 4: Initialize Database
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
 
-   ```bash
-   git clone https://github.com/Exalt24/WebEngLongExam2.git
-   cd WebEngLongExam2
-   ```
+### Step 5: Create Test User (Development Only)
+```bash
+python manage.py create_test_user
+# Creates user with credentials: test@example.com / password123
+```
 
-2. **Environment variables**
-   Create a `.env` file in the project root:
-   ```dotenv
-   SECRET_KEY=<your-secret-key>
-   DEBUG=True                # False in production
-   GMAIL_ADDRESS=<your-gmail>@gmail.com
-   GMAIL_APP_PASS=<your-16-char-app-password>
-   GENAI_API_KEY=<your-gemini-api-key>
-   ```
-   #### Generate Your Secret Key
-   Run this command in your terminal to generate a secure random key:
-   ```bash
-   python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(50))"
-   ```
+### Step 6: Launch Development Server
+```bash
+npm run dev
+```
 
-   Copy the output (everything after `SECRET_KEY=`) and paste it as the value for `SECRET_KEY` in your `.env` file.
+The application will be available at `http://127.0.0.1:8000/` with Tailwind CSS hot-reloading enabled.
 
-   #### Complete Your Configuration
-   - Replace `youremail@gmail.com` with your actual Gmail address
-   - For `GMAIL_APP_PASS`, create an app password in your Google Account settings
-   - Get a Gemini API key from Google AI Studio for the `GENAI_API_KEY`
+## 🧪 Testing
 
-3. **Install dependencies**
+### Running Tests
+PennywAIse comes with a comprehensive test suite covering all aspects of the application:
 
-   ```bash
-   npm install             # Tailwind & tooling
-   pip install -r requirements.txt
-   ```
+```bash
+# Run all tests
+python manage.py test budget
 
-4. **Apply database migrations**
+# Run specific test modules
+python manage.py test budget.tests_suite.test_models
+python manage.py test budget.tests_suite.test_views
+```
 
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-
-5. **Create a test user**
-
-   ```bash
-   # Built‑in helper to create a user for development/testing (email: test@example.com, password: password123)
-   python manage.py create_test_user
-   ```
-
-6. **Run in development mode**
-
-   ```bash
-   npm run dev
-   ```
-
-   - Django server at `http://127.0.0.1:8000/`
-   - Tailwind CSS watcher & auto‑reload enabled
-
----
-
-## ✅ Testing Suite
-
-All tests live under the `budget` app. You can run:
-
-- **All tests**:
-
-  ```bash
-  python manage.py test budget
-  ```
-
-- **Specific module**:
-
-  ```bash
-  python manage.py test budget.tests_suite.test_models
-  python manage.py test budget.tests_suite.test_forms
-  python manage.py test budget.tests_suite.test_views
-  python manage.py test budget.tests_suite.test_security
-  python manage.py test budget.tests_suite.test_integration
-  python manage.py test budget.tests_suite.test_tasks
-  python manage.py test budget.tests_suite.test_apps
-  python manage.py test budget.tests_suite.test_command
-  python manage.py test budget.tests_suite.test_admin
-  python manage.py test budget.tests_suite.test_security
-  ```
-
-- **Specific class or method**:
-
-  ```bash
-  python manage.py test budget.tests_suite.test_models.CategoryModelTest
-  python manage.py test budget.tests_suite.test_models.CategoryModelTest.test_category_creation
-  ```
-
-### Coverage Report
-
+### Generate Coverage Report
 ```bash
 pip install coverage
 python -m coverage run --source='budget' manage.py test budget
 python -m coverage report
-python -m coverage html   # view `htmlcov/index.html`
+python -m coverage html   # Generates detailed HTML report
 ```
 
+## 📘 User Guide
+
+1. **Authentication**: Register for a new account or log in with existing credentials
+2. **Dashboard Overview**: View your financial summary with interactive charts
+3. **Adding Transactions**: Use the sidebar form to record new income or expenses
+4. **Categorization**: Assign each transaction to a category for better insights
+5. **AI Insights**: Check the AI recommendations panel for personalized advice
+6. **Budget Management**: Set up and monitor category-specific budgets
+7. **Data Export**: Generate and download reports for external analysis
+
+## 👥 Team & Contributions
+
+| Team Member            | Primary Responsibilities                                       |
+|------------------------|---------------------------------------------------------------|
+| Amielle Jaezxier Perez | Testing framework, Models & business logic, Frontend UI        |
+| Daniel Alexis Cruz     | Authentication, Email workflows, Models, Tailwind integration  |
+| Nikka Joie Mendoza     | Frontend UI & refinement, Tailwind Integration                 |
+
+## 🌐 Future Roadmap
+
+- **Mobile Application**: Native mobile experience for iOS and Android
+- **Financial Goal Setting**: Track progress toward saving and investment goals
+- **Investment Portfolio Integration**: Connect and monitor investment accounts
+- **Advanced AI Forecasting**: Predictive analysis of future expenses and income
+- **Multi-currency Support**: Handle transactions in multiple currencies
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgements
+
+- [Django](https://www.djangoproject.com/) - The web framework used
+- [Tailwind CSS](https://tailwindcss.com/) - For responsive UI components
+- [Chart.js](https://www.chartjs.org/) - Interactive data visualizations
+- [Google Gemini AI](https://ai.google.dev/) - Powering the AI insights engine
+
 ---
 
-## 👥 Team & Division of Labor
-
-| Member                 | Responsibility                                                                              |
-|------------------------|---------------------------------------------------------------------------------------------|
-| Amielle Jaezxier Perez | Testing framework, Models & business logic, Frontend UI                                     |
-| Daniel Alexis Cruz     | Authentication, Email workflows, Models & business logic, Tailwind integration, Frontend UI |
-| Nikka Joie Mendoza     | Frontend UI & refinement, Tailwind Integration                                              |
-
----
-
-## 📖 Usage Guide
-
-1. **Log in** or **register** to access your dashboard.
-2. **Add** income/expense entries via the form in the sidebar.
-3. **Categorize** each entry and watch your Dashboard update in real time.
-4. Use the **AI suggestions** card to get personalized recommendations.
-5. **Set budgets** and get alerted when you approach limits.
-6. **Export** data via the Reports page for further analysis.
-
-Enjoy taking control of your financial future with PennywAIse!
+<div align="center">
+  <p>Developed by the PennywAIse Team at <a href="https://github.com/Exalt24/WebEngLongExam2">Exalt24</a></p>
+  <p><i>Take control of your financial future</i></p>
+</div>
