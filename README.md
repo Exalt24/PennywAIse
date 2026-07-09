@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-Latest-blueviolet.svg)](https://tailwindcss.com/)
 [![Chart.js](https://img.shields.io/badge/Chart.js-Latest-yellow.svg)](https://www.chartjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
-[![GitHub](https://img.shields.io/badge/GitHub-Exalt24-lightgrey.svg)](https://github.com/Exalt24/WebEngLongExam2)
+[![GitHub](https://img.shields.io/badge/GitHub-Exalt24-lightgrey.svg)](https://github.com/Exalt24/PennywAIse)
 [![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen.svg)](https://pennywaise.onrender.com/)
 
 </div>
@@ -80,8 +80,8 @@ Gain control of your financial future with intelligent spending analysis, person
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/Exalt24/WebEngLongExam2.git
-cd WebEngLongExam2
+git clone https://github.com/Exalt24/PennywAIse.git
+cd PennywAIse
 ```
 
 ### Step 2: Configure Environment
@@ -117,7 +117,7 @@ python manage.py migrate
 
 ### Step 5: Create Test User (Development Only)
 ```bash
-python manage.py create_test_user
+python manage.py create_test_accounts
 # Creates user with credentials: test@example.com / password123
 ```
 
@@ -191,6 +191,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <p>Developed by the PennywAIse Team at <a href="https://github.com/Exalt24/WebEngLongExam2">Exalt24</a></p>
+  <p>Developed by the PennywAIse Team at <a href="https://github.com/Exalt24/PennywAIse">Exalt24</a></p>
   <p><i>Take control of your financial future</i></p>
 </div>
