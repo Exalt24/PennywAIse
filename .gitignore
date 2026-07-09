@@ -4,3 +4,4 @@ output.css
 /db.sqlite3
 .env
 **/__pycache__/
+.coverage
