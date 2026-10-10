@@ -34,10 +34,10 @@ Gain control of your financial future with intelligent spending analysis, person
 - **Subscription Optimization**: Identify redundant or underused subscription services
 - **Spending Insights**: Discover trends and opportunities for savings through AI pattern recognition
 
-### 🔐 Enterprise-Grade Security
-- **Secure Authentication System**: Registration, login, and session management with industry-standard security
-- **Protected Routes**: Comprehensive access control ensures data privacy
-- **Encrypted Data**: All sensitive information is properly encrypted and securely stored
+### 🔐 Security basics
+- **Authentication**: Registration, login, and session management using Django's built-in authentication
+- **Protected Routes**: Views that hold a user's data require a signed-in user
+- **Password storage**: passwords are hashed with Django's default password hashing. No other field-level encryption is implemented.
 
 ### 💰 Comprehensive Financial Management
 - **Transaction Tracking**: Record, edit, and categorize all income and expenses
