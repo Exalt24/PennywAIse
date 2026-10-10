@@ -8,7 +8,6 @@
 [![Chart.js](https://img.shields.io/badge/Chart.js-Latest-yellow.svg)](https://www.chartjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-Exalt24-lightgrey.svg)](https://github.com/Exalt24/PennywAIse)
-[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen.svg)](https://pennywaise.onrender.com/)
 
 </div>
 
@@ -18,9 +17,9 @@
 
 </div>
 
-## 🌟 Live Demo
+## Demo
 
-**Try PennywAIse today!** Access our live demo at: [https://pennywaise.onrender.com/](https://pennywaise.onrender.com/)
+The hosted copy is offline: the free-tier host suspended its services in October 2026, so the links that used to be here led to empty pages and were removed. Everything runs locally from the steps below.
 
 ## 🔍 Overview
 
