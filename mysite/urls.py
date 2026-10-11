@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.urls import include, path
-from debug_toolbar.toolbar import debug_toolbar_urls
 from mysite import settings
 from django.contrib.auth.views import LogoutView
 
@@ -12,6 +11,8 @@ urlpatterns = [
 ]
 
 if not settings.TESTING:
+    # imported here because debug_toolbar is not in INSTALLED_APPS while testing
+    from debug_toolbar.toolbar import debug_toolbar_urls
     urlpatterns = [
         *urlpatterns,
     ] + debug_toolbar_urls()

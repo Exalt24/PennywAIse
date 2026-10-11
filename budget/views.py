@@ -20,6 +20,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.http import JsonResponse
 import json
+import urllib.error
+import urllib.request
 from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
@@ -28,8 +30,12 @@ from django.utils import timezone
 from django.db.models.functions import Lower
 from decimal import Decimal
 
-gemini_client = genai.Client(
-    api_key=settings.GEMINI_API_KEY,
+# Gemini is the default backend. Setting LLM_BASE_URL (any OpenAI-compatible
+# /chat/completions server, for example a local Ollama) switches the assistant
+# to that server instead, so no Gemini key is needed.
+gemini_client = (
+    genai.Client(api_key=settings.GEMINI_API_KEY)
+    if settings.GEMINI_API_KEY else None
 )
 
 User = get_user_model()
@@ -572,7 +578,7 @@ class ResetPasswordView(TemplateView):
             
         return self.render_to_response(context)
 
-class EntriesAjaxView(View):
+class EntriesAjaxView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         prefix = request.GET.get('prefix')
         user = request.user
@@ -646,7 +652,7 @@ class EntriesAjaxView(View):
 
         return JsonResponse({'html': html})
     
-class ReportsAjaxView(View):
+class ReportsAjaxView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user    = request.user
         qs      = Entry.objects.filter(user=user).order_by('-date')
@@ -736,10 +742,18 @@ Always be polite, accurate, and to the point.
         ]
         config = types.GenerateContentConfig(response_mime_type="text/plain")
 
+        if settings.LLM_BASE_URL:
+            return self._ask_openai_compatible(system_instruction, prompt)
+
+        if gemini_client is None:
+            return JsonResponse({
+                'error': 'The AI assistant is not configured. Set GENAI_API_KEY or LLM_BASE_URL.'
+            }, status=503)
+
         answer_fragments = []
         try:
             for chunk in gemini_client.models.generate_content_stream(
-                model="gemini-2.5-pro-exp-03-25",
+                model=settings.LLM_MODEL or "gemini-2.5-pro-exp-03-25",
                 contents=contents,
                 config=config,
             ):
@@ -756,6 +770,33 @@ Always be polite, accurate, and to the point.
         full_answer = "".join(answer_fragments).strip()
         return JsonResponse({'answer': full_answer})
     
+    def _ask_openai_compatible(self, system_instruction, prompt):
+        payload = {
+            "model": settings.LLM_MODEL,
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False,
+        }
+        if settings.LLM_REASONING_EFFORT:
+            payload["reasoning_effort"] = settings.LLM_REASONING_EFFORT
+        body = json.dumps(payload).encode()
+        req = urllib.request.Request(
+            settings.LLM_BASE_URL.rstrip("/") + "/chat/completions",
+            data=body,
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                answer = json.load(resp)["choices"][0]["message"]["content"]
+        except (urllib.error.URLError, KeyError, IndexError, ValueError):
+            return JsonResponse({
+                'error': 'An error occurred while processing your request. Please try again later.'
+            }, status=500)
+        return JsonResponse({'answer': (answer or "").strip()})
+
+
 class EntryDataView(LoginRequiredMixin, View):
     def get(self, request, pk):
         entry = get_object_or_404(Entry, pk=pk, user=request.user)

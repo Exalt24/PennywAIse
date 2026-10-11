@@ -694,7 +694,8 @@
         }
       })();
 
-      if ({{ chart_cat_labels|default:"[]"|safe }}.length > 0) {
+      // the canvas is only rendered when the month has expenses
+      if (document.getElementById('categoryChart')) {
         new Chart(
           document.getElementById('categoryChart').getContext('2d'),
           {

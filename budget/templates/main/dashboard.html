@@ -124,9 +124,10 @@
             const table = page.querySelector('table');
             const tbody = table && table.querySelector('tbody');
             
-            if (tbody.dataset.original) tbody.innerHTML = tbody.dataset.original;
+            if (tbody && tbody.dataset.original) tbody.innerHTML = tbody.dataset.original;
 
-            table.querySelectorAll('th.sortable').forEach(th => {
+            // the AI Assistant tab has no table
+            if (table) table.querySelectorAll('th.sortable').forEach(th => {
               // clear everything…
               th.classList.remove('sort-asc','sort-desc');
               th.className = th.dataset.initialClass;

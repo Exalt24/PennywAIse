@@ -123,13 +123,16 @@ if not TESTING:
         *MIDDLEWARE,
     ]
 
-NPM_BIN_PATH = "C:/Users/Daniel Cruz/AppData/Roaming/npm/npm.cmd"
-
 LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/auth/'
 
-EMAIL_BACKEND   = 'django.core.mail.backends.smtp.EmailBackend'
+# Without Gmail credentials, emails (the verification and reset links) are printed to the server console.
+EMAIL_BACKEND   = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASS")
+    else 'django.core.mail.backends.console.EmailBackend'
+)
 EMAIL_HOST      = 'smtp.gmail.com'
 EMAIL_PORT      = 587
 EMAIL_USE_TLS   = True
@@ -137,3 +140,10 @@ EMAIL_USE_SSL   = False
 EMAIL_HOST_USER     = os.environ.get("GMAIL_ADDRESS")      # ← your Gmail address
 EMAIL_HOST_PASSWORD = os.environ.get("GMAIL_APP_PASS")
 GEMINI_API_KEY = os.environ.get("GENAI_API_KEY")
+
+# Optional: point the AI assistant at any OpenAI-compatible server instead of Gemini,
+# e.g. LLM_BASE_URL=http://localhost:11434/v1 and LLM_MODEL=qwen3:8b for a local Ollama.
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL")
+LLM_MODEL = os.environ.get("LLM_MODEL")
+# Optional, sent as reasoning_effort; "none" skips the thinking step of local reasoning models such as qwen3.
+LLM_REASONING_EFFORT = os.environ.get("LLM_REASONING_EFFORT")
