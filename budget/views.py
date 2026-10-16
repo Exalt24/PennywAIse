@@ -29,6 +29,7 @@ import random
 from django.utils import timezone
 from django.db.models.functions import Lower
 from decimal import Decimal
+from django.utils.dateparse import parse_date
 
 # Gemini is the default backend. Setting LLM_BASE_URL (any OpenAI-compatible
 # /chat/completions server, for example a local Ollama) switches the assistant
@@ -39,6 +40,17 @@ gemini_client = (
 )
 
 User = get_user_model()
+
+def _clean_date(value):
+    """A date from a query string, or None when it is missing or not a real YYYY-MM-DD date."""
+    try:
+        return parse_date(value) if value else None
+    except ValueError:
+        return None
+
+def _clean_id(value):
+    """An integer id from a query string, or None when it is missing or not a number."""
+    return int(value) if value and value.isdigit() else None
 
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -289,14 +301,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         qs = Entry.objects.filter(user=user)
         gf = request.GET
 
-        if gf.get('from'):
-            qs = qs.filter(date__gte=gf['from'])
-        if gf.get('to'):
-            qs = qs.filter(date__lte=gf['to'])
+        if _clean_date(gf.get('from')):
+            qs = qs.filter(date__gte=_clean_date(gf['from']))
+        if _clean_date(gf.get('to')):
+            qs = qs.filter(date__lte=_clean_date(gf['to']))
         if gf.get('type'):
             qs = qs.filter(type=gf['type'])
-        if gf.get('category'):
-            qs = qs.filter(category_id=gf['category'])
+        if _clean_id(gf.get('category')):
+            qs = qs.filter(category_id=_clean_id(gf['category']))
 
         resp = HttpResponse(content_type='text/csv')
         resp['Content-Disposition'] = 'attachment; filename="{user}_transactions_{now}.csv"'.format(
@@ -608,10 +620,10 @@ class EntriesAjaxView(LoginRequiredMixin, View):
 
         date_from = request.GET.get(f'{prefix}DateFrom')
         date_to   = request.GET.get(f'{prefix}DateTo')
-        if date_from:
-            qs = qs.filter(date__gte=date_from)
-        if date_to:
-            qs = qs.filter(date__lte=date_to)
+        if _clean_date(date_from):
+            qs = qs.filter(date__gte=_clean_date(date_from))
+        if _clean_date(date_to):
+            qs = qs.filter(date__lte=_clean_date(date_to))
 
         title_q = request.GET.get(f'{prefix}TitleFilter', '').strip()
         if title_q:
@@ -662,16 +674,16 @@ class ReportsAjaxView(LoginRequiredMixin, View):
         ttype   = request.GET.get('repType')
         cat     = request.GET.get('repCat')
 
-        if frm:
-            qs = qs.filter(date__gte=frm)
-        if to:
-            qs = qs.filter(date__lte=to)
+        if _clean_date(frm):
+            qs = qs.filter(date__gte=_clean_date(frm))
+        if _clean_date(to):
+            qs = qs.filter(date__lte=_clean_date(to))
         if ttype:
             typemap = {'IN': Entry.INCOME, 'EX': Entry.EXPENSE}
             if ttype in typemap:
                 qs = qs.filter(type=typemap[ttype])
-        if cat:
-            qs = qs.filter(category__id=cat)
+        if _clean_id(cat):
+            qs = qs.filter(category__id=_clean_id(cat))
 
         page_num = request.GET.get('report_page') or 1
         page_obj = Paginator(qs, 10).get_page(page_num)
