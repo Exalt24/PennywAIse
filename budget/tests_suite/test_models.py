@@ -7,6 +7,7 @@ from django.db.utils import IntegrityError
 from django.db import transaction
 from ..models import Category, Entry, ContactMessage, EmailVerificationToken, Budget, PasswordResetToken
 from .helpers import make_category
+from ..forms import EntryForm, CategoryForm
 import uuid
 from datetime import timedelta
 from django.db import models
@@ -34,8 +35,9 @@ class CategoryModelTest(TestCase):
     def test_category_user_relationship(self):
         """Test that categories are correctly associated with users"""
         user_categories = Category.objects.filter(user=self.user)
-        self.assertEqual(user_categories.count(), 1)
-        self.assertEqual(user_categories.first(), self.category)
+        # a signal gives every new user five default categories, Food among them
+        self.assertEqual(user_categories.count(), 5)
+        self.assertIn(self.category, user_categories)
         
     def test_category_unique_per_user(self):
         """Test that different users can have categories with different names"""
@@ -51,12 +53,13 @@ class CategoryModelTest(TestCase):
             user=other_user
         )
         
-        # Both categories should exist
-        self.assertEqual(Category.objects.all().count(), 2)
+        # Each user has the five signal-made defaults, and other_user has Travel on top
+        self.assertEqual(Category.objects.all().count(), 11)
         
         # But they're associated with different users
-        self.assertEqual(Category.objects.filter(user=self.user).count(), 1)
-        self.assertEqual(Category.objects.filter(user=other_user).count(), 1)
+        self.assertEqual(Category.objects.filter(user=self.user).count(), 5)
+        self.assertEqual(Category.objects.filter(user=other_user).count(), 6)
+        self.assertFalse(Category.objects.filter(user=self.user, name='Travel').exists())
         
     def test_category_delete(self):
         """Test deleting a category"""
@@ -130,11 +133,10 @@ class CategoryModelTest(TestCase):
         # Get ordered categories
         ordered_categories = Category.objects.filter(user=self.user)
         
-        # Check order
-        self.assertEqual(ordered_categories[0].name, 'Auto')
-        self.assertEqual(ordered_categories[1].name, 'Beverages')
-        self.assertEqual(ordered_categories[2].name, 'Dining')
-        self.assertEqual(ordered_categories[3].name, 'Food')
+        # Check order: the new names sit among the five signal-made defaults
+        names = [c.name for c in ordered_categories]
+        self.assertEqual(names, ['Auto', 'Beverages', 'Dining', 'Entertainment', 'Food',
+                                 'Other', 'Transport', 'Utilities'])
 
 class EntryModelTest(TestCase):
     def setUp(self):
@@ -243,16 +245,19 @@ class EntryModelTest(TestCase):
         
     def test_entry_validation(self):
         """Test entry validation"""
-        # Try to create an entry with negative amount
-        with self.assertRaises(ValidationError):
-            invalid_entry = Entry(
-                user=self.user,
-                title='Invalid Entry',
-                amount=Decimal('-50.00'),  # Negative amount
-                date=timezone.now().date(),
-                type=Entry.EXPENSE
-            )
-            invalid_entry.full_clean()  # Triggers validation
+        # The positive-amount rule lives in EntryForm.clean_amount, not on the model
+        form = EntryForm(
+            data={
+                'title': 'Invalid Entry',
+                'amount': '-50.00',  # Negative amount
+                'date': timezone.now().date().isoformat(),
+                'type': Entry.EXPENSE,
+                'category': self.category.pk,
+            },
+            user=self.user,
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('amount', form.errors)
         
         # Try to create an entry with an invalid type
         with self.assertRaises(ValidationError):
@@ -324,7 +329,7 @@ class EntryModelTest(TestCase):
     def test_entry_field_max_lengths(self):
         """Test entry field maximum lengths"""
         # Test title max length
-        max_title = 'a' * 100
+        max_title = 'a' * 50
         valid_entry = Entry(
             user=self.user,
             title=max_title,
@@ -335,7 +340,7 @@ class EntryModelTest(TestCase):
         valid_entry.full_clean()  # Should not raise validation error
         
         # Test title too long
-        too_long_title = 'a' * 101
+        too_long_title = 'a' * 51
         invalid_entry = Entry(
             user=self.user,
             title=too_long_title,
@@ -797,7 +802,9 @@ class BudgetModelTest(TestCase):
             amount=Decimal('123.456789'),
             month=(self.month_date + timedelta(days=62)).replace(day=1)
         )
-        decimal_budget.full_clean()  # Should not raise validation error
+        # full_clean rejects more than two decimal places; the database column rounds on save
+        with self.assertRaises(ValidationError):
+            decimal_budget.full_clean()
         decimal_budget.save()
         
         decimal_budget.refresh_from_db()
@@ -1249,22 +1256,23 @@ class ModelMethodTests(TestCase):
     
     def test_category_get_entries(self):
         """Test related_name relationship from Category to Entry"""
-        category_entries = self.category.entries.all()
+        category_entries = self.category.entry_set.all()
         self.assertEqual(category_entries.count(), 2)
         self.assertIn(self.expense_entry, category_entries)
         self.assertIn(self.income_entry, category_entries)
     
     def test_user_related_objects(self):
         """Test related_name relationships from User to other models"""
-        user_entries = self.user.entries.all()
+        user_entries = self.user.entry_set.all()
         self.assertEqual(user_entries.count(), 2)
         self.assertIn(self.expense_entry, user_entries)
         
-        user_categories = self.user.categories.all()
-        self.assertEqual(user_categories.count(), 1)
-        self.assertEqual(user_categories.first(), self.category)
+        user_categories = self.user.category_set.all()
+        # five signal-made defaults plus MethodTestCategory
+        self.assertEqual(user_categories.count(), 6)
+        self.assertIn(self.category, user_categories)
         
-        user_budgets = self.user.budgets.all()
+        user_budgets = self.user.budget_set.all()
         self.assertEqual(user_budgets.count(), 1)
         self.assertEqual(user_budgets.first(), self.budget)
     
@@ -1468,10 +1476,9 @@ class ModelValidationTests(TestCase):
             category = Category(name='', user=self.user)
             category.full_clean()
         
-        # Test name with just spaces
-        with self.assertRaises(ValidationError):
-            category = Category(name='   ', user=self.user)
-            category.full_clean()
+        # A name of just spaces is rejected by CategoryForm (the model only checks blank)
+        form = CategoryForm(data={'name': '   '}, user=self.user)
+        self.assertFalse(form.is_valid())
         
         # Test valid names with different characters
         valid_names = ['Category1', 'Category-1', 'Category_1', 'Category 1', 'Categoría']
@@ -1567,8 +1574,7 @@ class TokenUsageTests(TestCase):
         # Create tokens
         self.email_token = EmailVerificationToken.objects.create(
             user=self.user,
-            token=uuid.uuid4(),
-            purpose=EmailVerificationToken.EMAIL_VERIFICATION
+            token=uuid.uuid4()
         )
         
         self.password_token = PasswordResetToken.objects.create(
@@ -1609,29 +1615,18 @@ class TokenUsageTests(TestCase):
                 )
     
     def test_token_purpose_handling(self):
-        """Test EmailVerificationToken purpose field"""
-        # Test valid purposes
-        valid_purposes = [
-            EmailVerificationToken.EMAIL_VERIFICATION,
-            EmailVerificationToken.PASSWORD_RESET
-        ]
+        """Each purpose has its own token model: UUID for email verification, a string for password reset"""
+        other_user = User.objects.create_user(
+            username='purpose_user',
+            email='purpose@example.com',
+            password='testpass123'
+        )
+        EmailVerificationToken(user=other_user, token=uuid.uuid4()).full_clean()
+        PasswordResetToken(user=self.user, token='purpose-test-reset').full_clean()
         
-        for purpose in valid_purposes:
-            token = EmailVerificationToken(
-                user=self.user,
-                token=f'purpose-test-{purpose}',
-                purpose=purpose
-            )
-            token.full_clean()  # Should not raise validation error
-        
-        # Test invalid purpose
+        # An email verification token must be a UUID
         with self.assertRaises(ValidationError):
-            token = EmailVerificationToken(
-                user=self.user,
-                token='invalid-purpose-token',
-                purpose='INVALID_PURPOSE'
-            )
-            token.full_clean()
+            EmailVerificationToken(user=other_user, token='invalid-purpose-token').full_clean()
     
     def test_password_reset_token_expiration(self):
         """Test explicit expiration of PasswordResetToken"""
