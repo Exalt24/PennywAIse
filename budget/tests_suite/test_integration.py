@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -9,6 +9,7 @@ import json
 import uuid
 from unittest.mock import patch, MagicMock
 from datetime import timedelta
+from google.genai.errors import ClientError
 
 User = get_user_model()
 
@@ -152,7 +153,9 @@ class BudgetTrackerIntegrationTest(TestCase):
         response = self.client.get(f"{self.dashboard_url}?export=csv")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
-        self.assertTrue('attachment; filename="report.csv"' in response['Content-Disposition'])
+        disposition = response['Content-Disposition']
+        self.assertTrue(disposition.startswith('attachment; filename="testuser_transactions_'))
+        self.assertTrue(disposition.endswith('.csv"'))
         
         # 12. Logout
         self.client.logout()
@@ -318,25 +321,33 @@ class EntriesFilterTest(TestCase):
         
         # Make AJAX request for income entries
         response = self.client.get(
-            f"{self.entries_filter_url}?type=IN",
+            f"{self.entries_filter_url}?prefix=inc",
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        
+
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('entries_html', data)
+        self.assertIn('html', data)
+        self.assertIn('Income Entry', data['html'])
+        self.assertNotIn('Expense Entry', data['html'])
         
         # Make AJAX request for expense entries
         response = self.client.get(
-            f"{self.entries_filter_url}?type=EX",
+            f"{self.entries_filter_url}?prefix=exp",
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        
+
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('entries_html', data)
+        self.assertIn('html', data)
+        self.assertIn('Expense Entry', data['html'])
+        self.assertNotIn('Income Entry', data['html'])
+
+        # A missing or unknown prefix is a bad request
+        response = self.client.get(self.entries_filter_url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
 
     def test_unauthorized_access(self):
         """Test that unauthorized users cannot access the entries filter"""
@@ -358,18 +369,19 @@ class EntriesFilterTest(TestCase):
         self.client.login(username='otheruser', password='Other@123')
         
         # Make request - should not see entries from first user
-        response = self.client.get(
-            self.entries_filter_url,
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
-        )
-        
-        # Should have response but with no entries
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        self.assertIn('entries_html', data)
-        # HTML should not contain entries from other user
-        self.assertNotIn('Income Entry', data['entries_html'])
-        self.assertNotIn('Expense Entry', data['entries_html'])
+        for prefix in ('inc', 'exp'):
+            response = self.client.get(
+                f"{self.entries_filter_url}?prefix={prefix}",
+                HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+            )
+
+            # Should have response but with no entries
+            self.assertEqual(response.status_code, 200)
+            data = json.loads(response.content)
+            self.assertIn('html', data)
+            # HTML should not contain entries from other user
+            self.assertNotIn('Income Entry', data['html'])
+            self.assertNotIn('Expense Entry', data['html'])
 
     def test_filter_with_parameters(self):
         """Test filtering with additional parameters"""
@@ -389,16 +401,16 @@ class EntriesFilterTest(TestCase):
         
         # Test date range filter
         response = self.client.get(
-            f"{self.entries_filter_url}?type=IN&from={past_date.isoformat()}&to={past_date.isoformat()}",
+            f"{self.entries_filter_url}?prefix=inc&incDateFrom={past_date.isoformat()}&incDateTo={past_date.isoformat()}",
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        
+
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('entries_html', data)
-        self.assertIn('Old Income', data['entries_html'])
-        self.assertNotIn('Income Entry', data['entries_html'])
+        self.assertIn('html', data)
+        self.assertIn('Old Income', data['html'])
+        self.assertNotIn('Income Entry', data['html'])
 
 class ReportsFilterTest(TestCase):
     def setUp(self):
@@ -449,19 +461,31 @@ class ReportsFilterTest(TestCase):
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('report_html', data)
-        
+        self.assertIn('html', data)
+        self.assertIn('Monthly Income', data['html'])
+        self.assertIn('Food Expense', data['html'])
+
         # Test with date filters
         today = timezone.now().date()
         response = self.client.get(
-            f"{self.reports_filter_url}?from={today.isoformat()}&to={today.isoformat()}",
+            f"{self.reports_filter_url}?repFrom={today.isoformat()}&repTo={today.isoformat()}",
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        
+
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('report_html', data)
+        self.assertIn('html', data)
+        self.assertIn('Monthly Income', data['html'])
+
+        # A range that excludes today's entries leaves them out
+        yesterday = today - timedelta(days=1)
+        response = self.client.get(
+            f"{self.reports_filter_url}?repFrom={yesterday.isoformat()}&repTo={yesterday.isoformat()}",
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        data = json.loads(response.content)
+        self.assertNotIn('Monthly Income', data['html'])
 
     def test_unauthorized_access(self):
         """Test unauthorized access to reports filter"""
@@ -491,9 +515,9 @@ class ReportsFilterTest(TestCase):
         # Should have response but with no entries from other user
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('report_html', data)
-        self.assertNotIn('Monthly Income', data['report_html'])
-        self.assertNotIn('Food Expense', data['report_html'])
+        self.assertIn('html', data)
+        self.assertNotIn('Monthly Income', data['html'])
+        self.assertNotIn('Food Expense', data['html'])
 
     def test_filter_with_category(self):
         """Test reports filter with category filter"""
@@ -513,16 +537,16 @@ class ReportsFilterTest(TestCase):
         
         # Test category filter
         response = self.client.get(
-            f"{self.reports_filter_url}?category={second_category.id}",
+            f"{self.reports_filter_url}?repCat={second_category.id}",
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
-        
+
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertIn('report_html', data)
-        self.assertIn('Entertainment Expense', data['report_html'])
-        self.assertNotIn('Food Expense', data['report_html'])
+        self.assertIn('html', data)
+        self.assertIn('Entertainment Expense', data['html'])
+        self.assertNotIn('Food Expense', data['html'])
 
 class VerifyEmailTest(TestCase):
     @patch('budget.views.EmailMultiAlternatives')
@@ -644,9 +668,17 @@ class PasswordResetTest(TestCase):
         # Access reset URL with non-existent token
         non_existent_token = 'invalid-token-123456'
         reset_url = reverse('budget:reset_password', args=[non_existent_token])
-        response = self.client.get(reset_url, follow=True)
-        
-        # Should redirect to forgot password page
+        response = self.client.get(reset_url)
+
+        # The page renders but marks the link as not valid
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['valid_token'])
+
+        # Submitting a new password against it sends the user to request a new link
+        response = self.client.post(reset_url, {
+            'password1': 'NewPass@123',
+            'password2': 'NewPass@123'
+        })
         self.assertRedirects(response, reverse('budget:forgot_password'))
 
     def test_reset_with_expired_token(self):
@@ -666,10 +698,20 @@ class PasswordResetTest(TestCase):
         
         # Access reset URL
         reset_url = reverse('budget:reset_password', args=[token.token])
-        response = self.client.get(reset_url, follow=True)
-        
-        # Should redirect to forgot password page
+        response = self.client.get(reset_url)
+
+        # The page renders but marks the link as not valid
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['valid_token'])
+
+        # Submitting a new password against it changes nothing and sends the user to request a new link
+        response = self.client.post(reset_url, {
+            'password1': 'NewPass@123',
+            'password2': 'NewPass@123'
+        })
         self.assertRedirects(response, reverse('budget:forgot_password'))
+        user.refresh_from_db()
+        self.assertTrue(user.check_password('Old@123'))
 
     def test_password_mismatch(self):
         """Test password reset with mismatched passwords"""
@@ -714,13 +756,16 @@ class AIQueryTest(TestCase):
             password='AI@123'
         )
     
-    @patch('budget.views.gemini_client.generate_content')
-    def test_ai_query(self, mock_generate_content):
+    @override_settings(LLM_BASE_URL=None)
+    @patch('budget.views.gemini_client')
+    def test_ai_query(self, mock_client):
         """Test the AI query endpoint"""
-        # Setup mock response
-        mock_response = MagicMock()
-        mock_response.text = "This is a mock AI response."
-        mock_generate_content.return_value = mock_response
+        # Setup mock streamed response
+        chunk_one = MagicMock()
+        chunk_one.text = "This is a mock "
+        chunk_two = MagicMock()
+        chunk_two.text = "AI response."
+        mock_client.models.generate_content_stream.return_value = [chunk_one, chunk_two]
         
         # Login user
         self.client.login(username='aiuser', password='AI@123')
@@ -728,14 +773,14 @@ class AIQueryTest(TestCase):
         # Make AI query
         response = self.client.post(
             self.ai_query_url,
-            json.dumps({'question': 'How can I save money?'}),
+            json.dumps({'prompt': 'How can I save money?'}),
             content_type='application/json'
         )
-        
+
         # Check response
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertEqual(data['response'], "This is a mock AI response.")
+        self.assertEqual(data['answer'], "This is a mock AI response.")
         
         # Test invalid request format
         response = self.client.post(
@@ -757,41 +802,71 @@ class AIQueryTest(TestCase):
         # Should redirect to login
         self.assertEqual(response.status_code, 302)
 
-    @patch('budget.views.gemini_client.generate_content')
-    def test_ai_error_handling(self, mock_generate_content):
+    @override_settings(LLM_BASE_URL=None)
+    @patch('budget.views.gemini_client')
+    def test_ai_error_handling(self, mock_client):
         """Test AI error handling"""
-        # Setup mock to raise exception
-        mock_generate_content.side_effect = Exception("API error")
-        
+        # Setup mock to raise a Gemini client error
+        mock_client.models.generate_content_stream.side_effect = ClientError(400, {'error': {'message': 'bad request'}})
+
         # Login user
         self.client.login(username='aiuser', password='AI@123')
-        
+
         # Make AI query
         response = self.client.post(
             self.ai_query_url,
-            json.dumps({'question': 'How can I save money?'}),
+            json.dumps({'prompt': 'How can I save money?'}),
             content_type='application/json'
         )
-        
+
         # Should return error response
         self.assertEqual(response.status_code, 500)
         data = json.loads(response.content)
         self.assertIn('error', data)
 
-    @patch('budget.views.gemini_client.generate_content')
-    def test_empty_question(self, mock_generate_content):
+    @override_settings(LLM_BASE_URL=None)
+    @patch('budget.views.gemini_client')
+    def test_ai_quota_error_is_a_503(self, mock_client):
+        """A 429 from Gemini is reported as a temporary quota problem"""
+        mock_client.models.generate_content_stream.side_effect = ClientError(429, {'error': {'message': 'quota'}})
+        self.client.login(username='aiuser', password='AI@123')
+        response = self.client.post(
+            self.ai_query_url,
+            json.dumps({'prompt': 'How can I save money?'}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 503)
+        self.assertIn('quota', json.loads(response.content)['error'])
+
+    @override_settings(LLM_BASE_URL=None)
+    @patch('budget.views.gemini_client', None)
+    def test_ai_not_configured(self):
+        """Without a Gemini key or LLM_BASE_URL the endpoint says it is not configured"""
+        self.client.login(username='aiuser', password='AI@123')
+        response = self.client.post(
+            self.ai_query_url,
+            json.dumps({'prompt': 'How can I save money?'}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 503)
+        self.assertIn('not configured', json.loads(response.content)['error'])
+
+    @override_settings(LLM_BASE_URL=None)
+    @patch('budget.views.gemini_client')
+    def test_empty_question(self, mock_client):
         """Test AI query with empty question"""
         # Login user
         self.client.login(username='aiuser', password='AI@123')
-        
+
         # Make AI query with empty question
         response = self.client.post(
             self.ai_query_url,
-            json.dumps({'question': ''}),
+            json.dumps({'prompt': ''}),
             content_type='application/json'
         )
         
         # Should return error
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.content)
-        self.assertIn('error', data) 
+        self.assertIn('error', data)
+        mock_client.models.generate_content_stream.assert_not_called() 
