@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from ..models import Category, Entry, EmailVerificationToken, ContactMessage, PasswordResetToken, Budget
+from .helpers import make_category
 from django.http import HttpRequest
 from django.middleware.csrf import get_token
 from unittest.mock import patch, MagicMock
@@ -40,12 +41,12 @@ class SecurityTest(TestCase):
         category1_name = f'Food_{test_method_name}'
         category2_name = f'Entertainment_{test_method_name}'
         
-        self.category1 = Category.objects.create(
+        self.category1 = make_category(
             name=category1_name,
             user=self.user1
         )
         
-        self.category2 = Category.objects.create(
+        self.category2 = make_category(
             name=category2_name,
             user=self.user2
         )
@@ -1024,12 +1025,12 @@ class APIEndpointSecurityTests(TestCase):
         )
         
         # Create category and entries for both users
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='ApiTestCategory',
             user=self.user
         )
         
-        self.other_category = Category.objects.create(
+        self.other_category = make_category(
             name='OtherApiCategory',
             user=self.other_user
         )
@@ -1100,7 +1101,7 @@ class XSSInputSanitizationTests(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Test Category',
             user=self.user
         )
@@ -1248,7 +1249,7 @@ class SQLInjectionPreventionTests(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='SQL Test Category',
             user=self.user
         )
@@ -1324,7 +1325,7 @@ class InputSanitizationTests(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Sanitize Test Category',
             user=self.user
         )
@@ -1627,7 +1628,7 @@ class AdvancedCSRFProtectionTests(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='CSRF Test Category',
             user=self.user
         )
@@ -1773,7 +1774,7 @@ class AdditionalTests(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Coverage Test Category',
             user=self.user
         )

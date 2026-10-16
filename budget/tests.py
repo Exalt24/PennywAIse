@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from .models import Category, Entry
+from .tests_suite.helpers import make_category
 from .forms import EntryForm, CategoryForm, LoginForm, RegisterForm
 
 # Import all tests from modularized test files
@@ -22,7 +23,7 @@ class CategoryModelTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
@@ -46,7 +47,7 @@ class EntryModelTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
@@ -92,7 +93,7 @@ class EntryFormTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
@@ -142,7 +143,7 @@ class EntryFormTest(TestCase):
             email='other@example.com',
             password='otherpass123'
         )
-        other_category = Category.objects.create(
+        other_category = make_category(
             name='Other Food',
             user=other_user
         )
@@ -227,7 +228,7 @@ class DashboardViewTest(TestCase):
         )
         
         # Create a test category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )

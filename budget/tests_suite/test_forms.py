@@ -7,6 +7,7 @@ from django.http import HttpRequest
 from django import forms
 from unittest.mock import patch, MagicMock, PropertyMock
 from ..models import Category, Entry, Budget, ContactMessage, PasswordResetToken
+from .helpers import make_category
 from ..forms import EntryForm, CategoryForm, LoginForm, RegisterForm, ContactForm, BudgetForm, ForgotPasswordForm, ResetPasswordForm
 from decimal import Decimal
 from datetime import timedelta, datetime
@@ -79,10 +80,10 @@ class CategoryFormTest(TestCase):
         )
         
         # Create a category for user1
-        cat1 = Category.objects.create(name='Shared Name', user=user1)
+        cat1 = make_category(name='Shared Name', user=user1)
         
         # Create an instance for user2 with different name initially
-        cat2 = Category.objects.create(name='Original Name', user=user2)
+        cat2 = make_category(name='Original Name', user=user2)
         
         # Now create a form to rename cat2 to the same name as cat1
         # This should be valid because they're different users
@@ -104,7 +105,7 @@ class EntryFormTest(TestCase):
         )
         # Use a unique name with UUID to avoid conflicts
         unique_name = f'Food-{uuid.uuid4()}'
-        self.category = Category.objects.create(
+        self.category = make_category(
             name=unique_name,
             user=self.user
         )
@@ -199,7 +200,7 @@ class EntryFormTest(TestCase):
             email='other@example.com',
             password='otherpass123'
         )
-        other_category = Category.objects.create(
+        other_category = make_category(
             name='Other Food',
             user=other_user
         )
@@ -553,7 +554,7 @@ class BudgetFormTest(TestCase):
             email='budget@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Budget Category',
             user=self.user
         )
@@ -594,7 +595,7 @@ class BudgetFormTest(TestCase):
             email='otherbudget@example.com',
             password='testpass123'
         )
-        other_category = Category.objects.create(
+        other_category = make_category(
             name='Other Budget Category',
             user=other_user
         )
@@ -624,7 +625,7 @@ class BudgetFormTest(TestCase):
         )
         
         # Create a second category and budget
-        cat2 = Category.objects.create(name='Second Category', user=self.user)
+        cat2 = make_category(name='Second Category', user=self.user)
         Budget.objects.create(
             user=self.user,
             category=cat2,
@@ -1059,7 +1060,7 @@ class EntryFormInitTest(TestCase):
             email='init@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Init Category',
             user=self.user
         )
@@ -1102,7 +1103,7 @@ class BudgetFormSimpleTest(TestCase):
             email='budget2@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Test Budget Category',
             user=self.user
         )
@@ -1175,7 +1176,7 @@ class BudgetFormSimpleTest(TestCase):
         )
         
         # Create another category
-        cat2 = Category.objects.create(name="Second Category", user=self.user)
+        cat2 = make_category(name="Second Category", user=self.user)
         
         # Create a budget for that category
         Budget.objects.create(

@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.db import transaction
 from ..models import Category, Entry, ContactMessage, EmailVerificationToken, Budget, PasswordResetToken
+from .helpers import make_category
 import uuid
 from datetime import timedelta
 from django.db import models
@@ -19,7 +20,7 @@ class CategoryModelTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
@@ -45,7 +46,7 @@ class CategoryModelTest(TestCase):
         )
         
         # Create category with different name
-        other_category = Category.objects.create(
+        other_category = make_category(
             name='Travel',
             user=other_user
         )
@@ -83,7 +84,7 @@ class CategoryModelTest(TestCase):
         )
         
         # This should work fine because it's for a different user
-        other_category = Category.objects.create(
+        other_category = make_category(
             name='Food',
             user=other_user
         )
@@ -113,15 +114,15 @@ class CategoryModelTest(TestCase):
     def test_category_ordering(self):
         """Test that categories are ordered by name"""
         # Create categories with names that should be ordered
-        category_b = Category.objects.create(
+        category_b = make_category(
             name='Beverages',
             user=self.user
         )
-        category_d = Category.objects.create(
+        category_d = make_category(
             name='Dining',
             user=self.user
         )
-        category_a = Category.objects.create(
+        category_a = make_category(
             name='Auto',
             user=self.user
         )
@@ -142,7 +143,7 @@ class EntryModelTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
@@ -305,7 +306,7 @@ class EntryModelTest(TestCase):
         self.assertEqual(different_date_entry.date, tomorrow)
         
         # Should be able to create entry with different category
-        other_category = Category.objects.create(
+        other_category = make_category(
             name='Other',
             user=self.user
         )
@@ -650,7 +651,7 @@ class BudgetModelTest(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
@@ -813,7 +814,7 @@ class ModelStrTests(TestCase):
         )
         
         # Create Category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='StrTestCategory',
             user=self.user
         )
@@ -908,7 +909,7 @@ class EntryQuerySetTests(TestCase):
             email='querytest@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='QueryTestFood',  # Use a unique category name
             user=self.user
         )
@@ -976,7 +977,7 @@ class BudgetCalculationTests(TestCase):
             email='budgettest@example.com',
             password='testpass123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='BudgetTestFood',  # Use a unique category name
             user=self.user
         )
@@ -1197,7 +1198,7 @@ class ModelMethodTests(TestCase):
         )
         
         # Create Category
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='MethodTestCategory',
             user=self.user
         )
@@ -1305,9 +1306,9 @@ class ModelRelationshipTests(TestCase):
         )
         
         # Create multiple categories
-        self.category1 = Category.objects.create(name='Category1', user=self.user)
-        self.category2 = Category.objects.create(name='Category2', user=self.user)
-        self.category3 = Category.objects.create(name='Category3', user=self.user)
+        self.category1 = make_category(name='Category1', user=self.user)
+        self.category2 = make_category(name='Category2', user=self.user)
+        self.category3 = make_category(name='Category3', user=self.user)
         
         # Create entries in different categories
         self.entry1 = Entry.objects.create(
@@ -1397,7 +1398,7 @@ class DecimalFieldTests(TestCase):
             password='testpass123'
         )
         
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='DecimalTestCategory',
             user=self.user
         )
@@ -1674,8 +1675,8 @@ class QuerySetTests(TestCase):
         )
         
         # Create multiple categories
-        self.food_category = Category.objects.create(name='Food', user=self.user)
-        self.transport_category = Category.objects.create(name='Transport', user=self.user)
+        self.food_category = make_category(name='Food', user=self.user)
+        self.transport_category = make_category(name='Transport', user=self.user)
         
         # Create entries across multiple dates
         self.today = timezone.now().date()

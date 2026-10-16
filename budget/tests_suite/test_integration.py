@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from ..models import Category, Entry, Budget, EmailVerificationToken, PasswordResetToken, ContactMessage
+from .helpers import make_category
 import json
 import uuid
 from unittest.mock import patch, MagicMock
@@ -233,7 +234,7 @@ class BudgetTrackerIntegrationTest(TestCase):
         self.client.login(username='testuser', password='Test@123')
         
         # Create category and entries
-        category = Category.objects.create(name="Test Category", user=self.user)
+        category = make_category(name="Test Category", user=self.user)
         today = timezone.now().date()
         
         Entry.objects.create(
@@ -288,7 +289,7 @@ class EntriesFilterTest(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(name="Test Category", user=self.user)
+        self.category = make_category(name="Test Category", user=self.user)
         
         # Create test entries
         Entry.objects.create(
@@ -412,7 +413,7 @@ class ReportsFilterTest(TestCase):
         )
         
         # Create a category
-        self.category = Category.objects.create(name="Test Category", user=self.user)
+        self.category = make_category(name="Test Category", user=self.user)
         
         # Create some entries
         Entry.objects.create(
@@ -500,7 +501,7 @@ class ReportsFilterTest(TestCase):
         self.client.login(username='reportuser', password='Report@123')
         
         # Create another category and entry
-        second_category = Category.objects.create(name="Another Category", user=self.user)
+        second_category = make_category(name="Another Category", user=self.user)
         Entry.objects.create(
             user=self.user,
             category=second_category,

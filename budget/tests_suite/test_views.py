@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
 from ..models import Category, Entry, ContactMessage
+from .helpers import make_category
 from ..forms import ContactForm
 
 User = get_user_model()
@@ -155,7 +156,7 @@ class DashboardViewTest(TestCase):
             email='test@example.com',
             password='Test@123'
         )
-        self.category = Category.objects.create(
+        self.category = make_category(
             name='Food',
             user=self.user
         )
