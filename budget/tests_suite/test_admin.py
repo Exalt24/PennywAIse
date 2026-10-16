@@ -13,7 +13,6 @@ User = get_user_model()
 class MockRequest:
     def __init__(self):
         self.session = {}
-        self._messages = FallbackStorage(None)
         class SimpleStorage:
             def __init__(self):
                 self.added = []
