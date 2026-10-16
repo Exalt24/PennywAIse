@@ -22,4 +22,6 @@ class TasksTestCase(TestCase):
         hits its except‐block and returns an error message.
         """
         result = purge_unactivated_users()
+        self.assertIn("Error purging unactivated users", result)
+        self.assertIn("simulated DB failure", result)
        

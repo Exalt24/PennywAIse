@@ -9,11 +9,15 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # Create test user
         if not User.objects.filter(username='testuser').exists():
-            user = User.objects.create_user(
-                username='testuser',
-                email='test@example.com',
-                password='password123'
-            )
+            try:
+                user = User.objects.create_user(
+                    username='testuser',
+                    email='test@example.com',
+                    password='password123'
+                )
+            except Exception as exc:
+                self.stderr.write(self.style.ERROR(f'Error creating test user: {exc}'))
+                return
             self.stdout.write(self.style.SUCCESS(f'Created test user: {user.username}'))
             self.stdout.write(self.style.SUCCESS(f'Default categories created via signal'))
         else:
