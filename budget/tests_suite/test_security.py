@@ -1193,18 +1193,29 @@ class XSSInputSanitizationTests(TestCase):
             'notes': 'Test notes'
         }
         response = self.client.post(self.dashboard_url, post_data)
-        
-        # Check if entry was created
-        self.assertEqual(Entry.objects.filter(user=self.user).count(), 1)
-        
+
+        # The form refuses a title that does not start with a letter, so nothing is created
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Entry.objects.filter(user=self.user).count(), 0)
+
+        # If the same text gets into the database some other way, the page escapes it
+        Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title=xss_payload,
+            amount=Decimal('100.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE,
+        )
+
         # View the dashboard
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
-        
+
         # The script tags should be escaped or removed
         content = response.content.decode('utf-8')
         self.assertNotIn('<script>alert("XSS")</script>', content)
-        
+
         # But the entry should still be visible in some form
         self.assertIn('&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;', content)
         
@@ -1285,7 +1296,7 @@ class MiddlewareSecurityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         
         # Check for X-Frame-Options header
-        self.assertIn('X-Frame-Options', response.get('X-Frame-Options', ''))
+        self.assertEqual(response.get('X-Frame-Options'), 'DENY')
         
         # Check for XSS protection headers if implemented
         # Not all applications will have these, so we're checking presence only
@@ -1354,6 +1365,16 @@ class SQLInjectionPreventionTests(TestCase):
         """Test SQL injection attempts in POST data"""
         # Try a SQL injection in various POST parameters
         sql_payload = "'; DROP TABLE budget_entry; --"
+
+        # An entry that must survive the attempt
+        Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Existing entry',
+            amount=Decimal('10.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE
+        )
         
         # In entry creation
         post_data = {
@@ -1370,14 +1391,10 @@ class SQLInjectionPreventionTests(TestCase):
         
         # Application should still function, Entry table should still exist
         self.assertIn(response.status_code, [200, 302])
-        self.assertTrue(Entry.objects.all().exists())
-        
-        # Verify no unintended entries were created
-        entries = Entry.objects.filter(user=self.user)
-        for entry in entries:
-            if entry.title == sql_payload:
-                # The payload was stored as a literal string, not executed
-                self.assertEqual(entry.title, sql_payload)
+        self.assertTrue(Entry.objects.filter(title='Existing entry').exists())
+
+        # The malformed amount, date, type and category are rejected, so nothing new was stored
+        self.assertEqual(Entry.objects.filter(user=self.user).count(), 1)
 
 class InputSanitizationTests(TestCase):
     """More comprehensive tests for input sanitization beyond XSS"""
@@ -1385,8 +1402,8 @@ class InputSanitizationTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.dashboard_url = reverse('budget:dashboard')
-        self.contact_url = reverse('budget:contact')
-        
+        self.contact_url = reverse('budget:index')
+
         # Create a test user
         self.user = User.objects.create_user(
             username='sanitize_test_user',
@@ -1494,45 +1511,49 @@ class InputSanitizationTests(TestCase):
         }
         
         response = self.client.post(self.dashboard_url, post_data)
-        
-        # Should truncate or reject properly without crashing
-        self.assertIn(response.status_code, [200, 302, 400])
-        
-        # If entry was created, check field handling
-        entry = Entry.objects.filter(title__startswith='a').first()
-        if entry:
-            # Title should be limited to model's max_length
-            self.assertLessEqual(len(entry.title), 100)
-            
-            # Notes might allow long text
-            if len(entry.notes) < 1000:
-                # Notes were truncated
-                self.assertLess(len(entry.notes), 1000)
-            else:
-                # Notes were stored in full
-                self.assertEqual(len(entry.notes), 1000)
+
+        # A 100 character title and 1000 character notes are over the limits (50 and 80), so the form rejects them
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Entry.objects.filter(title__startswith='a').exists())
+
+        # Input at the limits is accepted
+        post_data['title'] = 'a' * 50
+        post_data['notes'] = 'n' * 80
+        response = self.client.post(self.dashboard_url, post_data)
+        self.assertEqual(response.status_code, 302)
+        entry = Entry.objects.get(title='a' * 50)
+        self.assertEqual(len(entry.notes), 80)
     
     def test_contact_form_sanitization(self):
         """Test sanitization on the contact form"""
         post_data = {
+            'send-message': 'send',
             'name': '<script>alert("name")</script>',
             'email': 'test@example.com<script>alert("email")</script>',
             'subject': '<script>alert("subject")</script>',
             'message': '<script>alert("message")</script>'
         }
-        
-        # Submit the form
+
+        # An email with markup in it fails validation and nothing is stored
         response = self.client.post(self.contact_url, post_data)
-        
-        # Get the latest message
-        message = ContactMessage.objects.latest('created_at')
-        
-        # Script tags should not be executed when displayed
-        self.assertIn('&lt;script&gt;', message.name)
-        self.assertNotIn('<script>', message.name)
-        
-        # Email should be sanitized or validated
-        self.assertNotIn('<script>', message.email)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ContactMessage.objects.count(), 0)
+
+        # With a valid email the text is stored as typed and escaped when it is rendered
+        post_data['email'] = 'test@example.com'
+        response = self.client.post(self.contact_url, post_data)
+        self.assertRedirects(response, self.contact_url)
+        message = ContactMessage.objects.get()
+        self.assertEqual(message.name, '<script>alert("name")</script>')
+
+        admin_user = User.objects.create_superuser(
+            username='sanitize_admin', email='sanitize_admin@example.com', password='AdminPass123!'
+        )
+        self.client.login(username='sanitize_admin', password='AdminPass123!')
+        response = self.client.get(reverse('admin:budget_contactmessage_changelist'))
+        content = response.content.decode('utf-8')
+        self.assertNotIn('<script>alert("subject")', content)
+        self.assertIn('&lt;script&gt;alert(', content)
 
 class PasswordSecurityTests(TestCase):
     """Tests for password security features"""
@@ -1577,6 +1598,7 @@ class PasswordSecurityTests(TestCase):
             # User should not be created
             self.assertFalse(User.objects.filter(username=f'user_{password}').exists())
     
+    @unittest.skip("There is no profile page: the app has no password change view")
     def test_password_change_security(self):
         """Test security of password change functionality"""
         # Login the user
@@ -1618,67 +1640,72 @@ class PasswordSecurityTests(TestCase):
         login_success = self.client.login(username='password_test_user', password='StrongPass123!')
         self.assertTrue(login_success)
     
-    def test_password_reset_flow_security(self):
+    @patch('budget.views.EmailMultiAlternatives')
+    def test_password_reset_flow_security(self, mock_email):
         """Test complete password reset flow security"""
+        mock_email.return_value.send.return_value = 1
+
         # Request password reset
         forgot_password_url = reverse('budget:forgot_password')
         response = self.client.post(forgot_password_url, {
             'email': 'passwordtest@example.com'
         })
-        
+
         # Should redirect to auth page
         self.assertRedirects(response, self.auth_url)
-        
+
         # Check that token was created
-        token = EmailVerificationToken.objects.filter(
-            user=self.user, 
-            purpose=EmailVerificationToken.PASSWORD_RESET
-        ).first()
-        
+        token = PasswordResetToken.objects.filter(user=self.user, expired=False).first()
+
         self.assertIsNotNone(token)
-        
-        # Try to use an invalid token format
+
+        # An invalid token renders the page but marks the link as not valid
         reset_url = reverse('budget:reset_password', args=['invalid-token-format'])
         response = self.client.get(reset_url)
-        self.assertEqual(response.status_code, 404)  # Should not be found
-        
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['valid_token'])
+
         # Try to use the correct token
-        reset_url = reverse('budget:reset_password', args=[str(token.token)])
+        reset_url = reverse('budget:reset_password', args=[token.token])
         response = self.client.get(reset_url)
         self.assertEqual(response.status_code, 200)  # Should load the form
-        
+        self.assertTrue(response.context['valid_token'])
+
         # Reset with a strong password
         post_data = {
             'password1': 'NewSecurePass456!',
             'password2': 'NewSecurePass456!'
         }
-        
+
         response = self.client.post(reset_url, post_data)
-        
-        # Should redirect after successful reset
-        self.assertIn(response.status_code, [200, 302])
-        
-        # Check the token is now used
+
+        # The page reports the reset as complete
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['password_reset_complete'])
+
+        # Check the token is now expired
         token.refresh_from_db()
-        self.assertTrue(token.used)
-        
+        self.assertTrue(token.expired)
+
         # Verify new password works
+        self.client.logout()
         login_success = self.client.login(username='password_test_user', password='NewSecurePass456!')
         self.assertTrue(login_success)
-        
+
         # Try to reuse the token
         response = self.client.post(reset_url, {
             'password1': 'AnotherNewPass789!',
             'password2': 'AnotherNewPass789!'
         })
-        
-        # Should fail
-        self.assertEqual(response.status_code, 404)
-        
-        # Old token password should still work
+
+        # Should fail and send the user to ask for a new link
+        self.assertRedirects(response, reverse('budget:forgot_password'))
+
+        # The password from the first reset still works, the second was refused
         self.client.logout()
         login_success = self.client.login(username='password_test_user', password='NewSecurePass456!')
         self.assertTrue(login_success)
+        self.assertFalse(self.client.login(username='password_test_user', password='AnotherNewPass789!'))
 
 class AdvancedCSRFProtectionTests(TestCase):
     """Advanced tests for CSRF protection"""
@@ -1717,28 +1744,30 @@ class AdvancedCSRFProtectionTests(TestCase):
         
         # Set the session ID in the CSRF-checking client
         self.client.cookies['sessionid'] = session_id
+        self.client.cookies['csrftoken'] = csrf_token
         
-        # Try to access the entries filter endpoint without CSRF token
-        response = self.client.post(self.entries_filter_url, {
-            'start_date': '2023-01-01',
-            'end_date': '2023-12-31'
-        })
-        
-        # Should fail with CSRF error
+        # Try the state-changing endpoints without a CSRF token
+        ai_url = reverse('budget:ai-query')
+        response = self.client.post(self.dashboard_url, {'add-category': 'add', 'name': 'Travel'})
         self.assertEqual(response.status_code, 403)
-        
+        response = self.client.post(ai_url, '{"prompt": ""}', content_type='application/json')
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Category.objects.filter(user=self.user, name='Travel').exists())
+
         # Now try with a CSRF token
         response = self.client.post(
-            self.entries_filter_url,
-            {
-                'start_date': '2023-01-01',
-                'end_date': '2023-12-31'
-            },
+            self.dashboard_url,
+            {'add-category': 'add', 'name': 'Travel'},
             HTTP_X_CSRFTOKEN=csrf_token
         )
-        
-        # Should succeed
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Category.objects.filter(user=self.user, name='Travel').exists())
+
+        # The AI endpoint gets past the CSRF check too (an empty prompt is then a 400)
+        response = self.client.post(
+            ai_url, '{"prompt": ""}', content_type='application/json', HTTP_X_CSRFTOKEN=csrf_token
+        )
+        self.assertEqual(response.status_code, 400)
     
     def test_csrf_token_rotation(self):
         """Test that CSRF tokens are rotated appropriately"""
@@ -1918,41 +1947,50 @@ class AdditionalTests(TestCase):
         """Test various unauthorized access attempts"""
         # Login first to create a budget
         self.client.login(username='coverage_test_user', password='testpass123')
-        
-        # Create a budget
+
+        # Create a budget (the dashboard sets it for the current month)
         budget_data = {
+            'set-budget': 'set',
             'category': self.category.id,
             'amount': '500.00',
-            'month': timezone.now().date().replace(day=1).isoformat()
         }
-        
-        budget_url = reverse('budget:budgets')
-        response = self.client.post(budget_url, budget_data)
-        
+        response = self.client.post(self.dashboard_url, budget_data)
+
         # Get the budget ID
         budget = Budget.objects.filter(user=self.user).first()
         self.assertIsNotNone(budget)
-        
+
+        entry = Entry.objects.create(
+            user=self.user,
+            category=self.category,
+            title='Coverage entry',
+            amount=Decimal('5.00'),
+            date=timezone.now().date(),
+            type=Entry.EXPENSE
+        )
+
         # Logout
         self.client.logout()
-        
-        # Try to access various protected endpoints
+
+        # Try to access every protected endpoint
         protected_urls = [
             self.dashboard_url,
-            reverse('budget:entry_detail', args=[1]),  # Assuming ID 1 might exist
-            reverse('budget:budget', args=[budget.id]),
-            reverse('budget:profile'),
-            reverse('budget:reports')
+            f"{self.dashboard_url}?export=csv",
+            reverse('budget:entries-filter') + '?prefix=inc',
+            reverse('budget:reports-filter'),
+            reverse('budget:entry-data', args=[entry.id]),
         ]
-        
+
         for url in protected_urls:
             response = self.client.get(url)
             # Should redirect to login
-            self.assertIn(response.status_code, [302, 404])
-            
-            if response.status_code == 302:
-                self.assertTrue(response.url.startswith('/auth/'))
-    
+            self.assertEqual(response.status_code, 302, url)
+            self.assertTrue(response.url.startswith('/auth/'), url)
+
+        response = self.client.post(reverse('budget:ai-query'), '{"prompt": "hi"}', content_type='application/json')
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('/auth/'))
+
     def test_user_permissions_boundaries(self):
         """Test user permission boundaries more thoroughly"""
         # Create another user
@@ -1986,7 +2024,7 @@ class AdditionalTests(TestCase):
         self.client.login(username='other_coverage_user', password='testpass123')
         
         # Try to access the first user's entry
-        entry_url = reverse('budget:entry_detail', args=[entry.id])
+        entry_url = reverse('budget:entry-data', args=[entry.id])
         response = self.client.get(entry_url)
         
         # Should be denied
@@ -2003,7 +2041,7 @@ class AdditionalTests(TestCase):
         })
         
         # Should be denied
-        self.assertNotEqual(response.status_code, 302)  # Should not redirect on success
+        self.assertEqual(response.status_code, 404)
         
         # Make sure entry wasn't modified
         entry.refresh_from_db()
