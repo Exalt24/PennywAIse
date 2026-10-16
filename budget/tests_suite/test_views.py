@@ -1,9 +1,10 @@
+from django.core import mail
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal
-from ..models import Category, Entry, ContactMessage
+from ..models import Category, Entry, ContactMessage, EmailVerificationToken
 from .helpers import make_category
 from ..forms import ContactForm
 
@@ -92,7 +93,7 @@ class AuthViewTest(TestCase):
         """Test that auth page loads correctly"""
         response = self.client.get(self.auth_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'auth.html')
+        self.assertTemplateUsed(response, 'authentication/auth.html')
     
     def test_login_success(self):
         """Test successful login"""
@@ -113,7 +114,7 @@ class AuthViewTest(TestCase):
             'password': 'wrongpassword'
         })
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'auth.html')
+        self.assertTemplateUsed(response, 'authentication/auth.html')
         self.assertContains(response, "Invalid email or password")
         # Check that user is not logged in
         self.assertFalse(response.wsgi_request.user.is_authenticated)
@@ -127,10 +128,15 @@ class AuthViewTest(TestCase):
             'password1': 'New@123456',
             'password2': 'New@123456'
         })
-        self.assertRedirects(response, self.dashboard_url)
-        self.assertTrue(User.objects.filter(email='new@example.com').exists())
-        # Check that user is logged in
-        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        # Registration redirects to the auth page and the account stays inactive until the emailed link is used
+        self.assertRedirects(response, self.auth_url)
+        new_user = User.objects.get(email='new@example.com')
+        self.assertFalse(new_user.is_active)
+        self.assertTrue(EmailVerificationToken.objects.filter(user=new_user, used=False).exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['new@example.com'])
+        # Not logged in until the link is used
+        self.assertNotIn('_auth_user_id', self.client.session)
     
     def test_register_duplicate_email(self):
         """Test registration with duplicate email"""
@@ -142,7 +148,7 @@ class AuthViewTest(TestCase):
             'password2': 'Test@123456'
         })
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'auth.html')
+        self.assertTemplateUsed(response, 'authentication/auth.html')
         self.assertContains(response, "email address is already in use")
         # Check that user is not logged in
         self.assertFalse(response.wsgi_request.user.is_authenticated)
@@ -192,7 +198,7 @@ class DashboardViewTest(TestCase):
         """Test that dashboard provides the correct context data"""
         response = self.client.get(self.dashboard_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'dashboard.html')
+        self.assertTemplateUsed(response, 'main/dashboard.html')
         
         # Check context data
         self.assertEqual(response.context['income_total'], Decimal('1000.00'))
@@ -206,14 +212,15 @@ class DashboardViewTest(TestCase):
         
         # Check that entries and categories are filtered by user
         self.assertEqual(len(response.context['recent_transactions']), 2)
-        self.assertEqual(len(response.context['user_categories']), 1)
+        # Food plus the other four categories the signal creates for every new user
+        self.assertEqual(len(response.context['user_categories']), 5)
     
     def test_add_category(self):
         """Test adding a new category"""
         # Create a post request with category data
         response = self.client.post(self.dashboard_url, {
             'add-category': 'true',
-            'name': 'Entertainment',
+            'name': 'Travel',
         })
         
         # Check the redirect (note: redirects to tab anchor)
@@ -221,8 +228,17 @@ class DashboardViewTest(TestCase):
         self.assertRedirects(response, redirect_url, fetch_redirect_response=False)
         
         # Check that the category was created
-        self.assertTrue(Category.objects.filter(user=self.user, name='Entertainment').exists())
+        self.assertTrue(Category.objects.filter(user=self.user, name='Travel').exists())
     
+    def test_add_category_duplicate_of_default_is_refused(self):
+        """Entertainment is created by the signal, so adding it again is rejected"""
+        response = self.client.post(self.dashboard_url, {
+            'add-category': 'true',
+            'name': 'Entertainment',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Category.objects.filter(user=self.user, name='Entertainment').count(), 1)
+
     def test_add_entry(self):
         """Test adding a new entry"""
         # Create a post request with entry data
