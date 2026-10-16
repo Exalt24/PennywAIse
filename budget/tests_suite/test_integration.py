@@ -790,6 +790,25 @@ class AIQueryTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    @override_settings(LLM_BASE_URL=None)
+    @patch('budget.views.gemini_client')
+    def test_ai_non_client_error_is_json(self, mock_client):
+        """A network or server-side failure (not a ClientError) was an uncaught HTML 500"""
+        mock_client.models.generate_content_stream.side_effect = ConnectionError("socket closed")
+        self.client.login(username='aiuser', password='AI@123')
+
+        with self.assertLogs('budget.views', level='ERROR'):  # the failure is logged, not shown
+            response = self.client.post(
+                self.ai_query_url,
+                json.dumps({'prompt': 'How can I save money?'}),
+                content_type='application/json'
+            )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertIn('error', response.json())
+        self.assertNotIn('socket closed', response.content.decode())
+
     def test_unauthorized_access(self):
         """Test unauthorized access to AI endpoint"""
         # Try without login

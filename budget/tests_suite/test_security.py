@@ -1,5 +1,5 @@
-import unittest
 from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -18,6 +18,7 @@ User = get_user_model()
 
 class SecurityTest(TestCase):
     def setUp(self):
+        cache.clear()  # failed-login counters live in the cache
         self.client = Client()
         self.dashboard_url = reverse('budget:dashboard')
         self.auth_url = reverse('budget:auth')
@@ -473,7 +474,6 @@ class SecurityTest(TestCase):
         other_url = reverse('budget:entry-data', args=[self.entry2.id])
         self.assertEqual(self.client.get(other_url).status_code, 404)
     
-    @unittest.skip("Account lockout is not implemented: failed logins are not counted")
     def test_account_lockout(self):
         """Test that account lockout works after multiple failed login attempts"""
         # Try wrong password 5 times
@@ -907,59 +907,25 @@ class SecurityTest(TestCase):
         for entry in response.context['report_entries']:
             self.assertEqual(entry.user, self.user1)
 
-    @unittest.skip("There is no profile page: the app has no password change or username change view")
-    def test_profile_security(self):
-        """Test profile feature security"""
-        profile_url = reverse('budget:profile')
-        
-        # Try without login
-        response = self.client.get(profile_url)
-        # Should redirect to login
-        self.assertRedirects(response, f'/auth/?next={profile_url}')
-        
-        # Login as user1
+    def test_no_account_edit_route_for_signed_in_users(self):
+        """There is no profile page, so a signed-in POST cannot rename or re-password an account"""
         self.client.login(username='user1', password='User1@123')
-        
-        # Access profile
-        response = self.client.get(profile_url)
-        self.assertEqual(response.status_code, 200)
-        
-        # Test changing password
-        response = self.client.post(profile_url, {
+
+        response = self.client.post(self.dashboard_url, {
+            'username': 'hijacked',
             'old_password': 'User1@123',
             'new_password1': 'NewUserPass456!',
-            'new_password2': 'NewUserPass456!'
+            'new_password2': 'NewUserPass456!',
         })
-        
-        # Should be successful
-        self.assertIn(response.status_code, [200, 302])
-        
-        # Verify we can login with new password
-        self.client.logout()
-        login_success = self.client.login(username='user1', password='NewUserPass456!')
-        self.assertTrue(login_success)
-        
-        # Test changing username
-        response = self.client.post(profile_url, {
-            'username': 'user1_updated'
-        })
-        
-        # Should be successful
-        self.assertIn(response.status_code, [200, 302])
-        
-        # Verify username was changed
+        # A POST that names no known action is a 400 (it used to be an unhandled 500)
+        self.assertEqual(response.status_code, 400)
+
         self.user1.refresh_from_db()
-        self.assertEqual(self.user1.username, 'user1_updated')
-        
-        # Try changing to an existing username
-        response = self.client.post(profile_url, {
-            'username': 'user2'  # Already exists
-        })
-        
-        # Should fail
-        self.user1.refresh_from_db()
-        self.assertNotEqual(self.user1.username, 'user2')
-    
+        self.assertEqual(self.user1.username, 'user1')
+        self.assertTrue(self.user1.check_password('User1@123'))
+        self.user2.refresh_from_db()
+        self.assertEqual(self.user2.username, 'user2')
+
     def test_error_handling_security(self):
         """Test that errors are handled securely without revealing sensitive information"""
         # Login as user1
@@ -1598,48 +1564,23 @@ class PasswordSecurityTests(TestCase):
             # User should not be created
             self.assertFalse(User.objects.filter(username=f'user_{password}').exists())
     
-    @unittest.skip("There is no profile page: the app has no password change view")
     def test_password_change_security(self):
-        """Test security of password change functionality"""
-        # Login the user
-        self.client.login(username='password_test_user', password='StrongPass123!')
-        
-        # Try to change password to a weak one
-        profile_url = reverse('budget:profile')
-        post_data = {
-            'old_password': 'StrongPass123!',
-            'new_password1': 'password',  # Too common
-            'new_password2': 'password'
-        }
-        
-        response = self.client.post(profile_url, post_data)
-        
-        # Should fail and password shouldn't change
-        self.assertEqual(response.status_code, 200)
-        
-        # Verify old password still works
-        self.client.logout()
-        login_success = self.client.login(username='password_test_user', password='StrongPass123!')
-        self.assertTrue(login_success)
-        
-        # Try changing to a password that doesn't match confirmation
-        self.client.login(username='password_test_user', password='StrongPass123!')
-        post_data = {
-            'old_password': 'StrongPass123!',
-            'new_password1': 'NewStrongPass123!',
-            'new_password2': 'DifferentPass456!'  # Different confirmation
-        }
-        
-        response = self.client.post(profile_url, post_data)
-        
-        # Should fail and password shouldn't change
-        self.assertEqual(response.status_code, 200)
-        
-        # Verify old password still works
-        self.client.logout()
-        login_success = self.client.login(username='password_test_user', password='StrongPass123!')
-        self.assertTrue(login_success)
-    
+        """The only password change is the reset link: weak or mismatched passwords are refused"""
+        token = PasswordResetToken.objects.create(user=self.user, token='pw-change-token')
+        reset_url = reverse('budget:reset_password', args=[token.token])
+
+        for new1, new2 in [('password', 'password'),                     # too weak
+                           ('NewStrongPass123!', 'DifferentPass456!')]:  # does not match
+            response = self.client.post(reset_url, {'password1': new1, 'password2': new2})
+
+            # Stays on the form, nothing changes, the token is still usable
+            self.assertEqual(response.status_code, 200)
+            self.assertFalse(response.context['reset_password_form'].is_valid())
+            self.user.refresh_from_db()
+            self.assertTrue(self.user.check_password('StrongPass123!'))
+            token.refresh_from_db()
+            self.assertFalse(token.expired)
+
     @patch('budget.views.EmailMultiAlternatives')
     def test_password_reset_flow_security(self, mock_email):
         """Test complete password reset flow security"""
@@ -2046,3 +1987,48 @@ class AdditionalTests(TestCase):
         # Make sure entry wasn't modified
         entry.refresh_from_db()
         self.assertEqual(entry.title, 'User 1 Entry') 
+
+
+class LoginLockoutTest(TestCase):
+    """Five wrong passwords lock one email for 15 minutes; a correct login clears the count."""
+
+    def setUp(self):
+        cache.clear()
+        self.client = Client()
+        self.auth_url = reverse('budget:auth')
+        self.user = User.objects.create_user(username='lockuser', email='lock@example.com', password='Lock@1234')
+
+    def tearDown(self):
+        cache.clear()
+
+    def _login(self, password, email='lock@example.com'):
+        return self.client.post(self.auth_url, {
+            'login-submit': 'login', 'email': email, 'password': password,
+        })
+
+    def test_success_before_the_limit_resets_the_counter(self):
+        for _ in range(4):
+            self.assertContains(self._login('wrong-password'), 'Invalid email or password')
+        self.assertEqual(self._login('Lock@1234').status_code, 302)
+        self.client.logout()
+
+        # The four earlier failures no longer count: four more still leave the account open.
+        for _ in range(4):
+            self.assertContains(self._login('wrong-password'), 'Invalid email or password')
+        self.assertEqual(self._login('Lock@1234').status_code, 302)
+
+    def test_fifth_failure_locks_and_the_lock_hides_the_right_password(self):
+        for _ in range(5):
+            self._login('wrong-password')
+        response = self._login('Lock@1234')
+        self.assertContains(response, 'Too many failed login attempts')
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_the_lock_is_per_email_and_case_insensitive(self):
+        for _ in range(5):
+            self._login('wrong-password', email='LOCK@example.com')
+        self.assertContains(self._login('Lock@1234'), 'Too many failed login attempts')
+
+        User.objects.create_user(username='freeuser', email='free@example.com', password='Free@1234')
+        response = self._login('Free@1234', email='free@example.com')
+        self.assertEqual(response.status_code, 302)

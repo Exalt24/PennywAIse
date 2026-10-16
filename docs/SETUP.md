@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Python 3.8 or newer (Django 5.2; run here on Python 3.13), Node.js 18 or newer and npm, and internet access in the browser, because Chart.js and marked load from the jsDelivr CDN.
+Python 3.10 or newer (Django 5.2 needs it; CI and the author's machine run Python 3.13), Node.js 18 or newer and npm, and internet access in the browser, because Chart.js and marked load from the jsDelivr CDN.
 
 ## Steps
 
@@ -44,7 +44,7 @@ The app is at http://127.0.0.1:8000/ with Tailwind rebuilding on change. The fir
 
 ## Authentication details
 
-Registration sends an emailed verification link and the account stays inactive until it is used. A daily job removes accounts left unverified for 48 hours while the dev server is running. Login is by email, and a password reset link is valid for 24 hours. Passwords use Django's default hashing. The dashboard, the entry and report filter endpoints and the AI endpoint require a signed-in user, and every query is filtered to that user's own records.
+Registration sends an emailed verification link and the account stays inactive until it is used. A daily job removes accounts left unverified for 48 hours while the dev server is running. Login is by email, five wrong passwords for one email lock that login for 15 minutes (a correct login clears the count), and a password reset link is valid for 24 hours and is refused for an account that has not been verified. Passwords use Django's default hashing. The dashboard, the entry and report filter endpoints and the AI endpoint require a signed-in user, and every query is filtered to that user's own records.
 
 ## AI assistant
 

@@ -318,6 +318,11 @@ class DashboardViewTest(TestCase):
         # Verify the entry was deleted
         self.assertFalse(Entry.objects.filter(id=entry.id).exists())
     
+    def test_post_without_a_known_action_is_a_400(self):
+        """A dashboard POST naming no action used to reach TemplateView's missing post() and 500"""
+        response = self.client.post(self.dashboard_url, {'unrelated': 'field'})
+        self.assertEqual(response.status_code, 400)
+
     def test_edit_nonexistent_entry(self):
         """Test attempting to edit a nonexistent entry"""
         response = self.client.get(f"{self.dashboard_url}?edit=9999")  # Assume ID 9999 doesn't exist

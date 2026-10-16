@@ -8,7 +8,7 @@ from .models import Category, Entry, Budget, EmailVerificationToken, PasswordRes
 from django.db.models import Sum, Count, Q, Avg
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dateutil.relativedelta import relativedelta
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 import csv
 from django.contrib import messages
 import secrets
@@ -18,8 +18,10 @@ from django.template.loader import render_to_string
 from django.views import View
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.core.cache import cache
 from django.http import JsonResponse
 import json
+import logging
 import urllib.error
 import urllib.request
 from google import genai
@@ -40,6 +42,12 @@ gemini_client = (
 )
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+# After this many wrong passwords for one email the login is refused for LOGIN_LOCKOUT_SECONDS.
+# The counter lives in Django's cache, so with the default local-memory cache it is per server process.
+LOGIN_MAX_FAILURES = 5
+LOGIN_LOCKOUT_SECONDS = 15 * 60
 
 def _clean_date(value):
     """A date from a query string, or None when it is missing or not a real YYYY-MM-DD date."""
@@ -423,7 +431,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             messages.success(request, "Category deleted successfully.")
             return redirect(f"{base}#{tab}")
 
-        return super().post(request, *args, **kwargs)
+        # TemplateView has no post(), so a POST that names no known action used to
+        # fall through to an AttributeError and a 500.
+        return HttpResponseBadRequest("Unknown action.")
 
 class AuthView(TemplateView):
     template_name = "authentication/auth.html"
@@ -444,6 +454,15 @@ class AuthView(TemplateView):
             if login_form.is_valid():
                 email = login_form.cleaned_data['email']
                 password = login_form.cleaned_data['password']
+                fail_key = 'login-failures:' + email.lower()
+
+                if cache.get(fail_key, 0) >= LOGIN_MAX_FAILURES:
+                    context['login_error'] = (
+                        "Too many failed login attempts. Please try again in "
+                        f"{LOGIN_LOCKOUT_SECONDS // 60} minutes."
+                    )
+                    return self.render_to_response(context)
+
                 try:
                     user_obj = User.objects.get(email__iexact=email)
                     user = authenticate(request, username=user_obj.username, password=password)
@@ -451,9 +470,17 @@ class AuthView(TemplateView):
                     user = None
 
                 if user:
+                    cache.delete(fail_key)
                     login(request, user)
                     messages.success(request, "Welcome back to PennywAIse, " + user.username + "!")
                     return redirect('budget:dashboard')
+
+                # add() only sets the key (and the 15 minute window) on the first failure
+                cache.add(fail_key, 0, LOGIN_LOCKOUT_SECONDS)
+                try:
+                    cache.incr(fail_key)
+                except ValueError:
+                    cache.set(fail_key, 1, LOGIN_LOCKOUT_SECONDS)
                 context['login_error'] = "Invalid email or password."
 
         elif 'register-submit' in request.POST:
@@ -775,9 +802,12 @@ Always be polite, accurate, and to the point.
                 return JsonResponse({
                     'error': 'AI service is temporarily unavailable due to quota limits. Please try again in a minute.'
                 }, status=503)
-            else:
-                return JsonResponse({'error': 'An error occurred while processing your request. Please try again later.'}, status=500)
-            raise   
+            return JsonResponse({'error': 'An error occurred while processing your request. Please try again later.'}, status=500)
+        except Exception:
+            # Network failures and server-side errors from the SDK are not ClientErrors,
+            # and the page expects JSON either way, so never let them surface as an HTML 500.
+            logger.exception("Gemini request failed")
+            return JsonResponse({'error': 'An error occurred while processing your request. Please try again later.'}, status=500)
 
         full_answer = "".join(answer_fragments).strip()
         return JsonResponse({'answer': full_answer})
