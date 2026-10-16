@@ -8,9 +8,13 @@ Django budgeting dashboard: log income and expenses, see where the money went, a
 
 ## My part
 
-A three-person university project. By author name, 92 of the 139 commits are mine (85 under my name, 7 under my GitHub login). I built authentication, the email workflows (verification link, password reset), models and the Tailwind integration. Amielle Jaezxier Perez built the testing framework, models and business logic and frontend UI. Nikka Joie Mendoza built frontend UI and refinement and the Tailwind integration.
+A three-person university project, written between 26 April and 3 May 2025. By author name, 93 of the 140 commits are mine (85 under my name, 8 under my GitHub login), 39 are Nikka Joie Mendoza's, 5 are Amielle Jaezxier Perez's and 3 are Dependabot's. What the history shows each of us touching:
 
-**Proof:** a six-month trend, category breakdown and month-end projection on the dashboard; the test suite has 273 tests, of which 170 pass and 103 fail (details under Tests).
+- **Me:** the project setup and Tailwind build, login and register, email verification and password reset, the daily cleanup job for unverified accounts, per-user default categories, entry create, edit and delete, budgets, CSV export, the Chart.js dashboard with the month-end projection, the AI assistant page and most of the changes to `budget/views.py` and `budget/models.py`.
+- **Nikka:** page templates and styling under `budget/templates/main` and `budget/static`: the home page design, login and register layout, sidebar, header and profile dropdown, dashboard cards, filters, pagination look, mobile responsiveness and the floating AI chat button.
+- **Amielle:** the test files `budget/test_*.py` and `budget/README_TESTS.md` (two commits, 28 and 29 April), plus two commits on 1 May that comment out and restore the Gemini client setup in `budget/views.py`.
+
+**Proof:** a six-month trend, category breakdown and month-end projection on the dashboard, shown in the recording above on seeded sample data.
 
 There is no hosted demo: the free-tier host suspended the original deployment in October 2026.
 
@@ -22,12 +26,12 @@ You record income and expenses by category and the dashboard shows monthly total
 
 - **Auth that cannot be skipped.** An account stays inactive until its emailed verification link is used, a daily job removes accounts left unverified for 48 hours (while the dev server runs), and every query is filtered to the signed-in user's own records. Without Gmail credentials the emails print to the server terminal, so registration still works locally.
 - **An assistant that does not know your numbers.** It only forwards your question to the model and does not read your transactions or budgets, so I did not claim personalised advice. It talks to Gemini by default or to any OpenAI-compatible server through `LLM_BASE_URL` and `LLM_MODEL`; the recording used a local Ollama.
-- **Honest security.** Passwords use Django's default hashing and nothing else is encrypted at field level; the README says so rather than claiming more.
+- **Security.** Passwords use Django's default hashing and nothing else is encrypted at field level.
 
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     B["Browser<br/>Tailwind, Chart.js"] --> V["Django views<br/>budget app"]
     V --> DB[("SQLite")]
     V --> E["Email: Gmail,<br/>or the server terminal"]
@@ -57,7 +61,7 @@ I ran it on 2026-10-17: 273 tests, 170 pass and 103 fail or error (28 failures, 
 
 ## Limits and not done
 
-- 103 of the 273 tests are stale and fail.
+- The test suite is stale (see Tests).
 - The assistant answers general questions only and cannot discuss your own transactions.
 - Reminders, alerts and notifications do not exist; over-budget is shown in red only.
 - The default Gemini model id in `budget/views.py` is an old preview, and the Gemini path was not exercised for the recording.
