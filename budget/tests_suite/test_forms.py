@@ -1318,7 +1318,7 @@ class MiscTestCoverageTest(TestCase):
         """Test RegisterForm username validation"""
         # Test with invalid username format
         form = RegisterForm(data={
-            'username': 'user@name',  # @ not allowed in username
+            'username': 'user name',  # a space is not allowed in a username
             'email': 'valid@example.com',
             'password1': 'ValidPass1@',
             'password2': 'ValidPass1@'

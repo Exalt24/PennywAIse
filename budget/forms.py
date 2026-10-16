@@ -378,6 +378,12 @@ class ForgotPasswordForm(forms.Form):
         except User.DoesNotExist:
             raise forms.ValidationError("No account is registered with this email.")
 
+        if not user.is_active:
+            raise forms.ValidationError(
+                "Your account isn’t activated yet. "
+                "Please check your email for the verification link."
+            )
+
         cutoff = timezone.now() - timezone.timedelta(hours=24)
         existing = PasswordResetToken.objects.filter(
             user=user,
