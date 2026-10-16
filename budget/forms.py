@@ -62,7 +62,7 @@ class EntryForm(forms.ModelForm):
                     code='duplicate_entry',
                     params={
                         'cat':      category.name,
-                        'date':     date.strftime("%b %-d, %Y"),
+                        'date':     f"{date:%b} {date.day}, {date:%Y}",
                         'title':    title.strip(),
                     }
                 )
