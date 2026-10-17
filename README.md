@@ -45,7 +45,7 @@ flowchart TD
 
 ```bash
 git clone https://github.com/Exalt24/PennywAIse.git && cd PennywAIse
-printf 'SECRET_KEY=local-dev-key\nDEBUG=True\n' > .env
+printf 'SECRET_KEY=local-dev-key\nDEBUG=True\n' > .env     # PowerShell: create .env by hand with those two lines
 npm install && pip install -r requirements.txt && python manage.py migrate
 python manage.py create_test_accounts     # log in with test@example.com / password123
 npm run dev                               # http://127.0.0.1:8000/
