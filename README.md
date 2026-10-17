@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Exalt24/PennywAIse/actions/workflows/ci.yml/badge.svg)](https://github.com/Exalt24/PennywAIse/actions/workflows/ci.yml)
 
-Django budgeting dashboard: log income and expenses, see where the money went, and ask an AI assistant general finance questions.
+Django budgeting dashboard: log spending, see monthly totals and ask an AI assistant general finance questions.
 
 ![PennywAIse demo: log in, add an expense, set budgets, watch the dashboard update, ask the AI assistant](docs/demo.gif)
 
