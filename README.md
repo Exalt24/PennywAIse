@@ -16,7 +16,7 @@ A three-person university project, written between 26 April and 3 May 2025. Of t
 - **Nikka:** page templates and styling under `budget/templates/main` and `budget/static`: the home page design, login and register layout, sidebar, header and profile dropdown, dashboard cards, filters, pagination look, mobile responsiveness and the floating AI chat button.
 - **Amielle:** the test files `budget/test_*.py` and `budget/README_TESTS.md` (two commits, 28 and 29 April), plus two commits on 1 May that comment out and restore the Gemini client setup in `budget/views.py`.
 
-**Proof:** 303 tests pass in CI on every push (the badge above is that run: 303 tests, OK, in 77 seconds), and the dashboard shows a six-month trend, a category breakdown and a month-end projection, as in the recording on seeded sample data.
+**Proof:** 303 tests pass in CI on every push (the badge above is that run: 303 tests, OK), and the dashboard shows a six-month trend, a category breakdown and a month-end projection, as in the recording on seeded sample data.
 
 There is no hosted demo: the free-tier host suspended the original deployment in October 2026.
 
