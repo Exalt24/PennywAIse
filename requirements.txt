@@ -8,4 +8,4 @@ django-cors-headers>=3.14.0
 django-debug-toolbar>=3.7
 python-dotenv>=1.2.4
 django-apscheduler>=0.7.0
-google-genai>=1.12.1
+google-genai>=2.31.0
