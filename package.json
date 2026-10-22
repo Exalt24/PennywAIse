@@ -9,6 +9,6 @@
     "dev": "concurrently --kill-others-on-fail --prefix-colors \"bgBlue.bold,bgGreen.bold\" -r \"python manage.py runserver\" \"npm run watch:css\""
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^10.0.6"
   }
 }
