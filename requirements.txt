@@ -1,6 +1,6 @@
 Django>=6.1.2,<6.2
 gunicorn>=20.1
-psycopg2-binary>=2.9
+psycopg2-binary>=2.9.13
 python-dateutil>=2.9.0.post0
 whitenoise>=6.5
 django-browser-reload>=1.21.0
